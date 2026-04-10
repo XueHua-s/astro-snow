@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run typecheck)",
+      "Bash(pnpm run format:check)",
+      "Bash(pnpm check)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:watch)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

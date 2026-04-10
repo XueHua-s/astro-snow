@@ -11,10 +11,10 @@ describe('about markdown content', () => {
     const { content } = matter(source);
     const html = await renderMarkdown(content);
 
-    expect(html).toContain('<h2>Github</h2>');
+    expect(html).toContain('<h2>Skills</h2>');
     expect(html).toContain('<h2>📊 GitHub Stats</h2>');
     expect(html).toContain('<h2>🧠 Top Languages</h2>');
-    expect(html).toContain('<h2>📌 Featured Repositories</h2>');
+    expect(html).toContain('<h2>📌 Participation in projects</h2>');
 
     const repoCardMatches =
       html.match(/https:\/\/github-readme\.xhblog\.top\/api\/pin\?/g) ?? [];

@@ -35,4 +35,4 @@ dist/
 *.local
 .vercel
 .codex/
-.claude/
+test-results/

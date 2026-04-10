@@ -47,9 +47,9 @@ test.describe('Blog e2e regression suite', () => {
     });
     expect(response?.status()).toBe(200);
 
-    await expect(page.getByRole('heading', { name: 'Github' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Skills' })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: '📌 Featured Repositories' }),
+      page.getByRole('heading', { name: '📌 Participation in projects' }),
     ).toBeVisible();
 
     await expect

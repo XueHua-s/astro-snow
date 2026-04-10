@@ -3,3 +3,4 @@ dist
 .astro
 logs
 public
+test-results

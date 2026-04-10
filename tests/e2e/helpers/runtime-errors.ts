@@ -5,6 +5,12 @@ const NOISY_CONSOLE_PATTERNS = [
   /giscus/i,
   /cdn\.jsdelivr\.net/i,
   /Error while running audit's match function: TypeError: Failed to fetch/i,
+  /pagefind\/pagefind\.js/i, // pagefind index unavailable in dev mode
+];
+
+/** Known page errors from third-party libraries in dev mode */
+const KNOWN_PAGE_ERROR_PATTERNS = [
+  /Cannot read properties of undefined \(reading 'options'\)/i, // pagefind dev mode
 ];
 
 export function setupRuntimeErrorCollector(page: Page) {
@@ -12,7 +18,12 @@ export function setupRuntimeErrorCollector(page: Page) {
   const consoleErrors: string[] = [];
 
   page.on('pageerror', (error) => {
-    pageErrors.push(error.message);
+    const isKnown = KNOWN_PAGE_ERROR_PATTERNS.some((pattern) =>
+      pattern.test(error.message),
+    );
+    if (!isKnown) {
+      pageErrors.push(error.message);
+    }
   });
 
   page.on('console', (msg) => {
