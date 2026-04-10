@@ -15,6 +15,13 @@ export const homePageLinks = {
   bilibiliUrl: 'https://space.bilibili.com/158525031',
 };
 
+export const homePageMusic = {
+  /** 网易云音乐外链播放器 URL */
+  src: '//music.163.com/outchain/player?type=2&id=28283665&auto=1&height=66',
+  /** iframe 尺寸 */
+  size: 86,
+};
+
 export async function getHomePageProfile() {
   const { getBackgroundImages } = await import('@lib/backgrounds');
   const backgroundImages = await getBackgroundImages();

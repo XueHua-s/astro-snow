@@ -54,7 +54,7 @@ export default function Footer({ className, stats }: Props) {
         </div>
 
         <div className="text-muted-foreground flex items-center gap-0.5 text-sm">
-          <span className="opacity-75">Â©</span>
+          <span className="opacity-75">©</span>
           <span className="font-medium opacity-75">{startYear}</span>
           {startYear !== currentYear && (
             <>

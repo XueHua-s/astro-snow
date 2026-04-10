@@ -77,13 +77,13 @@ function handleImageClick(e: Event): void {
   }
 }
 
-export function enhanceImages(container: Element): void {
+export function enhanceImages(container: Element, signal?: AbortSignal): void {
   const images =
     container.querySelectorAll<HTMLImageElement>('.markdown-image');
   let loadedCount = 0;
   const totalImages = images.length;
 
-  container.addEventListener('click', handleImageClick);
+  container.addEventListener('click', handleImageClick, { signal });
 
   const checkAllLoaded = () => {
     loadedCount++;

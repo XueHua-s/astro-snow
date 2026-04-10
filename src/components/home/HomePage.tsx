@@ -1,5 +1,62 @@
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { homePageLinks, homePageProfile } from '../../config/homePageConfig';
+import {
+  homePageLinks,
+  homePageMusic,
+  homePageProfile,
+} from '../../config/homePageConfig';
+
+interface SocialButton {
+  href: string;
+  gradient: string;
+  shadow: string;
+  icon: string;
+  label: string;
+  external?: boolean;
+}
+
+function getSocialButtons(links: typeof homePageLinks): SocialButton[] {
+  return [
+    {
+      href: links.bilibiliUrl,
+      gradient: 'from-[#00a1d6] to-[#0086b3]',
+      shadow: 'shadow-[0_4px_10px_rgba(0,161,214,0.35)]',
+      icon: 'fa-brands fa-bilibili',
+      label: '哔哩哔哩',
+      external: true,
+    },
+    {
+      href: links.telegramUrl,
+      gradient: 'from-[#229ed9] to-[#1b84b4]',
+      shadow: 'shadow-[0_4px_10px_rgba(34,158,217,0.35)]',
+      icon: 'fa-brands fa-telegram',
+      label: 'Telegram',
+      external: true,
+    },
+    {
+      href: links.xUrl,
+      gradient: 'from-[#111111] to-[#2a2a2a]',
+      shadow: 'shadow-[0_4px_10px_rgba(17,17,17,0.3)]',
+      icon: 'fa-brands fa-x-twitter',
+      label: 'X',
+      external: true,
+    },
+    {
+      href: links.githubUrl,
+      gradient: 'from-[#24292e] to-[#1f2327]',
+      shadow: 'shadow-[0_4px_10px_rgba(36,41,46,0.3)]',
+      icon: 'fa-brands fa-github',
+      label: 'GitHub',
+      external: true,
+    },
+    {
+      href: '/blog',
+      gradient: 'from-[#ff7aa2] to-[#ff4f87]',
+      shadow: 'shadow-[0_4px_10px_rgba(255,79,135,0.3)]',
+      icon: 'fa-solid fa-pen-nib',
+      label: '进入博客',
+    },
+  ];
+}
 
 interface HomePageProps {
   profile?: typeof homePageProfile;
@@ -44,59 +101,20 @@ const HomePage = ({
             </div>
 
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <a
-                className="flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r from-[#00a1d6] to-[#0086b3] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_10px_rgba(0,161,214,0.35)] transition hover:-translate-y-0.5"
-                href={links.bilibiliUrl}
-                target="_blank"
-                rel="noreferrer">
-                <i
-                  className="fa-brands fa-bilibili text-base"
-                  aria-hidden="true"
-                />
-                哔哩哔哩
-              </a>
-              <a
-                className="flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r from-[#229ed9] to-[#1b84b4] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_10px_rgba(34,158,217,0.35)] transition hover:-translate-y-0.5"
-                href={links.telegramUrl}
-                target="_blank"
-                rel="noreferrer">
-                <i
-                  className="fa-brands fa-telegram text-base"
-                  aria-hidden="true"
-                />
-                Telegram
-              </a>
-              <a
-                className="flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r from-[#111111] to-[#2a2a2a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_10px_rgba(17,17,17,0.3)] transition hover:-translate-y-0.5"
-                href={links.xUrl}
-                target="_blank"
-                rel="noreferrer">
-                <i
-                  className="fa-brands fa-x-twitter text-base"
-                  aria-hidden="true"
-                />
-                X
-              </a>
-              <a
-                className="flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r from-[#24292e] to-[#1f2327] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_10px_rgba(36,41,46,0.3)] transition hover:-translate-y-0.5"
-                href={links.githubUrl}
-                target="_blank"
-                rel="noreferrer">
-                <i
-                  className="fa-brands fa-github text-base"
-                  aria-hidden="true"
-                />
-                GitHub
-              </a>
-              <a
-                className="flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r from-[#ff7aa2] to-[#ff4f87] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_10px_rgba(255,79,135,0.3)] transition hover:-translate-y-0.5"
-                href="/blog">
-                <i
-                  className="fa-solid fa-pen-nib text-base"
-                  aria-hidden="true"
-                />
-                进入博客
-              </a>
+              {getSocialButtons(links).map(
+                ({ href, gradient, shadow, icon, label, external }) => (
+                  <a
+                    key={label}
+                    className={`flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r ${gradient} px-5 py-2.5 text-sm font-semibold text-white ${shadow} transition hover:-translate-y-0.5`}
+                    href={href}
+                    {...(external
+                      ? { target: '_blank', rel: 'noreferrer' }
+                      : {})}>
+                    <i className={`${icon} text-base`} aria-hidden="true" />
+                    {label}
+                  </a>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -108,9 +126,10 @@ const HomePage = ({
               frameBorder="no"
               marginWidth={0}
               marginHeight={0}
-              width="86"
-              height="86"
-              src="//music.163.com/outchain/player?type=2&id=28283665&auto=1&height=66"
+              width={homePageMusic.size}
+              height={homePageMusic.size}
+              src={homePageMusic.src}
+              sandbox="allow-scripts allow-same-origin"
             />
           </div>
         </div>

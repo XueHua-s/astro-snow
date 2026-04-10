@@ -8,6 +8,7 @@ import {
   useTransform,
 } from 'motion/react';
 import { useRef, type MouseEvent } from 'react';
+import { DEFAULT_AVATAR, DEFAULT_COLOR } from './friend-card-defaults';
 
 interface FriendCardProps {
   friend: FriendLink;
@@ -18,19 +19,6 @@ interface FriendCardProps {
 interface CSSCustomProperties extends React.CSSProperties {
   '--card-color'?: string;
 }
-
-const DEFAULT_COLOR = '#ffc0cb';
-// Cute SVG Avatar Data URI (Pink Theme)
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100" height="100" fill="#ffc0cb"/>
-  <circle cx="30" cy="45" r="6" fill="#fff"/>
-  <circle cx="70" cy="45" r="6" fill="#fff"/>
-  <path d="M 35 65 Q 50 75 65 65" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
-  <circle cx="20" cy="55" r="6" fill="#ff9eb5" opacity="0.5"/>
-  <circle cx="80" cy="55" r="6" fill="#ff9eb5" opacity="0.5"/>
-</svg>
-`)}`;
 
 export default function FriendCard({ friend, index }: FriendCardProps) {
   const cardRef = useRef<HTMLAnchorElement>(null);

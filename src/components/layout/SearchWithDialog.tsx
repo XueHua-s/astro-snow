@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useRef } from 'react';
-import { useEventListener } from '@reactuses/core';
-import { openSearch } from '@store/ui';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useStore } from '@nanostores/react';
+import { openSearch, searchOpen } from '@store/ui';
 import '@pagefind/default-ui/css/ui.css';
 
 type PagefindUiOptions = {
@@ -24,7 +24,6 @@ const getBundlePath = () => {
 export default function SearchWithDialog() {
   const searchRootRef = useRef<HTMLDivElement | null>(null);
   const initializedRef = useRef(false);
-  const documentTarget = useCallback(() => document, []);
 
   const uiOptions = useMemo(
     () => ({
@@ -83,26 +82,32 @@ export default function SearchWithDialog() {
     }
   }, []);
 
-  const handleDialogOpen = useCallback(() => {
-    void initPagefind().then(() => {
-      requestAnimationFrame(() => {
-        moveSearchToDialog();
+  // FIXED: Subscribe to store directly instead of relying on custom events
+  const isSearchOpen = useStore(searchOpen);
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      void initPagefind().then(() => {
+        requestAnimationFrame(() => {
+          moveSearchToDialog();
+        });
       });
-    });
-  }, [initPagefind, moveSearchToDialog]);
+    } else {
+      moveSearchBack();
+    }
+  }, [isSearchOpen, initPagefind, moveSearchToDialog, moveSearchBack]);
 
-  const handleDialogClose = useCallback(() => {
-    moveSearchBack();
-  }, [moveSearchBack]);
+  useEffect(() => {
+    const handleAstroPageLoad = () => {
+      if (!initializedRef.current) return;
+      void initPagefind();
+    };
 
-  const handleAstroPageLoad = useCallback(() => {
-    if (!initializedRef.current) return;
-    void initPagefind();
+    document.addEventListener('astro:page-load', handleAstroPageLoad);
+    return () => {
+      document.removeEventListener('astro:page-load', handleAstroPageLoad);
+    };
   }, [initPagefind]);
-
-  useEventListener('search-dialog-open', handleDialogOpen);
-  useEventListener('search-dialog-close', handleDialogClose);
-  useEventListener('astro:page-load', handleAstroPageLoad, documentTarget);
 
   return (
     <>

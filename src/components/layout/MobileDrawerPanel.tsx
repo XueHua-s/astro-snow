@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { closeDrawer, drawerOpen } from '@store/ui';
 import { cn } from '@lib/utils';
+import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
 import { CloseMenuButton } from '@components/ui/menuButtons.tsx';
 
 interface MobileDrawerPanelProps {
@@ -40,11 +41,10 @@ export function MobileDrawerPanel({ children }: MobileDrawerPanelProps) {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (isOpen) {
+      lockBodyScroll();
+      return () => unlockBodyScroll();
+    }
   }, [isOpen]);
 
   useEffect(() => {

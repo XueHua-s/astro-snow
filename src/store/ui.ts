@@ -65,8 +65,24 @@ export function closeDrawer(): void {
   drawerState.close();
 }
 
+export function openMobileMenu(): void {
+  mobileMenuState.open();
+}
+
+export function closeMobileMenu(): void {
+  mobileMenuState.close();
+}
+
 export function toggleMobileMenu(): void {
   mobileMenuState.toggle();
+}
+
+export function openModal(): void {
+  modalState.open();
+}
+
+export function closeModal(): void {
+  modalState.close();
 }
 
 export function toggleModal(): void {

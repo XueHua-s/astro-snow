@@ -10,7 +10,6 @@ import {
 } from '@floating-ui/react';
 import { useControlledState } from '@hooks/useControlledState';
 import { useFloatingUI } from '@hooks/useFloatingUI';
-// import { fontVariants } from '@constants/font';
 import { cn } from '@lib/utils';
 import { zIndex } from '@constants/design-tokens';
 import { withFloatingErrorBoundary } from '@components/common/FloatingErrorBoundary';
@@ -34,8 +33,6 @@ function Tooltip({
   open: passedOpen,
   onOpenChange,
 }: TooltipProps) {
-  const isBrowser = typeof window !== 'undefined';
-
   // Use useControlledState for open/close state management
   const [open, setOpen] = useControlledState({
     value: passedOpen,
@@ -80,10 +77,6 @@ function Tooltip({
   const referenceProps = getReferenceProps();
   const floatingProps = getFloatingProps();
 
-  // 如果不在浏览器环境，直接返回children
-  if (!isBrowser) {
-    return children;
-  }
   return (
     <>
       {cloneElement(children, { ...referenceProps, ref: referenceRef })}
@@ -92,7 +85,6 @@ function Tooltip({
           <div
             className={cn(
               'bg-background/80 text-card-foreground z-10 rounded-lg border px-3 py-1 text-xs/3.5 backdrop-blur-lg',
-              // ...fontVariants, // TODO: Font 迁移
               className,
             )}
             ref={floatingRef}
