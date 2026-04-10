@@ -15,6 +15,8 @@ export interface EnhanceOptions {
   onFullscreen?: (info: CodeBlockInfo) => void;
   enableCopy?: boolean;
   enableFullscreen?: boolean;
+  /** AbortSignal for cleaning up event listeners on re-enhancement */
+  signal?: AbortSignal;
 }
 
 export function enhanceCodeBlock(
@@ -92,9 +94,13 @@ export function enhanceAllCodeBlocks(
           }
         };
 
-        copyBtn.addEventListener('click', () => {
-          void handleCopy();
-        });
+        copyBtn.addEventListener(
+          'click',
+          () => {
+            void handleCopy();
+          },
+          { signal: options.signal },
+        );
       }
     }
 
@@ -103,9 +109,13 @@ export function enhanceAllCodeBlocks(
         '.code-block-fullscreen',
       );
       if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-          options.onFullscreen?.(info);
-        });
+        fullscreenBtn.addEventListener(
+          'click',
+          () => {
+            options.onFullscreen?.(info);
+          },
+          { signal: options.signal },
+        );
       }
     }
   });

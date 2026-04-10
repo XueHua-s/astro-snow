@@ -1,26 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useLocalStorage } from '@reactuses/core';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-
-const LIGHT_STYLE = {
-  opacity: '1',
-  transform: 'rotate(0deg) scale(1)',
-};
-
-const DARK_STYLE = {
-  opacity: '0',
-  transform: 'rotate(-180deg) scale(0)',
-};
-
-const LIGHT_STYLE_HIDDEN = {
-  opacity: '0',
-  transform: 'rotate(180deg) scale(0)',
-};
-
-const DARK_STYLE_SHOWN = {
-  opacity: '1',
-  transform: 'rotate(0deg) scale(1)',
-};
 
 export default function ThemeToggle() {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -118,15 +97,6 @@ export default function ThemeToggle() {
       });
   }, [applyTheme]);
 
-  const lightIconStyle = useMemo(
-    () => (isDarkMode ? LIGHT_STYLE_HIDDEN : LIGHT_STYLE),
-    [isDarkMode],
-  );
-  const darkIconStyle = useMemo(
-    () => (isDarkMode ? DARK_STYLE_SHOWN : DARK_STYLE),
-    [isDarkMode],
-  );
-
   return (
     <>
       <button
@@ -136,13 +106,14 @@ export default function ThemeToggle() {
         aria-label="toggle theme"
         aria-pressed={isDarkMode}
         onClick={toggleTheme}
+        suppressHydrationWarning
         ref={buttonRef}>
         <i
-          className="fa-solid fa-sun text-2xl light-icon transition-all duration-300"
-          style={lightIconStyle}></i>
+          className="fa-solid fa-sun text-2xl theme-icon-light transition-all duration-300"
+          suppressHydrationWarning></i>
         <i
-          className="fa-solid fa-moon text-2xl dark-icon transition-all duration-300"
-          style={darkIconStyle}></i>
+          className="fa-solid fa-moon text-2xl theme-icon-dark transition-all duration-300"
+          suppressHydrationWarning></i>
       </button>
       <style>{`
         .theme-toggle {
@@ -159,6 +130,32 @@ export default function ThemeToggle() {
           position: absolute;
           text-shadow: none;
           filter: none;
+        }
+
+        /* Light mode: show sun, hide moon */
+        .theme-icon-light {
+          opacity: 1;
+          transform: rotate(0deg) scale(1);
+        }
+        .theme-icon-dark {
+          opacity: 0;
+          transform: rotate(-180deg) scale(0);
+        }
+
+        /* Dark mode: hide sun, show moon */
+        html.dark .theme-icon-light {
+          opacity: 0;
+          transform: rotate(180deg) scale(0);
+        }
+        html.dark .theme-icon-dark {
+          opacity: 1;
+          transform: rotate(0deg) scale(1);
+        }
+
+        /* Disable icon CSS transition during view transition to avoid conflict */
+        html.theme-transition .theme-icon-light,
+        html.theme-transition .theme-icon-dark {
+          transition: none !important;
         }
       `}</style>
     </>

@@ -32,27 +32,6 @@ const HeadingListComponent = ({
   expandedIds,
   onHeadingClick,
 }: HeadingListProps) => {
-  /**
-   * Recursively render child headings
-   * Memoized to prevent recreation on every render
-   */
-  const renderChildren = (
-    children: Heading[],
-    childDepth: number,
-  ): React.ReactElement[] => {
-    return children.map((child) => (
-      <HeadingTreeItem
-        key={child.id}
-        heading={child}
-        depth={childDepth}
-        isActive={activeId === child.id}
-        isExpanded={expandedIds.has(child.id)}
-        onHeadingClick={onHeadingClick}
-        renderChildren={renderChildren}
-      />
-    ));
-  };
-
   return (
     <>
       {headings.map((heading) => (
@@ -60,10 +39,9 @@ const HeadingListComponent = ({
           key={heading.id}
           heading={heading}
           depth={depth}
-          isActive={activeId === heading.id}
-          isExpanded={expandedIds.has(heading.id)}
+          activeId={activeId}
+          expandedIds={expandedIds}
           onHeadingClick={onHeadingClick}
-          renderChildren={renderChildren}
         />
       ))}
     </>

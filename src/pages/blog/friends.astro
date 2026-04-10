@@ -25,7 +25,7 @@ const layoutFooterData = await getLayoutFooterData();
       class={`bg-gradient-start shadow-box tablet:shadow-none flex flex-col gap-10 overflow-hidden ${CONTENT_PADDING.standard}`}
     >
       <div class="mt-4">
-        <FriendsGrid client:load />
+        <FriendsGrid client:visible />
       </div>
       <div class="mb-4">
         <FriendRequestForm client:visible />

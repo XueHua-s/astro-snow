@@ -10,7 +10,7 @@ interface CustomContentEnhancerProps {
 
 const DATA_ENHANCED = 'data-enhanced';
 
-function enhanceContent(config: ContentConfig) {
+function enhanceContent(config: ContentConfig, signal?: AbortSignal) {
   const contentContainer = document.querySelector('.custom-content');
   if (!contentContainer) return;
 
@@ -35,22 +35,26 @@ function enhanceContent(config: ContentConfig) {
     anchorLinks.forEach((link: Element) => {
       const anchor = link as HTMLAnchorElement;
 
-      anchor.addEventListener('click', (event) => {
-        event.preventDefault();
+      anchor.addEventListener(
+        'click',
+        (event) => {
+          event.preventDefault();
 
-        const targetId = anchor.getAttribute('href')?.substring(1);
-        if (!targetId) return;
+          const targetId = anchor.getAttribute('href')?.substring(1);
+          if (!targetId) return;
 
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-          targetElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
+          const targetElement = document.getElementById(targetId);
+          if (targetElement) {
+            targetElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
 
-          history.pushState(null, '', `#${targetId}`);
-        }
-      });
+            history.pushState(null, '', `#${targetId}`);
+          }
+        },
+        { signal },
+      );
     });
   }
 
@@ -68,6 +72,7 @@ function enhanceContent(config: ContentConfig) {
     enhanceAllCodeBlocks(contentContainer, {
       enableCopy: config.enableCodeCopy,
       enableFullscreen: config.enableCodeFullscreen,
+      signal,
       onFullscreen: (info) => {
         window.dispatchEvent(
           new CustomEvent('open-code-fullscreen', {
@@ -87,24 +92,27 @@ function enhanceContent(config: ContentConfig) {
     initMermaidEnhancer();
   }
 
-  enhanceImages(contentContainer);
+  enhanceImages(contentContainer, signal);
   contentContainer.setAttribute(DATA_ENHANCED, 'true');
 }
 
 export function CustomContentEnhancer({ config }: CustomContentEnhancerProps) {
   useEffect(() => {
+    const abortController = new AbortController();
+
     const runEnhancement = () => {
       const contentContainer = document.querySelector('.custom-content');
       if (contentContainer) {
         contentContainer.removeAttribute(DATA_ENHANCED);
       }
-      enhanceContent(config);
+      enhanceContent(config, abortController.signal);
     };
 
     runEnhancement();
     document.addEventListener('astro:page-load', runEnhancement);
 
     return () => {
+      abortController.abort();
       document.removeEventListener('astro:page-load', runEnhancement);
     };
   }, [config]);

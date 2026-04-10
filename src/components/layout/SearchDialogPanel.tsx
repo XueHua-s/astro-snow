@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { useEventListener } from '@reactuses/core';
 import { closeSearch, openSearch, searchOpen } from '@store/ui';
+import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchSelection } from './search-dialog/use-search-selection';
 import { SearchDialogPanelView } from './search-dialog/panel-view';
@@ -87,8 +88,7 @@ export default function SearchDialogPanel() {
     }
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.dispatchEvent(new CustomEvent('search-dialog-open'));
+      lockBodyScroll();
       requestAnimationFrame(() => {
         setState('open');
         setActive(true);
@@ -108,7 +108,6 @@ export default function SearchDialogPanel() {
     clearSelectionDom();
     observerRef.current?.disconnect();
     observerRef.current = null;
-    window.dispatchEvent(new CustomEvent('search-dialog-close'));
     requestAnimationFrame(() => {
       setActive(false);
     });
@@ -118,7 +117,7 @@ export default function SearchDialogPanel() {
 
     closeTimerRef.current = window.setTimeout(() => {
       setState('closed');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }, CLOSE_ANIMATION_MS);
   }, [clearSelectionDom, isOpen, setSelectedIndex, setupResultsObserver]);
 
@@ -134,7 +133,7 @@ export default function SearchDialogPanel() {
       if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
       if (focusTimerRef.current) window.clearTimeout(focusTimerRef.current);
       observerRef.current?.disconnect();
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     };
   }, []);
 

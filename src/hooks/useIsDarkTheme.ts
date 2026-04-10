@@ -25,7 +25,10 @@ import { useEffect, useState } from 'react';
  * @returns Whether the page is currently in dark mode
  */
 export function useIsDarkTheme(): boolean {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return document.documentElement.classList.contains('dark');
+  });
 
   useEffect(() => {
     // Initialize with current theme state

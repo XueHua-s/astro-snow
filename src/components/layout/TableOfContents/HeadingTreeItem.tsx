@@ -18,14 +18,12 @@ interface HeadingTreeItemProps {
   heading: Heading;
   /** Current nesting depth (0 for top level) */
   depth?: number;
-  /** Whether this heading is currently active */
-  isActive?: boolean;
-  /** Whether this heading's children are expanded */
-  isExpanded?: boolean;
+  /** ID of the currently active heading */
+  activeId: string | null;
+  /** Set of expanded heading IDs */
+  expandedIds: Set<string>;
   /** Callback when heading is clicked */
   onHeadingClick: (id: string) => void;
-  /** Recursively render children if expanded */
-  renderChildren?: (headings: Heading[], depth: number) => React.ReactElement[];
 }
 
 /**
@@ -34,12 +32,13 @@ interface HeadingTreeItemProps {
 const HeadingTreeItemComponent = ({
   heading,
   depth = 0,
-  isActive = false,
-  isExpanded = false,
+  activeId,
+  expandedIds,
   onHeadingClick,
-  renderChildren,
 }: HeadingTreeItemProps) => {
   const hasChildren = heading.children.length > 0;
+  const isActive = activeId === heading.id;
+  const isExpanded = expandedIds.has(heading.id);
 
   return (
     <div key={heading.id} className="heading-tree-item relative">
@@ -72,9 +71,18 @@ const HeadingTreeItemComponent = ({
       </a>
 
       {/* Render children nested within this item */}
-      {hasChildren && isExpanded && renderChildren && (
+      {hasChildren && isExpanded && (
         <div className="heading-children">
-          {renderChildren(heading.children, depth + 1)}
+          {heading.children.map((child) => (
+            <HeadingTreeItem
+              key={child.id}
+              heading={child}
+              depth={depth + 1}
+              activeId={activeId}
+              expandedIds={expandedIds}
+              onHeadingClick={onHeadingClick}
+            />
+          ))}
         </div>
       )}
     </div>

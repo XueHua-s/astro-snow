@@ -124,7 +124,7 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
   <body>
     <div class="flex min-h-screen flex-col text-black dark:text-white">
       <Header
-        client:visible
+        client:idle
         isPostPage={isPostPage}
         tocNumbering={post?.data.tocNumbering ?? true}
         tocHeadings={tocHeadings}

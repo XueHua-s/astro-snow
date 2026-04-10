@@ -5,6 +5,7 @@ import {
   type CodeBlockData,
 } from '@store/ui';
 import { copyToClipboard } from '@lib/code-block-enhancer';
+import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
 
 interface Elements {
   overlay: HTMLElement;
@@ -72,7 +73,7 @@ export function initCodeFullscreenController() {
 
     elements.overlay.dataset.state = 'open';
     elements.dialog.dataset.state = 'open';
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     requestAnimationFrame(() => {
       elements.overlay.classList.replace('opacity-0', 'opacity-100');
       elements.content.classList.replace('opacity-0', 'opacity-100');
@@ -85,7 +86,7 @@ export function initCodeFullscreenController() {
     setTimeout(() => {
       elements.overlay.dataset.state = 'closed';
       elements.dialog.dataset.state = 'closed';
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }, 200);
     currentData = null;
   };

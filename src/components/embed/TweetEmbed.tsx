@@ -4,7 +4,6 @@
  */
 
 import { Tweet } from 'react-tweet';
-import { useMemo } from 'react';
 import { useIsDarkTheme } from '@hooks/index';
 
 interface TweetEmbedProps {
@@ -13,7 +12,7 @@ interface TweetEmbedProps {
 
 export function TweetEmbed({ tweetId }: TweetEmbedProps) {
   const isDark = useIsDarkTheme();
-  const theme = useMemo(() => (isDark ? 'dark' : 'light'), [isDark]);
+  const theme = isDark ? 'dark' : 'light';
 
   return (
     <div className="not-prose my-6 flex justify-center" data-theme={theme}>

@@ -56,7 +56,7 @@ export const ErrorFallback: FC<ErrorFallbackProps> = ({
               Try Again
             </Button>
             <a
-              href="https://github.com/cosZone/astro-koharu/issues/new"
+              href="https://github.com/XueHua-s/astro-snow/issues/new"
               target="_blank"
               rel="noreferrer"
               className="flex-center gap-1.5 text-sm text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
@@ -88,14 +88,10 @@ export const InlineErrorFallback: FC<FallbackProps> = ({
           Try Again
         </Button>
         <a
-          href="https://github.com/cosZone/astro-koharu/issues/new"
+          href="https://github.com/XueHua-s/astro-snow/issues/new"
           target="_blank"
           rel="noreferrer">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetErrorBoundary}
-            className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5">
             <HiChat className="size-4" />
             Report Issue
           </Button>

@@ -18,6 +18,7 @@
 | 代码审查、diff 检查、Bug 排查、安全风险、测试覆盖                          | `code-review-expert`           |
 | 页面设计、组件视觉、交互体验、美学方向                                     | `frontend-design`              |
 | 性能优化、Bundle 体积、瀑布流消除、重渲染、数据获取（69 条规则，8 个类别） | `vercel-react-best-practices`  |
+| Astro 组件/页面、SSG、Islands、Content Collections、适配器、部署、CLI      | `astro`                        |
 
 ## Local Conventions To Reuse
 

@@ -31,7 +31,7 @@ const layoutFooterData = await getLayoutFooterData();
       <div class="prose md:prose-sm dark:prose-invert custom-content">
         <slot />
       </div>
-      <CustomContentEnhancer client:load config={defaultContentConfig} />
+      <CustomContentEnhancer client:idle config={defaultContentConfig} />
       <GiscusComments client:visible />
     </div>
   </TwoColumnLayout>

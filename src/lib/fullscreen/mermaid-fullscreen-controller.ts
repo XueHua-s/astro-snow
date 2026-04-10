@@ -5,6 +5,7 @@ import {
   type MermaidFullscreenData,
 } from '@store/ui';
 import { copyToClipboard } from '@lib/code-block-enhancer';
+import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
 
 interface Elements {
   overlay: HTMLElement;
@@ -70,7 +71,7 @@ export function initMermaidFullscreenController() {
     setTimeout(() => {
       elements.overlay.dataset.state = 'closed';
       elements.dialog.dataset.state = 'closed';
-      document.body.style.overflow = '';
+      unlockBodyScroll();
       elements.svgContainer.innerHTML = '';
     }, 200);
     currentData = null;
@@ -84,7 +85,7 @@ export function initMermaidFullscreenController() {
     elements.svgContainer.innerHTML = data.svg;
     elements.overlay.dataset.state = 'open';
     elements.dialog.dataset.state = 'open';
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     requestAnimationFrame(() => {
       elements.overlay.classList.replace('opacity-0', 'opacity-100');
       elements.content.classList.replace('opacity-0', 'opacity-100');
