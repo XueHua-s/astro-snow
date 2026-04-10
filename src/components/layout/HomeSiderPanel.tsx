@@ -59,10 +59,9 @@ export function HomeSiderPanel({
     : HomeSiderSegmentType.INFO;
 
   useEffect(() => {
-    if (!isPostPage) {
-      homeSiderSegmentType.set(HomeSiderSegmentType.INFO);
-    } else {
-      homeSiderSegmentType.set(defaultSegmentType);
+    const target = isPostPage ? defaultSegmentType : HomeSiderSegmentType.INFO;
+    if (homeSiderSegmentType.get() !== target) {
+      homeSiderSegmentType.set(target);
     }
   }, [defaultSegmentType, isPostPage]);
 

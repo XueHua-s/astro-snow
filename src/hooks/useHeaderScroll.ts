@@ -21,6 +21,8 @@ const useHeaderScroll = () => {
     background: 0,
   });
   const isActiveRef = useRef(false);
+  const siteHeaderRef = useRef<HTMLElement | null>(null);
+  const mobileMenuRef = useRef<HTMLElement | null>(null);
 
   const updateDistances = useCallback(() => {
     const height = window.innerHeight;
@@ -57,10 +59,8 @@ const useHeaderScroll = () => {
 
   const handleScroll = useCallback(() => {
     if (!isActiveRef.current) return;
-    const siteHeader = document.getElementById('site-header');
-    const mobileMenuContainer = document.getElementById(
-      'mobile-menu-container',
-    );
+    const siteHeader = siteHeaderRef.current;
+    const mobileMenuContainer = mobileMenuRef.current;
     const currentScrollY = window.scrollY;
     const isDesktop = window.innerWidth > DESKTOP_BREAKPOINT;
     const { hide, show, background } = distancesRef.current;
@@ -142,10 +142,13 @@ const useHeaderScroll = () => {
     updateDistances();
     lastScrollYRef.current = window.scrollY;
 
-    const siteHeader = document.getElementById('site-header');
-    if (siteHeader) {
-      siteHeader.style.transition = 'transform 0.3s ease';
-      siteHeader.style.willChange = 'transform';
+    // Cache DOM elements for scroll handler
+    siteHeaderRef.current = document.getElementById('site-header');
+    mobileMenuRef.current = document.getElementById('mobile-menu-container');
+
+    if (siteHeaderRef.current) {
+      siteHeaderRef.current.style.transition = 'transform 0.3s ease';
+      siteHeaderRef.current.style.willChange = 'transform';
     }
 
     isActiveRef.current = true;
@@ -154,6 +157,8 @@ const useHeaderScroll = () => {
 
   const cleanupNavigator = useCallback(() => {
     isActiveRef.current = false;
+    siteHeaderRef.current = null;
+    mobileMenuRef.current = null;
     cancelScroll();
     stopScrollEndTimer();
   }, [cancelScroll, stopScrollEndTimer]);

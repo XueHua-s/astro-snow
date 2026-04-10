@@ -19,5 +19,5 @@ const finalConfig = { ...defaultContentConfig, ...config };
 </div>
 
 {/* Only load EmbedHydrator if tweet embeds are enabled (link previews are now server-rendered) */}
-{finalConfig.enableTweetEmbed && <EmbedHydrator client:load />}
-<CustomContentEnhancer client:load config={finalConfig} />
+{finalConfig.enableTweetEmbed && <EmbedHydrator client:idle />}
+<CustomContentEnhancer client:idle config={finalConfig} />

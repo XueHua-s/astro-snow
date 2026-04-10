@@ -158,7 +158,10 @@ export default function FriendRequestForm() {
                       value={formData.color}
                       aria-label="主题色值"
                       onChange={(e) =>
-                        setFormData({ ...formData, color: e.target.value })
+                        setFormData((prev) => ({
+                          ...prev,
+                          color: e.target.value,
+                        }))
                       }
                       className={`${INPUT_CLASS} flex-1`}
                     />
