@@ -73,6 +73,7 @@ public/                # 静态资源（字体、图片）
 | `code-review-expert`           | 审查 diff、Bug 排查、安全风险、测试缺口                     |
 | `frontend-design`              | 页面与组件设计、交互体验、视觉品质                          |
 | `vercel-react-best-practices`  | 性能优化、Bundle 体积、瀑布流、重渲染、数据获取             |
+| `astro`                        | Astro 组件/页面、SSG、Islands、Content Collections、适配器、部署 |
 
 ## Working Rules
 
