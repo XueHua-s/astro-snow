@@ -7,9 +7,17 @@ import { CONTENT_PADDING } from '@constants/layout';
 import { Routes } from '@constants/router';
 import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 import Layout from '@layouts/Layout.astro';
-import { getPostHref, getPostIndexMap, getPostLastCategory, getSortedPosts, getTagPostMap, toTagParam } from '@lib/content';
+import {
+  getPostHref,
+  getPostIndexMap,
+  getPostLastCategory,
+  getSortedPosts,
+  getTagPostMap,
+  toTagParam,
+} from '@lib/content';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
 import { parseDate } from '@lib/datetime';
+import { hasItems } from '@lib/utils';
 
 export async function getStaticPaths() {
   const posts = await getSortedPosts();
@@ -22,53 +30,60 @@ export async function getStaticPaths() {
 }
 
 const { tag, posts } = Astro.props;
-const [postIndexMap, layoutFooterData] = await Promise.all([getPostIndexMap(), getLayoutFooterData()]);
+const [postIndexMap, layoutFooterData] = await Promise.all([
+  getPostIndexMap(),
+  getLayoutFooterData(),
+]);
+const hasPosts = hasItems(posts);
 ---
 
-<Layout title={`标签:${tag} | ${blogLayoutConfig.title}`} description={`标签 ${tag} 下的所有文章`}>
+<Layout
+  title={`标签:${tag} | ${blogLayoutConfig.title}`}
+  description={`标签 ${tag} 下的所有文章`}>
   <TwoColumnLayout>
     <Cover slot="cover" title={`包含标签"${tag}"的文章`} />
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
-    <div class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.standard}`}>
-      <h2 class="shoka-decoration-circle has-children group relative h-19 px-6 py-5 text-2xl/9 font-bold">
+    <div
+      class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.standard}`}>
+      <h2
+        class="shoka-decoration-circle has-children group relative h-19 px-6 py-5 text-2xl/9 font-bold">
         <a
           href={Routes.Tags}
-          class="dashed-border text-muted-foreground group-hover:border-blue group-hover:text-blue border-b"
-        >
+          class="dashed-border border-b text-muted-foreground group-hover:border-blue group-hover:text-blue">
           全部
         </a>
-        <span class="text-muted-foreground text-lg"> / </span>
+        <span class="text-lg text-muted-foreground"> / </span>
         <span class="text-muted-foreground">{tag}</span>
-        <span class="text-muted-foreground text-lg">({posts.length} 篇文章)</span>
+        <span class="text-lg text-muted-foreground"
+          >({posts.length} 篇文章)</span
+        >
       </h2>
       {
-        posts?.length && (
+        hasPosts ? (
           <div class="category-second-level-container flex flex-col">
             {posts.map((post) => {
               const { link, name } = getPostLastCategory(post);
               return (
-                <p class="shoka-decoration-circle group text-primary relative px-6 py-2 text-base/9 md:overflow-visible">
-                  <span class="text-muted-foreground inline-block w-15 text-xs md:relative md:-top-1">
+                <p class="shoka-decoration-circle group relative px-6 py-2 text-base/9 text-primary md:overflow-visible">
+                  <span class="inline-block w-15 text-xs text-muted-foreground md:relative md:-top-1">
                     {parseDate(post?.data?.date, 'YY-MM-DD')}
                   </span>
                   <a
                     href={link}
-                    class="text-muted-foreground hover:text-blue mr-2 inline-block text-xs md:relative md:-top-1"
-                  >
+                    class="mr-2 inline-block text-xs text-muted-foreground hover:text-blue md:relative md:-top-1">
                     {name}
                   </a>
                   <a
                     href={getPostHref(post, postIndexMap)}
-                    class="dashed-border md:absolute md:top-7 md:left-7"
-                  >
+                    class="dashed-border md:absolute md:left-7 md:top-7">
                     {post?.data?.title}
                   </a>
                 </p>
               );
             })}
           </div>
-        )
+        ) : null
       }
     </div>
   </TwoColumnLayout>

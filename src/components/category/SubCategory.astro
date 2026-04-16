@@ -2,6 +2,7 @@
 import type { Category } from '@lib/content';
 import CategoryTitle from './CategoryTitle.astro';
 import { buildCategoryPath, getCategoryCount } from '@lib/content';
+import { hasItems } from '@lib/utils';
 
 interface Props {
   category: Category;
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const { category, countMap } = Astro.props;
+const children = category.children ?? [];
+const hasChildren = hasItems(children);
 
 function getCategoryLink(names: string[]): string {
   return buildCategoryPath(names);
@@ -23,17 +26,19 @@ function getCategoryLink(names: string[]): string {
   level="h3"
 />
 {
-  category.children?.length && (
+  hasChildren ? (
     <div class="category-second-level-container flex flex-col">
-      {category.children.map((grandChild) => (
+      {children.map((grandChild) => (
         <p class="shoka-decoration-circle relative px-7.5 py-2 text-base/9 text-primary hover:text-blue">
           <a href={getCategoryLink(grandChild.path)} class="dashed-border">
             {grandChild.name}
           </a>
-          <span class="text-sm text-muted-foreground">({getCategoryCount(countMap, grandChild.path)})</span>
+          <span class="text-sm text-muted-foreground">
+            ({getCategoryCount(countMap, grandChild.path)})
+          </span>
         </p>
       ))}
     </div>
-  )
+  ) : null
 }
 <!-- </div> -->

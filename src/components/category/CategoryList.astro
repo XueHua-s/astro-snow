@@ -1,7 +1,12 @@
 ---
 import { CONTENT_PADDING } from '@constants/layout';
 import { Routes } from '@constants/router';
-import { buildCategoryPath, getCategoryCount, type Category } from '@lib/content';
+import {
+  buildCategoryPath,
+  getCategoryCount,
+  type Category,
+} from '@lib/content';
+import { hasItems } from '@lib/utils';
 import CategoryTitle from './CategoryTitle.astro';
 import SubCategory from './SubCategory.astro';
 
@@ -13,32 +18,44 @@ interface Props {
 const { categories, countMap, totalCount } = Astro.props;
 ---
 
-<div class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.standard}`}>
-  <h2 class="shoka-decoration-circle group relative px-6 py-5 text-2xl/9 font-bold md:text-xl/9">
-    <a href={Routes.Home} class="dashed-border text-muted-foreground group-hover:border-blue group-hover:text-blue border-b">
+<div
+  class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.standard}`}>
+  <h2
+    class="shoka-decoration-circle group relative px-6 py-5 text-2xl/9 font-bold md:text-xl/9">
+    <a
+      href={Routes.Home}
+      class="dashed-border border-b text-muted-foreground group-hover:border-blue group-hover:text-blue">
       首页
     </a>
-    <span class="text-muted-foreground text-xl md:text-base">/</span> 共 {totalCount} 个分类
+    <span class="text-xl text-muted-foreground md:text-base">/</span> 共 {
+      totalCount
+    } 个分类
   </h2>
 
   <div class="flex w-full flex-col">
     {
-      categories.map((category) => (
-        <>
-          <CategoryTitle
-            title={category.name}
-            count={getCategoryCount(countMap, category.path)}
-            href={buildCategoryPath(category.path)}
-            className={category?.children?.length ? 'has-children' : ''}
-          />
-          {category?.children?.length && (
-            <div class="category-first-level-container flex flex-col">
-              {category?.children?.length &&
-                category.children.map((child) => <SubCategory category={child} countMap={countMap} />)}
-            </div>
-          )}
-        </>
-      ))
+      categories.map((category) => {
+        const children = category.children ?? [];
+        const hasChildren = hasItems(children);
+
+        return (
+          <>
+            <CategoryTitle
+              title={category.name}
+              count={getCategoryCount(countMap, category.path)}
+              href={buildCategoryPath(category.path)}
+              className={hasChildren ? 'has-children' : ''}
+            />
+            {hasChildren ? (
+              <div class="category-first-level-container flex flex-col">
+                {children.map((child) => (
+                  <SubCategory category={child} countMap={countMap} />
+                ))}
+              </div>
+            ) : null}
+          </>
+        );
+      })
     }
   </div>
 </div>

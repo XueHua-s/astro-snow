@@ -75,6 +75,52 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
+  test('category pages should not render stray zero text nodes', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    for (const path of [
+      '/blog/categories',
+      '/blog/categories/学习笔记',
+      '/blog/categories/weekly',
+    ]) {
+      const response = await page.goto(path, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30000,
+      });
+      expect(response?.status(), `route ${path}`).toBe(200);
+
+      const zeroTextNodes = await page
+        .locator('main .shadow-box')
+        .first()
+        .evaluate((element) => {
+          const walker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+            {
+              acceptNode(node) {
+                return node.textContent?.trim() === '0'
+                  ? NodeFilter.FILTER_ACCEPT
+                  : NodeFilter.FILTER_SKIP;
+              },
+            },
+          );
+
+          let count = 0;
+          while (walker.nextNode()) {
+            count += 1;
+          }
+
+          return count;
+        });
+
+      expect(zeroTextNodes, `stray zero text nodes on ${path}`).toBe(0);
+    }
+
+    runtime.assertClean();
+  });
+
   test('should navigate from list page to a post detail page', async ({
     page,
   }) => {
