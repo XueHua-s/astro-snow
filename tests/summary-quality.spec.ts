@@ -44,6 +44,16 @@ describe('summary quality guards', () => {
         '喵～铲屎官，偶好像没看到文章内容呢，空空如也呀～可以把文章贴上来吗？偶就能帮你变成可爱的摘要啦～。',
       ),
     ).toBe(false);
+    expect(
+      isSummaryAcceptable(
+        '喵～没有原文的话我也编不出魔法呀！(>ω<) 请提供需要总结的文章内容，我就能帮你变出可爱的博客摘要喵~ ✨。',
+      ),
+    ).toBe(false);
+    expect(
+      isSummaryAcceptable(
+        '喵～你没有粘贴文章内容呀！请把文章贴上来，喵娘我就能帮你总结核心要点啦～。',
+      ),
+    ).toBe(false);
   });
 
   it('normalizes whitespace and trailing punctuation', () => {
