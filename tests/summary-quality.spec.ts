@@ -51,7 +51,7 @@ describe('summary quality guards', () => {
     const text =
       '哭哭，不知道咋了。自从来了武汉，经常发烧头疼。呕吐。今天又发烧了37.5度。早上起床吃了布洛芬，一觉睡到了晚上。';
 
-    const summary = buildFallbackSummary(text);
+    const summary = buildFallbackSummary(text, '发烧了呜呜呜');
 
     expect(summary).toContain('发烧');
     expect(summary).toContain('武汉');
@@ -62,10 +62,28 @@ describe('summary quality guards', () => {
     const text =
       'Vue3基础 Volar Vue3版本语法插件 Vite Vue3项目使用Vite进行构建 ESlint 组合式API 增强可维护性可读性 setup内部不能访问组件实例功能 reactive 用来定义响应式对象';
 
-    const summary = buildFallbackSummary(text);
+    const summary = buildFallbackSummary(text, 'Vue3学习笔记');
 
     expect(summary).toContain('可维护性');
     expect(summary).not.toContain('Vite');
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
+
+  it('falls back to a title-based summary for placeholder content', () => {
+    const summary = buildFallbackSummary('emj', '不知道怎么过年');
+
+    expect(summary).toContain('不知道怎么过年');
+    expect(summary).toContain('记录和想法');
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
+
+  it('falls back to a title-based summary for outline-style posts', () => {
+    const text =
+      '前端工程化开发 系统环境变量 模块成员导出与导入 包管理器 工程脚手架 自动化构建 按需加载 代码规范 发布部署';
+
+    const summary = buildFallbackSummary(text, '前端工程化开发');
+
+    expect(summary).toContain('前端工程化开发');
     expect(isSummaryAcceptable(summary)).toBe(true);
   });
 });

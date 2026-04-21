@@ -10,8 +10,8 @@ describe('summary utils', () => {
   });
 
   it('prefers the explicit frontmatter link when provided', () => {
-    expect(
-      extractSlug('source/posts/任意文件名.MD', '自定义-link'),
-    ).toBe('自定义-link');
+    expect(extractSlug('source/posts/任意文件名.MD', '自定义-link')).toBe(
+      '自定义-link',
+    );
   });
 });

@@ -144,7 +144,7 @@ async function main() {
         );
 
         try {
-          const summary = await generateSummary(post.text, model);
+          const summary = await generateSummary(post.title, post.text, model);
           newEntries[post.slug] = {
             hash: post.hash,
             title: post.title,

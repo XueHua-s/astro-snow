@@ -73,66 +73,83 @@ export async function checkApiRunning(model: string): Promise<boolean> {
 }
 
 export async function generateSummary(
+  title: string,
   text: string,
   model: string,
 ): Promise<string> {
   const truncatedText = text.slice(0, 6000);
-  const firstPass = await requestSummary(
-    model,
-    [
-      {
-        role: 'system',
-        content: SUMMARY_SYSTEM_PROMPT,
-      },
-      {
-        role: 'user',
-        content: [
-          '请基于下面文章生成摘要。',
-          '要求：中文为主、放飞一点的猫娘语气、通常 2 句、不要分点、不要标题、不要只写一句空口号。',
-          '文章如下：',
-          truncatedText,
-        ].join('\n\n'),
-      },
-    ],
-    0.2,
-  );
+  let firstPass = '';
+  let repaired = '';
+  let lastError: unknown;
+
+  try {
+    firstPass = await requestSummary(
+      model,
+      [
+        {
+          role: 'system',
+          content: SUMMARY_SYSTEM_PROMPT,
+        },
+        {
+          role: 'user',
+          content: [
+            '请基于下面文章生成摘要。',
+            '要求：中文为主、放飞一点的猫娘语气、通常 2 句、不要分点、不要标题、不要只写一句空口号。',
+            '文章如下：',
+            truncatedText,
+          ].join('\n\n'),
+        },
+      ],
+      0.2,
+    );
+  } catch (error) {
+    lastError = error;
+  }
 
   if (isSummaryAcceptable(firstPass)) {
     return firstPass;
   }
 
-  const repaired = await requestSummary(
-    model,
-    [
-      {
-        role: 'system',
-        content: SUMMARY_REPAIR_SYSTEM_PROMPT,
-      },
-      {
-        role: 'user',
-        content: [
-          '下面这段摘要不够稳定，请改写成更自然、以简体中文为主、带放飞一点猫娘语气的博客摘要。',
-          '要求：通常 2 句、45 到 100 字、保留主题、关键理由和最终结论，不要音标、LaTeX、代码、链接和大段英文。',
-          `原摘要：${firstPass || '（空）'}`,
-          '参考文章：',
-          truncatedText,
-        ].join('\n\n'),
-      },
-    ],
-    0.1,
-  );
+  try {
+    repaired = await requestSummary(
+      model,
+      [
+        {
+          role: 'system',
+          content: SUMMARY_REPAIR_SYSTEM_PROMPT,
+        },
+        {
+          role: 'user',
+          content: [
+            '下面这段摘要不够稳定，请改写成更自然、以简体中文为主、带放飞一点猫娘语气的博客摘要。',
+            '要求：通常 2 句、45 到 100 字、保留主题、关键理由和最终结论，不要音标、LaTeX、代码、链接和大段英文。',
+            `原摘要：${firstPass || '（空）'}`,
+            '参考文章：',
+            truncatedText,
+          ].join('\n\n'),
+        },
+      ],
+      0.1,
+    );
+  } catch (error) {
+    lastError = error;
+  }
 
   if (isSummaryAcceptable(repaired)) {
     return repaired;
   }
 
-  const fallback = buildFallbackSummary(truncatedText);
+  const fallback = buildFallbackSummary(truncatedText, title);
   if (isSummaryAcceptable(fallback)) {
     return fallback;
   }
 
   if (isSummaryAcceptable(firstPass)) {
     return firstPass;
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
   }
 
   throw new Error('Unable to generate a stable Chinese summary');
