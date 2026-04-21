@@ -69,12 +69,19 @@ async function main() {
 
     let skipGeneration = false;
     if (needsGeneration) {
-      const apiRunning = await checkApiRunning();
+      const apiRunning = await checkApiRunning(model);
       if (!apiRunning) {
         skipGeneration = true;
         console.error(chalk.yellow('\nWarning: Cannot connect to LLM API.'));
-        console.error(chalk.yellow('  - GEMINI_API_KEY is set correctly'));
-        console.error(chalk.yellow('  - GEMINI_API_BASE_URL is accessible'));
+        console.error(chalk.yellow('  - OPENAI_API_KEY is set correctly'));
+        console.error(
+          chalk.yellow(
+            '  - OPENAI_API_BASE_URL points to the OpenAI-compatible /v1/ root',
+          ),
+        );
+        console.error(
+          chalk.yellow('  - OPENAI_MODEL is available on that provider'),
+        );
         console.error(
           chalk.yellow(
             'Skipping AI generation; will output manual/cached summaries only.',

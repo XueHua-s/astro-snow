@@ -1,13 +1,28 @@
 import { generateText } from '@xsai/generate-text';
-import { API_BASE_URL, API_KEY } from './config';
+import { OPENAI_API_BASE_URL, OPENAI_API_KEY } from './config';
 
-export async function checkApiRunning(): Promise<boolean> {
+export async function checkApiRunning(model: string): Promise<boolean> {
   try {
-    const headers: Record<string, string> = {};
-    if (API_KEY) {
-      headers.Authorization = `Bearer ${API_KEY}`;
+    if (!OPENAI_API_KEY) {
+      return false;
     }
-    const response = await fetch(`${API_BASE_URL}models`, { headers });
+
+    const headers: Record<string, string> = {};
+    headers.Authorization = `Bearer ${OPENAI_API_KEY}`;
+    headers['Content-Type'] = 'application/json';
+
+    const response = await fetch(`${OPENAI_API_BASE_URL}chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: 'ping' }],
+        temperature: 0,
+        max_tokens: 1,
+        stream: false,
+      }),
+    });
+
     return response.ok;
   } catch {
     return false;
@@ -21,8 +36,8 @@ export async function generateSummary(
   const truncatedText = text.slice(0, 6000);
 
   const { text: summary } = await generateText({
-    apiKey: API_KEY,
-    baseURL: API_BASE_URL,
+    apiKey: OPENAI_API_KEY,
+    baseURL: OPENAI_API_BASE_URL,
     model,
     messages: [
       {
