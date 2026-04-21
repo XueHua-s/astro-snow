@@ -91,16 +91,45 @@ export function buildFallbackSummary(text: string): string {
 
   for (const sentence of sentences) {
     if (sentence.length < 10) continue;
-    if (picked.length >= 2) break;
-    if (total + sentence.length > 120 && picked.length > 0) break;
+    if (picked.length >= 3) break;
+    if (total + sentence.length > 140 && picked.length > 0) break;
     picked.push(sentence);
     total += sentence.length;
+    if (total >= 36 && picked.length >= 2) break;
   }
 
   const fallback = picked.join('');
-  if (fallback) {
+  if (fallback && isSummaryAcceptable(fallback)) {
     return normalizeSummaryText(fallback);
   }
 
-  return normalizeSummaryText(normalized.slice(0, 100));
+  const chineseFirst = normalized
+    .replace(URL_RE, ' ')
+    .replace(LATEX_INLINE_RE, ' ')
+    .replace(/[A-Za-z][A-Za-z0-9./:+_#-]*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const chineseChunks =
+    chineseFirst.match(/[\u3400-\u4dbf\u4e00-\u9fff0-9，。！？；：、“”‘’（）]{6,}/g) ??
+    [];
+
+  if (chineseChunks.length > 0) {
+    const compactChunks: string[] = [];
+    let chunkTotal = 0;
+    for (const chunk of chineseChunks) {
+      if (compactChunks.length >= 3) break;
+      if (chunkTotal + chunk.length > 120 && compactChunks.length > 0) break;
+      compactChunks.push(chunk.trim());
+      chunkTotal += chunk.length;
+      if (chunkTotal >= 36 && compactChunks.length >= 2) break;
+    }
+
+    const chunkFallback = compactChunks.join('。 ');
+    if (chunkFallback) {
+      return normalizeSummaryText(chunkFallback);
+    }
+  }
+
+  return normalizeSummaryText(chineseFirst.slice(0, 100) || normalized.slice(0, 100));
 }

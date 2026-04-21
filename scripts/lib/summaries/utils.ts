@@ -93,7 +93,7 @@ export function extractSlug(filePath: string, link?: string): string {
   if (link) return link;
   const relativePath = filePath
     .replace(/^source\/posts\//, '')
-    .replace(/\.md$/, '');
+    .replace(/\.md$/i, '');
   return relativePath.toLowerCase();
 }
 

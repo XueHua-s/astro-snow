@@ -46,4 +46,26 @@ describe('summary quality guards', () => {
       'Electron 在大厂桌面端常被选中，核心原因是 Chromium 环境可控、UI 稳定且能复用 Web 技术栈。文章同时指出，涉及高性能和原生能力时应配合 Rust 等原生模块。',
     );
   });
+
+  it('builds an acceptable fallback for short diary-like content', () => {
+    const text =
+      '哭哭，不知道咋了。自从来了武汉，经常发烧头疼。呕吐。今天又发烧了37.5度。早上起床吃了布洛芬，一觉睡到了晚上。';
+
+    const summary = buildFallbackSummary(text);
+
+    expect(summary).toContain('发烧');
+    expect(summary).toContain('武汉');
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
+
+  it('builds a Chinese-first fallback for note-style technical text', () => {
+    const text =
+      'Vue3基础 Volar Vue3版本语法插件 Vite Vue3项目使用Vite进行构建 ESlint 组合式API 增强可维护性可读性 setup内部不能访问组件实例功能 reactive 用来定义响应式对象';
+
+    const summary = buildFallbackSummary(text);
+
+    expect(summary).toContain('可维护性');
+    expect(summary).not.toContain('Vite');
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
 });
