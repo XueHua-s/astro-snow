@@ -3,6 +3,10 @@
     "title": "配置 Codex 自定义三方API",
     "summary": "Claude Code 使用 Codex 喵！只需三步：先在配置文件中修改模型参数和 API 地址，接着设置好环境变量密钥，最后重启终端就能愉快开工啦，省钱又高效喵～🐾"
   },
+  "谈谈我认为的electron为什么都喜欢用": {
+    "title": "谈谈我认为的\"Electron为什么都喜欢用\"",
+    "summary": "$Voiceless velar approximant$ 技术选型没有银弹，只有trade-off。"
+  },
   "表格拖拽方法手写": {
     "title": "表格拖拽方法手写",
     "summary": "Element UI 表格不能拖拽的问题，亲手写了一个插件并分享到 GitHub 啦！有需要的小伙伴快去看看喵~🐾"
