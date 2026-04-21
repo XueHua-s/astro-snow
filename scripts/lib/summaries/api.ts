@@ -1,6 +1,10 @@
 import { generateText } from '@xsai/generate-text';
 import { OPENAI_API_BASE_URL, OPENAI_API_KEY } from './config';
-import { isSummaryAcceptable, normalizeSummaryText } from './quality';
+import {
+  buildFallbackSummary,
+  isSummaryAcceptable,
+  normalizeSummaryText,
+} from './quality';
 
 const SUMMARY_SYSTEM_PROMPT = [
   '你是中文技术博客摘要助手。',
@@ -114,5 +118,18 @@ export async function generateSummary(
     0.1,
   );
 
-  return repaired || firstPass;
+  if (isSummaryAcceptable(repaired)) {
+    return repaired;
+  }
+
+  const fallback = buildFallbackSummary(truncatedText);
+  if (isSummaryAcceptable(fallback)) {
+    return fallback;
+  }
+
+  if (isSummaryAcceptable(firstPass)) {
+    return firstPass;
+  }
+
+  throw new Error('Unable to generate a stable Chinese summary');
 }

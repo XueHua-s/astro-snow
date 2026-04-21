@@ -13,7 +13,7 @@
   },
   "周刊-2026-02-07": {
     "title": "周刊：编辑器模型对齐与 RK3528 部署 OpenClaw 记录",
-    "summary": "[END]。"
+    "summary": "这期周刊记录了编辑器模型对齐、图片魔法消除黑块修复和竖排文字交互等一系列细节问题，也总结了 Konva 坐标系带来的排障经验。除此之外，作者还尝试在 RK3528 开发板上部署 OpenClaw 和 Telegram Bot，整体主题是在产品打磨中持续啃底层问题。"
   },
   "周刊-2026-01-18": {
     "title": "周刊：看心理医生与对 ADHD 的疑惑",
@@ -81,7 +81,7 @@
   },
   "typescript项目经验笔记": {
     "title": "TypeScript项目经验笔记",
-    "summary": ""
+    "summary": "文章总结了 Vue 与 TypeScript 项目中的常见实践，包括 Props 类型约束、全局声明、泛型接口、装饰器和工具类型等技巧。核心目标是用更严谨的类型系统提升组件可维护性，并降低多人协作中的沟通和维护成本。"
   },
   "typescript小试牛刀": {
     "title": "Typescript小试牛刀",
@@ -101,7 +101,7 @@
   },
   "rust-trait-为泛型类型的具体实例实现特征": {
     "title": "Rust Trait：为泛型类型的具体实例实现特征",
-    "summary": "深入理解 Rust 中 trait 实现的灵活性：为什么可以为 Vec<String> 这样的泛型类型具体实例实现 trait？探讨 Rust 类型系统中的类型特化（Type Specialization）、trait 实现的作用范围，以及如何利用这一特性编写更灵活的代码。"
+    "summary": "文章围绕 Rust 特征实现的灵活性展开，解释为何可以为字符串向量这类泛型类型的具体实例单独实现特征。重点在于理解类型特化、实现作用范围，以及如何利用这一机制写出更灵活的泛型代码。"
   },
   "react笔记": {
     "title": "React学习笔记",
@@ -113,11 +113,11 @@
   },
   "react-effect依赖优化最佳实践与源码解析": {
     "title": "React Effect 依赖优化最佳实践",
-    "summary": "<answer>React中useEffect依赖管理的核心原则是依赖必须与代码匹配，可以通过事件处理器、更新函数等方式减少不必要的依赖，同时应将ESLint依赖警告视为编译错误，优先使用事件处理器而非Effect来处理用户交互逻辑，从而避免因依赖错误导致的难以调试的bug。</answer>。"
+    "summary": "文章围绕 React 中 useEffect 的依赖管理展开，强调依赖项必须与真实使用的数据保持一致，不能为了安静通过 lint 而故意省略。作者也给出减少依赖噪音的思路，例如把逻辑移回事件处理函数、拆分 Effect 或改用状态更新函数，从而避免难以排查的副作用 bug。"
   },
   "rk3528开发板部署openclaw-telegram-bot全记录": {
     "title": "在 RK3528 ARM 开发板上部署 OpenClaw + Telegram Bot 全记录",
-    "summary": "4GB内存的ARM开发板完全能跑Telegram AI。"
+    "summary": "文章完整记录了在 RK3528 ARM 开发板上部署 OpenClaw 与 Telegram Bot 的过程，涵盖多模型接入、长轮询方案、SQLite 存储以及白名单和高危命令限制等安全设计。重点在于证明资源有限的小板子也能稳定运行具备实用性的 AI Agent 系统。"
   },
   "nuxt3学习笔记": {
     "title": "Nuxt3学习笔记",
@@ -125,7 +125,7 @@
   },
   "node.js学习": {
     "title": "Node.js笔记",
-    "summary": ""
+    "summary": "这篇笔记系统梳理了 Node.js 的核心知识，从模块化、NPM 包管理、事件循环和异步编程讲到 Express 服务搭建与 MongoDB 数据库操作。整体目标是帮助读者打通从运行时基础到后端接口开发的完整实践链路。"
   },
   "nestjs关于循环依赖": {
     "title": "NestJs关于循环依赖",
@@ -145,7 +145,7 @@
   },
   "js对象数组深拷贝": {
     "title": "JS对象数组深拷贝",
-    "summary": "很抱歉，您提供的文章内容为空。请将需要摘要的文章完整粘贴，我来为您生成符合要求的摘要。"
+    "summary": "文章讨论对象数组深拷贝时如何处理循环引用，核心做法是在递归过程中记录已经访问过的对象，并在重复出现时直接复用已有结果。这样既能避免无限递归导致的栈溢出，也能更稳定地完成复杂嵌套结构的深拷贝。"
   },
   "hexo博客github-actions自动部署配置": {
     "title": "Hexo博客GitHub Actions自动部署配置",
@@ -161,7 +161,7 @@
   },
   "es2025-javascript新特性速览": {
     "title": "ES2025 JavaScript新特性速览",
-    "summary": "[|SUMMARY|]。"
+    "summary": "文章快速梳理了 ES2025 中值得关注的新特性，包括 Promise.try、Set 集合运算、模式匹配、管道运算符以及 Record 和 Tuple 等能力。重点在于说明这些特性如何减少样板代码、提升表达力，并改善现代 JavaScript 的工程开发体验。"
   },
   "cenos-7-6搭建pptp服务": {
     "title": "CenOS-7.6搭建pptp服务",
@@ -181,6 +181,6 @@
   },
   "2025-个人年终总结": {
     "title": "写在 2025 年末：歪歪扭扭，但我还在往前走",
-    "summary": "- 数据结构、算法） - 学习React、Electron、three.js、Cesium、NestJS、Rust等 - 为NaiveUI提交PR 7. 2024年： - 离开外包，进入现在的公司 - 主要使用React技术栈 8. 2025年总结： - 接触外网技术社区，参加FEDAY 2025 - 加入Telegram技术群 - 报名成人本科 - TypeScript类型体操 - Rust学习，编写开源库fast-md5-web获得90+ Star - 学习napi-rs、unified生态、Astro - 学习Tauri，写了本地记账软件 - 换了iPhone 17，买了MacBook Air M4 - 养猫，开通山姆会员 - 学习英语 总结：作者从被霸凌的中专生，通过自学编程、辗转外包，到2025年成长为有技术视野的前端开发者。关键成长节点是接触外网社区、参加FEDAY 2025、编写开源库获得Star、转向React技术栈。结论是。"
+    "summary": "这篇年终总结回顾了作者从校园受挫到靠自学编程进入职场，再逐步完成前端技术转型和视野升级的成长轨迹。2025 年的关键变化是更主动接触外部技术社区、投入 Rust 和开源实践，并在持续折腾中重新确认自己仍在往前走。"
   }
 }

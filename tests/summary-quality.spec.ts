@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildFallbackSummary,
   isSummaryAcceptable,
   normalizeSummaryText,
 } from '../scripts/lib/summaries/quality';
@@ -19,12 +20,30 @@ describe('summary quality guards', () => {
     expect(isSummaryAcceptable(summary)).toBe(false);
   });
 
+  it('rejects placeholder and tagged summaries', () => {
+    expect(isSummaryAcceptable('[END]。')).toBe(false);
+    expect(
+      isSummaryAcceptable(
+        '<answer>React中useEffect依赖管理的核心原则是依赖必须与代码匹配。</answer>。',
+      ),
+    ).toBe(false);
+  });
+
   it('normalizes whitespace and trailing punctuation', () => {
     const summary =
       '  文章解释 Electron 的优势在于环境可控和跨端复用，适合大厂桌面端工程化落地。   第二句补充原生能力应交给 Rust 处理 ';
 
     expect(normalizeSummaryText(summary)).toBe(
       '文章解释 Electron 的优势在于环境可控和跨端复用，适合大厂桌面端工程化落地。 第二句补充原生能力应交给 Rust 处理。',
+    );
+  });
+
+  it('builds a readable fallback summary from article text', () => {
+    const text =
+      'Electron 在大厂桌面端常被选中，核心原因是 Chromium 环境可控、UI 稳定且能复用 Web 技术栈。文章同时指出，涉及高性能和原生能力时应配合 Rust 等原生模块。最后总结技术选型没有银弹，本质是权衡稳定性、体积和开发成本。';
+
+    expect(buildFallbackSummary(text)).toBe(
+      'Electron 在大厂桌面端常被选中，核心原因是 Chromium 环境可控、UI 稳定且能复用 Web 技术栈。文章同时指出，涉及高性能和原生能力时应配合 Rust 等原生模块。',
     );
   });
 });
