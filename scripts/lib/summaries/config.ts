@@ -1,7 +1,7 @@
 export const CONTENT_GLOB = 'source/posts/**/*.md';
 export const CACHE_FILE = '.cache/summaries-cache.json';
 export const OUTPUT_FILE = 'src/cache/summaries.json';
-export const CACHE_VERSION = '1';
+export const CACHE_VERSION = '2';
 
 // FIXED: Summary generation now defaults to the official OpenAI endpoint.
 export const OPENAI_API_BASE_URL =
