@@ -5,7 +5,7 @@
   },
   "谈谈我认为的electron为什么都喜欢用": {
     "title": "谈谈我认为的\"Electron为什么都喜欢用\"",
-    "summary": "$Voiceless velar approximant$ 技术选型没有银弹，只有trade-off。"
+    "summary": "文章结合大厂桌面端实践讨论 Electron 为何常被选中，核心原因是 Chromium 环境可控、UI 表现稳定，并且能复用 Web 技术栈。作者也指出 Electron 不是万能方案，涉及重性能或原生能力时应配合 Rust 等原生模块，本质上是在稳定性、体积和开发成本之间做取舍。"
   },
   "表格拖拽方法手写": {
     "title": "表格拖拽方法手写",

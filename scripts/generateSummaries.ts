@@ -22,6 +22,7 @@ import {
   saveCache,
 } from './lib/summaries/utils';
 import { checkApiRunning, generateSummary } from './lib/summaries/api';
+import { isSummaryAcceptable } from './lib/summaries/quality';
 
 async function main() {
   const startTime = Date.now();
@@ -47,6 +48,7 @@ async function main() {
         for (const post of posts) {
           const outputEntry = outputSummaries[post.slug];
           if (!outputEntry?.summary) continue;
+          if (!isSummaryAcceptable(outputEntry.summary)) continue;
           seededCache[post.slug] = {
             hash: post.hash,
             title: outputEntry.title || post.title,
@@ -63,7 +65,10 @@ async function main() {
     const needsGeneration = posts.some((post) => {
       const hasDescription = Boolean(post.description);
       const cachedEntry = validCache[post.slug];
-      const hasCache = cachedEntry && cachedEntry.hash === post.hash;
+      const hasCache =
+        cachedEntry &&
+        cachedEntry.hash === post.hash &&
+        isSummaryAcceptable(cachedEntry.summary);
       return !hasDescription && !(hasCache && !force);
     });
 
@@ -112,7 +117,12 @@ async function main() {
         process.stdout.write(
           `\r  [${i + 1}/${posts.length}] ${chalk.blue('manual')}: ${post.slug.slice(0, 40)}...`,
         );
-      } else if (cachedEntry && cachedEntry.hash === post.hash && !force) {
+      } else if (
+        cachedEntry &&
+        cachedEntry.hash === post.hash &&
+        isSummaryAcceptable(cachedEntry.summary) &&
+        !force
+      ) {
         newEntries[post.slug] = cachedEntry;
         cached++;
         process.stdout.write(
