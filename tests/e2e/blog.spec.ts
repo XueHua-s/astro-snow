@@ -121,6 +121,55 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
+  test('series post navigation should not overlap sidebar panels', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/blog/post/38', { waitUntil: 'domcontentloaded' });
+    const desktopSidebar = page.locator('.page-home-sider').first();
+
+    await desktopSidebar
+      .locator('#inner-home-sider [data-segment-value="series"]')
+      .click();
+    await expect(
+      desktopSidebar.locator('[data-slot-type="series"]'),
+    ).toBeVisible();
+
+    const seriesLink = desktopSidebar
+      .locator('[data-slot-type="series"] a')
+      .filter({
+        hasText: 'Rust Cow（Clone-On-Write）学习笔记：理解 Borrowed 状态',
+      })
+      .first();
+
+    await Promise.all([
+      page.waitForURL('**/blog/post/37', { timeout: 30000 }),
+      seriesLink.click(),
+    ]);
+
+    const visibleSidebarSlots = await desktopSidebar
+      .locator('[data-slot-type]:visible')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          type: node.getAttribute('data-slot-type'),
+          text: node.textContent?.trim()?.slice(0, 80) ?? '',
+        })),
+      );
+
+    expect(visibleSidebarSlots).toHaveLength(1);
+    expect(visibleSidebarSlots[0]?.type).toBe('directory');
+    await expect(desktopSidebar.locator('[data-slot-type="info"]')).toHaveCount(
+      0,
+    );
+    await expect(
+      desktopSidebar.locator('[data-slot-type="directory"]'),
+    ).toBeVisible();
+
+    runtime.assertClean();
+  });
+
   test('should navigate from list page to a post detail page', async ({
     page,
   }) => {

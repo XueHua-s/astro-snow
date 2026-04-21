@@ -51,6 +51,7 @@ export const Segmented = <T extends string | number = string | number>({
 
   return (
     <div
+      id={id}
       className={cn(
         'bg-muted flex w-fit cursor-pointer rounded-sm p-1 text-xs font-semibold backdrop-blur-lg select-none',
         className,
@@ -61,6 +62,7 @@ export const Segmented = <T extends string | number = string | number>({
         const selected = isSelected(value);
         return (
           <motion.div
+            data-segment-value={String(value)}
             className={cn(
               'flex-center relative cursor-pointer gap-1.5 px-3 py-1 first:rounded-l-xs last:rounded-r-xs',
               { 'text-primary-foreground': selected },

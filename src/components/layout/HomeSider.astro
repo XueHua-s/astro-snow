@@ -2,7 +2,13 @@
 import { HomeSiderType, HomeSiderSegmentType } from '@constants/enum';
 import { cn } from '@lib/utils';
 import { blogLayoutConfig } from '@/config/blogLayoutConfig';
-import { getAllTags, getCategoryList, getCategoryNodeCount, getPostCount, getSortedPosts } from '@lib/content';
+import {
+  getAllTags,
+  getCategoryList,
+  getCategoryNodeCount,
+  getPostCount,
+  getSortedPosts,
+} from '@lib/content';
 import { getPostSeriesViewModel } from '@lib/content/posts';
 import { routers } from '@constants/router';
 import HomeSiderPanel from './HomeSiderPanel';
@@ -17,10 +23,26 @@ interface Props {
   tocHeadings?: MarkdownHeading[];
 }
 
-const { type = HomeSiderType.HOME, className, isDrawer = false, post, tocHeadings } = Astro.props;
-const defaultSegmentType = type === HomeSiderType.POST ? HomeSiderSegmentType.DIRECTORY : HomeSiderSegmentType.INFO;
+const {
+  type = HomeSiderType.HOME,
+  className,
+  isDrawer = false,
+  post,
+  tocHeadings,
+} = Astro.props;
+const defaultSegmentType =
+  type === HomeSiderType.POST
+    ? HomeSiderSegmentType.DIRECTORY
+    : HomeSiderSegmentType.INFO;
+// FIXED: Avoid reusing the hydrated post sidebar across post-to-post client transitions.
+const transitionName =
+  !isDrawer && type !== HomeSiderType.POST ? 'page-home-sider' : undefined;
 
-const [postCount, { categories }, posts] = await Promise.all([getPostCount(), getCategoryList(), getSortedPosts()]);
+const [postCount, { categories }, posts] = await Promise.all([
+  getPostCount(),
+  getCategoryList(),
+  getSortedPosts(),
+]);
 const tags = getAllTags(posts);
 const allTags = Object.entries(tags).map(([tag, count]) => ({ tag, count }));
 
@@ -35,7 +57,10 @@ const homeInfo = {
   currentPath: Astro.url.pathname,
 };
 
-const postSeriesData = post && type === HomeSiderType.POST ? await getPostSeriesViewModel(post) : null;
+const postSeriesData =
+  post && type === HomeSiderType.POST
+    ? await getPostSeriesViewModel(post)
+    : null;
 const seriesPostItems = postSeriesData?.seriesPostItems ?? [];
 const prevPostItem = postSeriesData?.prevPostItem ?? null;
 const nextPostItem = postSeriesData?.nextPostItem ?? null;
@@ -47,8 +72,7 @@ const currentPostSlug = postSeriesData?.currentPostSlug ?? undefined;
     'page-home-sider shadow-home-sider sticky top-0 self-start flex min-w-64 max-w-64 flex-col tablet:hidden overflow-hidden h-screen min-h-0 items-center px-2',
     className,
   )}
-  {...!isDrawer && { 'transition:name': 'page-home-sider' }}
->
+  {...transitionName ? { 'transition:name': transitionName } : {}}>
   <HomeSiderPanel
     client:media="(min-width: 993px)"
     type={type}
