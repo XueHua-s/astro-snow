@@ -31,4 +31,12 @@ describe('summary api fallback', () => {
     expect(summary).toContain('Ajax网络编程与Axios库');
     expect(isSummaryAcceptable(summary)).toBe(true);
   });
+
+  it('skips api generation for very short placeholder-like content', async () => {
+    const summary = await generateSummary('JS对象数组深拷贝', '', 'test-model');
+
+    expect(generateTextMock).not.toHaveBeenCalled();
+    expect(summary).toContain('JS对象数组深拷贝');
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
 });

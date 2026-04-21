@@ -2,6 +2,7 @@ import { generateText } from '@xsai/generate-text';
 import { OPENAI_API_BASE_URL, OPENAI_API_KEY } from './config';
 import {
   buildFallbackSummary,
+  countChineseChars,
   isSummaryAcceptable,
   normalizeSummaryText,
 } from './quality';
@@ -78,6 +79,14 @@ export async function generateSummary(
   model: string,
 ): Promise<string> {
   const truncatedText = text.slice(0, 6000);
+  const fallback = buildFallbackSummary(truncatedText, title);
+  const shouldSkipApi =
+    truncatedText.trim().length < 24 && countChineseChars(truncatedText) < 12;
+
+  if (shouldSkipApi && isSummaryAcceptable(fallback)) {
+    return fallback;
+  }
+
   let firstPass = '';
   let repaired = '';
   let lastError: unknown;
@@ -139,7 +148,6 @@ export async function generateSummary(
     return repaired;
   }
 
-  const fallback = buildFallbackSummary(truncatedText, title);
   if (isSummaryAcceptable(fallback)) {
     return fallback;
   }
