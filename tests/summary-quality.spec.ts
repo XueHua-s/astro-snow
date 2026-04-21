@@ -13,6 +13,13 @@ describe('summary quality guards', () => {
     expect(isSummaryAcceptable(summary)).toBe(true);
   });
 
+  it('accepts technical summaries that contain generic type syntax', () => {
+    const summary =
+      '深入理解 Rust 中 trait 实现的灵活性：为什么可以为 Vec<String> 这样的泛型类型具体实例实现 trait？探讨 Rust 类型系统中的类型特化（Type Specialization）、trait 实现的作用范围，以及如何利用这一特性编写更灵活的代码。';
+
+    expect(isSummaryAcceptable(summary)).toBe(true);
+  });
+
   it('rejects English-heavy or malformed summaries', () => {
     const summary =
       '$Voiceless velar approximant$ 技术选型没有银弹，只有trade-off。';
@@ -25,6 +32,16 @@ describe('summary quality guards', () => {
     expect(
       isSummaryAcceptable(
         '<answer>React中useEffect依赖管理的核心原则是依赖必须与代码匹配。</answer>。',
+      ),
+    ).toBe(false);
+    expect(
+      isSummaryAcceptable(
+        '喵呜...主人给的文章是"emj"喵，这个没办法总结呢喵！可能是复制的时候出了点问题？重新发一下喵，猫猫在这里等着喵～✨。',
+      ),
+    ).toBe(false);
+    expect(
+      isSummaryAcceptable(
+        '喵～铲屎官，偶好像没看到文章内容呢，空空如也呀～可以把文章贴上来吗？偶就能帮你变成可爱的摘要啦～。',
       ),
     ).toBe(false);
   });

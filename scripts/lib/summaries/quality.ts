@@ -3,10 +3,10 @@ const LATIN_CHAR_RE = /[A-Za-z]/g;
 const IPA_CHAR_RE = /[\u0250-\u02af]/;
 const LATEX_INLINE_RE = /\$[^$\n]+\$/;
 const URL_RE = /https?:\/\//i;
-const HTML_TAG_RE = /<[^>]+>/;
+const HTML_TAG_RE = /<\/?(?:[a-z]+[a-z0-9-]*)(?:\s[^>]*)?>/;
 const PLACEHOLDER_RE = /\[(?:END|\|SUMMARY\|)\]/i;
 const APOLOGY_RE =
-  /很抱歉|请将需要摘要的文章完整粘贴|文章内容为空|文章正文还没有给|忘记粘贴真正的文章内容|请把文章内容贴上来|没法变出摘要/;
+  /很抱歉|请将需要摘要的文章完整粘贴|文章内容为空|文章正文还没有给|忘记粘贴真正的文章内容|请把文章内容贴上来|没法变出摘要|内容太短|无法总结|没看到文章内容|空空如也|重新发一下|提供完整的文章|给的文章是|猫猫在这里等着|文章贴上来吗/;
 const LIST_ARTIFACT_RE = /(?:^|\s)-\s.{0,40}(?:-\s.{0,40}){3,}/;
 
 export function normalizeSummaryText(text: string): string {
