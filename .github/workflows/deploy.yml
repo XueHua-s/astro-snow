@@ -48,6 +48,8 @@ jobs:
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
 
       - name: Commit cache updates
+        env:
+          HUSKY: 0
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -55,6 +57,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No cache changes to commit"
           else
+            # FIXED: Skip local Husky hooks for bot-generated CI commits.
             git commit -m "chore: update cache files [skip ci]"
             git push
           fi
