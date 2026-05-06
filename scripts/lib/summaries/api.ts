@@ -73,23 +73,17 @@ export async function checkApiRunning(model: string): Promise<boolean> {
   }
 }
 
-export interface GenerateSummaryOptions {
-  allowLocalFallback?: boolean;
-}
-
 export async function generateSummary(
   title: string,
   text: string,
   model: string,
-  options: GenerateSummaryOptions = {},
 ): Promise<string> {
   const truncatedText = text.slice(0, 6000);
   const fallback = buildFallbackSummary(truncatedText, title);
-  const allowLocalFallback = options.allowLocalFallback !== false;
   const shouldSkipApi =
     truncatedText.trim().length < 24 && countChineseChars(truncatedText) < 12;
 
-  if (allowLocalFallback && shouldSkipApi && isSummaryAcceptable(fallback)) {
+  if (shouldSkipApi && isSummaryAcceptable(fallback)) {
     return fallback;
   }
 
@@ -154,7 +148,7 @@ export async function generateSummary(
     return repaired;
   }
 
-  if (allowLocalFallback && isSummaryAcceptable(fallback)) {
+  if (isSummaryAcceptable(fallback)) {
     return fallback;
   }
 
