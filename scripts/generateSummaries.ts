@@ -7,6 +7,7 @@ import {
   DEFAULT_MODEL,
   OUTPUT_FILE,
   CACHE_VERSION,
+  REQUIRE_AI_SUMMARIES,
 } from './lib/summaries/config';
 import type {
   CacheEntry,
@@ -62,7 +63,7 @@ async function main() {
       }
     }
 
-    const needsGeneration = posts.some((post) => {
+    const postsRequiringGeneration = posts.filter((post) => {
       const hasDescription = Boolean(post.description);
       const cachedEntry = validCache[post.slug];
       const hasCache =
@@ -71,11 +72,27 @@ async function main() {
         isSummaryAcceptable(cachedEntry.summary);
       return !hasDescription && !(hasCache && !force);
     });
+    const needsGeneration = postsRequiringGeneration.length > 0;
 
     let skipGeneration = false;
     if (needsGeneration) {
       const apiRunning = await checkApiRunning(model);
       if (!apiRunning) {
+        const missingSlugs = postsRequiringGeneration
+          .map((post) => `  - ${post.slug}`)
+          .join('\n');
+
+        if (REQUIRE_AI_SUMMARIES) {
+          throw new Error(
+            [
+              'Cannot connect to LLM API while posts require AI summaries.',
+              'Refusing to continue because REQUIRE_AI_SUMMARIES=1.',
+              'Check OPENAI_API_KEY, OPENAI_API_BASE_URL, and OPENAI_MODEL.',
+              missingSlugs,
+            ].join('\n'),
+          );
+        }
+
         skipGeneration = true;
         console.error(chalk.yellow('\nWarning: Cannot connect to LLM API.'));
         console.error(chalk.yellow('  - OPENAI_API_KEY is set correctly'));
@@ -144,7 +161,9 @@ async function main() {
         );
 
         try {
-          const summary = await generateSummary(post.title, post.text, model);
+          const summary = await generateSummary(post.title, post.text, model, {
+            allowLocalFallback: !REQUIRE_AI_SUMMARIES,
+          });
           newEntries[post.slug] = {
             hash: post.hash,
             title: post.title,
@@ -163,6 +182,12 @@ async function main() {
           }
         }
       }
+    }
+
+    if (REQUIRE_AI_SUMMARIES && (skipped > 0 || errors > 0)) {
+      throw new Error(
+        `AI summary generation incomplete: skipped ${skipped}, errors ${errors}.`,
+      );
     }
 
     const newCache: SummariesCache = {
