@@ -14,7 +14,7 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 
 ## 个人总结 / Professional Summary
 
-4 年 2 个月+ React / TypeScript 前端与桌面端开发经验，目标岗位覆盖 React Web Frontend Developer、Rust + Electron Desktop Developer、Supabase Full-stack Developer。参与 Doc2X / DocCopilot 文档解析、AI 翻译、国际站、Drawing Board、PPT AI Agent 工作流、Electron 桌面端、Zotero 插件与内部 npm 工具链建设。熟悉 Rust + NAPI-RS、Electron、Canvas 编辑器、MCP、Agent Skills、CLI 工具与 AI 编程工作流，同时具备 Supabase 全栈开发能力，可承担 Auth、PostgreSQL、Row Level Security（RLS）、Storage、Edge Functions 等前后端一体化开发工作。
+4 年 2 个月+ React / TypeScript 前端与桌面端开发经验，目标岗位覆盖 React Web Frontend Developer、Rust + Electron Desktop Developer、Supabase Full-stack Developer。参与 Doc2X / DocCopilot 文档解析、AI 翻译、国际站、Drawing Board、PPT AI Agent 工作流、Electron 桌面端、Zotero 插件与内部 npm 工具链建设。熟悉 Rust + NAPI-RS、Electron、Canvas 编辑器、MCP 工具使用、Agent Skills、CLI 工具与 AI 编程工作流，同时具备 Supabase 全栈开发能力，可承担 Auth、PostgreSQL、Row Level Security（RLS）、Storage、Edge Functions 等前后端一体化开发工作。
 
 ## 教育背景 / Education
 
@@ -29,7 +29,7 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 2024.04 - 至今
 
 - 负责公司核心产品 Doc2X / DocCopilot 的前端模块与业务功能开发，持续迭代文档解析、AI 翻译、AI 对话、画板编辑与导出链路。
-- 参与国际站、Electron 桌面端 monorepo、Zotero 插件、前端共享 npm 库、Doc2X CLI、内部 CLI Skill 与 MCP Server 等工程建设。
+- 参与国际站、Electron 桌面端 monorepo、Zotero 插件、前端共享 npm 库、Doc2X CLI 与内部 CLI Skill 等工程建设。
 - 参与前端架构、内部 npm 工具库、构建流水线、SDK 升级适配与项目工程化治理，推进类型收敛、性能优化和回归测试建设。
 - 具备 Supabase 全栈开发能力，能够完成 Supabase Auth、PostgreSQL、Row Level Security（RLS）、Storage、Edge Functions 与前端业务的一体化设计和接入。
 - 与产品、后端、算法团队协作，拆解复杂需求并保障功能按期交付，关注系统稳定性、任务状态一致性与用户体验。
@@ -51,7 +51,7 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 - 调试与协作：Apifox、mock-js、GitHub PR 工作流、接口联调、需求评审、项目交付与风险同步。
 - 服务端与数据：Node.js、Bun.js、NestJS、ElysiaJS、Actix-Web、SQL、MySQL、MongoDB、TypeORM、Mongoose。
 - Supabase 全栈：熟悉 Supabase Auth、PostgreSQL、Row Level Security（RLS）权限策略、Storage、Edge Functions、REST API，能够完成前端业务、数据模型、权限控制与后端函数的一体化开发。
-- AI 工具链：熟悉 Codex、Claude Code、Qwen Code 等 CLI，熟悉 Agent Skills 编写、MCP Server 开发与上架发布，具备自主搭建 Agent 工作流经验。
+- AI 工具链：熟悉 Codex、Claude Code、Qwen Code 等 CLI，熟悉 Agent Skills 编写、MCP 工具使用与工作流集成，具备自主搭建 Agent 工作流经验。
 - 插件与生态：熟悉 Zotero 插件、GitHub Packages、npm 包发布、doc2x-cli 命令行工具、CLI Skill 插件与前端共享库维护。
 
 ## 开源经历 / Open Source Experience
@@ -157,16 +157,6 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 - 编写一键安装脚本、README、plugin manifest 与发布配置，支持安装到用户级 / 项目级 `.claude/skills` 和 `.agents/skills`，并发布到 GitHub Packages。
 - 熟悉 Skills 的编写、组织、上架与维护流程，包括 `SKILL.md` 入口、references 文档、触发描述、使用边界、安装验证和版本发布。
 
-### Doc2X MCP Server - 文档解析能力 MCP 化
-
-项目类型：公司内部 Doc2X MCP Server  
-技术栈：TypeScript、Node.js、MCP SDK、Zod、pnpm、GitHub Actions、npm publish
-
-- 熟悉将 Doc2X PDF / 图片解析能力封装为 stdio MCP Server 的实现方式，为 Codex CLI、Claude Code 与自定义 Agent 暴露稳定、可组合的 tools。
-- 理解 submit / status / wait 的异步任务模型，覆盖 PDF 解析、图片 OCR、导出、下载落盘、layout JSON materialize、配置诊断等能力。
-- 熟悉 MCP 工具的参数校验、错误码设计、环境变量配置、HTTP 超时、轮询间隔、下载 URL allowlist 与运行时安全边界。
-- 熟悉 MCP Server 的 CI、测试、npm 包发布、dev / latest tag 发布流程，以及配套 Skill 安装脚本和使用文档。
-
 ### Doc2X Zotero 插件
 
 项目类型：公司内部 Zotero 7 插件  
@@ -238,5 +228,5 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 
 - 熟悉 Claude Code、Codex、Qwen Code 等 AI 编程工具，能够使用 AI 工具进行代码实现、代码评审、测试补齐、重构、文档编写和复杂问题定位。
 - 熟悉编写 Agent Skills，并能将工具命令、约束、参考文档、安装脚本和使用示例组织成可复用的 Agent 能力包。
-- 熟悉 MCP Server 的开发、工具 schema 设计、异步任务封装、环境变量配置、错误处理、CI 测试与 npm 发布上架流程。
+- 熟悉 MCP Server 的使用方式、工具 schema 理解、异步任务调用、环境变量配置与错误排查。
 - 能将 AI 生成结果落到工程约束内，包括类型安全、边界条件、异步竞态、权限校验、回归测试和可维护文档。
