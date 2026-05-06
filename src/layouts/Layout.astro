@@ -9,6 +9,8 @@ interface Props {
   siderType?: HomeSiderType;
   post?: BlogPost;
   tocHeadings?: MarkdownHeading[];
+  hideMobileDrawer?: boolean;
+  pagefindIgnore?: boolean;
 }
 
 import FloatingGroup from '@components/layout/FloatingGroup.astro';
@@ -25,8 +27,15 @@ import { ClientRouter } from 'astro:transitions';
 
 import '@styles/index.css';
 
-const { title = blogSeoConfig.title, description = blogSeoConfig.description, siderType, post, tocHeadings } =
-  Astro.props;
+const {
+  title = blogSeoConfig.title,
+  description = blogSeoConfig.description,
+  siderType,
+  post,
+  tocHeadings,
+  hideMobileDrawer = false,
+  pagefindIgnore = false,
+} = Astro.props;
 // TODO: siderType should be custom in router file, not in layout
 
 // Detect if current page is a post page for mobile header
@@ -34,7 +43,11 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
 ---
 
 <!doctype html>
-<html transition:name="root" lang="zh-CN" class="vertical-scrollbar">
+<html
+  transition:name="root"
+  lang="zh-CN"
+  class="vertical-scrollbar"
+  {...pagefindIgnore ? { 'data-pagefind-ignore': true } : {}}>
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -50,12 +63,26 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
     <!-- Preconnect to third-party origins for faster resource loading -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-    <link rel="preconnect" href="https://chinese-font.netlify.app" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://chinese-font.netlify.app"
+      crossorigin
+    />
     <link rel="dns-prefetch" href="https://chinese-font.netlify.app" />
 
     <!-- Async load Chinese fonts to avoid render-blocking -->
-    <link rel="stylesheet" href="/fonts/ChillRoundFRegular/result.css" media="print" onload="this.media='all'" />
-    <link rel="stylesheet" href="/fonts/ChillRoundFBold/result.css" media="print" onload="this.media='all'" />
+    <link
+      rel="stylesheet"
+      href="/fonts/ChillRoundFRegular/result.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link
+      rel="stylesheet"
+      href="/fonts/ChillRoundFBold/result.css"
+      media="print"
+      onload="this.media='all'"
+    />
 
     <ClientRouter />
     <LoadingIndicator color="#e9536a" />
@@ -76,12 +103,14 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
+    <slot name="head" />
 
     <script is:inline>
       // 立即执行主题检查 否则会闪烁
       if (
         localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        (!('theme' in localStorage) &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
       ) {
         document.documentElement.classList.add('dark');
         document.documentElement.classList.remove('light');
@@ -96,9 +125,15 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
       // iOS Safari pinch-zoom guard (viewport meta alone is not always respected)
       (() => {
         const blockGesture = (event) => event.preventDefault();
-        document.addEventListener('gesturestart', blockGesture, { passive: false });
-        document.addEventListener('gesturechange', blockGesture, { passive: false });
-        document.addEventListener('gestureend', blockGesture, { passive: false });
+        document.addEventListener('gesturestart', blockGesture, {
+          passive: false,
+        });
+        document.addEventListener('gesturechange', blockGesture, {
+          passive: false,
+        });
+        document.addEventListener('gestureend', blockGesture, {
+          passive: false,
+        });
       })();
     </script>
     <!--主题检查切换对应值-->
@@ -106,7 +141,8 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
       function checkTheme() {
         if (
           localStorage.theme === 'dark' ||
-          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          (!('theme' in localStorage) &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
         ) {
           document.documentElement.classList.add('dark');
           document.documentElement.classList.remove('light'); // 本来是没有 light 的，这样是为了触发 MutationObserver
@@ -133,7 +169,15 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
         {(<slot />)}
       </main>
       <FloatingGroup />
-      <MobileDrawer type={siderType} post={post} tocHeadings={tocHeadings} />
+      {
+        !hideMobileDrawer && (
+          <MobileDrawer
+            type={siderType}
+            post={post}
+            tocHeadings={tocHeadings}
+          />
+        )
+      }
       <SearchDialog />
       <CodeBlockFullscreen />
       <MermaidFullscreen />

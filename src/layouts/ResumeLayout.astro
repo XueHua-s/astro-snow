@@ -1,0 +1,72 @@
+---
+import TwoColumnLayout from '@components/layout/TwoColumnLayout.astro';
+import Cover from '@components/ui/cover/Cover.astro';
+import { CustomContentEnhancer } from '@components/common/CustomContentEnhancer';
+import { CONTENT_PADDING } from '@constants/layout';
+import { defaultContentConfig } from '@constants/content-config';
+import { blogSeoConfig } from '@/config/blogLayoutConfig';
+import { TableOfContents } from '@components/layout/TableOfContents';
+import { ScrollProgress } from '@components/layout/ScrollProgress';
+import Layout from './Layout.astro';
+
+export interface Props {
+  frontmatter: {
+    title?: string;
+    description?: string;
+  };
+}
+
+const { frontmatter } = Astro.props;
+const title = frontmatter.title ?? 'snow Resume';
+const description = frontmatter.description ?? 'snow 的公开 Markdown 简历';
+---
+
+<Layout
+  title={`${title} | ${blogSeoConfig.title}`}
+  description={description}
+  hideMobileDrawer
+  pagefindIgnore>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+  <TwoColumnLayout>
+    <Cover slot="cover" title="snow Resume" />
+    <aside
+      slot="sider"
+      class="page-home-sider shadow-home-sider sticky top-0 self-start flex h-screen min-h-0 min-w-64 max-w-64 flex-col overflow-hidden px-2 tablet:hidden"
+      aria-label="简历目录">
+      <div
+        class="my-4 rounded-sm bg-black/8 px-3 py-2 text-center text-sm/6 font-semibold text-primary-foreground backdrop-blur-lg">
+        简历目录
+      </div>
+      <div
+        class="vertical-scrollbar scroll-gutter-stable relative block min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto pt-6">
+        <TableOfContents client:media="(min-width: 993px)" />
+      </div>
+      <ScrollProgress
+        client:media="(min-width: 993px)"
+        className="mt-auto w-full rounded-full pt-4 sticky bottom-0"
+      />
+    </aside>
+    <div
+      data-pagefind-ignore
+      class={`shadow-box bg-gradient-start mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}>
+      <article
+        class="resume-content prose md:prose-sm dark:prose-invert custom-content">
+        <slot />
+      </article>
+      <CustomContentEnhancer client:idle config={defaultContentConfig} />
+    </div>
+  </TwoColumnLayout>
+</Layout>
+
+<style is:global>
+  .resume-content h3 .resume-title-icon {
+    display: inline-block !important;
+    width: 1.375rem !important;
+    height: 1.375rem !important;
+    margin: 0 0.4rem 0 0 !important;
+    vertical-align: -0.22em !important;
+    object-fit: contain;
+  }
+</style>
