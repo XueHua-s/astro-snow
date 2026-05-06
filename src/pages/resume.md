@@ -228,5 +228,6 @@ GitHub：[https://github.com/XueHua-s](https://github.com/XueHua-s)
 
 - 熟悉 Claude Code、Codex、Qwen Code 等 AI 编程工具，能够使用 AI 工具进行代码实现、代码评审、测试补齐、重构、文档编写和复杂问题定位。
 - 熟悉编写 Agent Skills，并能将工具命令、约束、参考文档、安装脚本和使用示例组织成可复用的 Agent 能力包。
+- 熟悉 CLI / Agent Skill 插件的 CI 测试、npm 包发布、上架流程、安装脚本和使用文档维护。
 - 熟悉 MCP Server 的使用方式、工具 schema 理解、异步任务调用、环境变量配置与错误排查。
 - 能将 AI 生成结果落到工程约束内，包括类型安全、边界条件、异步竞态、权限校验、回归测试和可维护文档。
