@@ -11,12 +11,14 @@ interface Props {
   isPostPage?: boolean;
   tocNumbering?: boolean;
   tocHeadings?: MarkdownHeading[];
+  currentPath?: string;
 }
 
 export default function Header({
   isPostPage = false,
   tocNumbering = true,
   tocHeadings,
+  currentPath,
 }: Props) {
   const { alternate, title, showLogo } = blogLayoutConfig;
   useHeaderScroll();
@@ -59,7 +61,7 @@ export default function Header({
               logoSrc={logoSrc}
             />
           </div>
-          <Navigator />
+          <Navigator currentPath={currentPath} />
         </div>
       </div>
     </>

@@ -170,6 +170,76 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
+  test('left sidebar active route should follow client navigation', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+
+    const desktopSidebar = page.locator('.page-home-sider').first();
+    const homeLink = desktopSidebar.locator('[data-sidebar-route="/blog"]');
+    const articleButton = desktopSidebar.getByRole('button', {
+      name: '文章菜单',
+    });
+    const headerHomeLink = page.locator(
+      '#site-header [data-header-route="/blog"]',
+    );
+    const headerArticleButton = page.locator(
+      '#site-header [data-header-route-group="文章"]',
+    );
+    const categoryLink = desktopSidebar.locator(
+      '[data-sidebar-route="/blog/categories"]',
+    );
+    const tagLink = desktopSidebar.locator('[data-sidebar-route="/blog/tags"]');
+
+    await expect(desktopSidebar).toBeVisible();
+    await expect(homeLink).toHaveAttribute('aria-current', 'page');
+    await expect(headerHomeLink).toHaveAttribute('aria-current', 'page');
+
+    await articleButton.click();
+    await Promise.all([
+      page.waitForURL('**/blog/categories', { timeout: 30000 }),
+      categoryLink.click(),
+    ]);
+
+    await expect(articleButton).toHaveAttribute('data-route-active', 'true');
+    await expect(headerArticleButton).toHaveAttribute(
+      'data-route-active',
+      'true',
+    );
+    await expect(categoryLink).toHaveAttribute('aria-current', 'page');
+    await expect(homeLink).not.toHaveAttribute('aria-current', 'page');
+    await expect(headerHomeLink).not.toHaveAttribute('aria-current', 'page');
+
+    await Promise.all([
+      page.waitForURL('**/blog/tags', { timeout: 30000 }),
+      tagLink.click(),
+    ]);
+
+    await expect(articleButton).toHaveAttribute('data-route-active', 'true');
+    await expect(tagLink).toHaveAttribute('aria-current', 'page');
+    await expect(categoryLink).not.toHaveAttribute('aria-current', 'page');
+
+    await page.goBack({ waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/blog\/categories$/);
+    await expect(categoryLink).toHaveAttribute('aria-current', 'page');
+    await expect(tagLink).not.toHaveAttribute('aria-current', 'page');
+
+    await page.goto('/blog/categories/学习笔记', {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(articleButton).toHaveAttribute('data-route-active', 'true');
+    await expect(headerArticleButton).toHaveAttribute(
+      'data-route-active',
+      'true',
+    );
+    await expect(categoryLink).toHaveAttribute('aria-current', 'page');
+
+    runtime.assertClean();
+  });
+
   test('should navigate from list page to a post detail page', async ({
     page,
   }) => {

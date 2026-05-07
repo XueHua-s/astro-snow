@@ -1,7 +1,8 @@
 import { useId, useMemo, useState } from 'react';
 import type { Router } from '@constants/router';
-import { Routes } from '@constants/router';
+import { Routes, isRoutePathActive } from '@constants/router';
 import { cn } from '@lib/utils';
+import { useCurrentPathname } from '@hooks/useCurrentPathname';
 import { getLqipGradient } from '@lib/lqip';
 import ButtonLink from '@components/control/ButtonLink';
 import Social from './Social';
@@ -32,6 +33,7 @@ export function HomeInfoPanel({
   const uniqueId = useId();
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
   const lqipGradient = useMemo(() => getLqipGradient(avatar), [avatar]);
+  const currentPathname = useCurrentPathname(currentPath);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => ({
@@ -86,17 +88,29 @@ export function HomeInfoPanel({
         {routes.map(({ name: routeName, path, icon, children }, index) => {
           if (children?.length) {
             const collapseId = `${uniqueId}-collapse-${index}`;
-            const isExpanded = Boolean(expandedIds[collapseId]);
+            const hasActiveChild = children.some((child) =>
+              isRoutePathActive(child.path, currentPathname),
+            );
+            const isExpanded =
+              Boolean(expandedIds[collapseId]) || hasActiveChild;
             return (
               <div
                 key={collapseId}
-                className="bg-foreground/10 flex w-40 flex-col rounded-xl opacity-75 transition-all duration-300 hover:opacity-100"
+                className={cn(
+                  'bg-foreground/10 flex w-40 flex-col rounded-xl opacity-75 transition-all duration-300 hover:opacity-100',
+                  hasActiveChild && 'opacity-100',
+                )}
                 data-collapsible>
                 <button
-                  className="flex-center hover:bg-foreground/5 h-12 w-full cursor-pointer rounded-xl transition-colors"
+                  className={cn(
+                    'flex-center hover:bg-foreground/5 h-12 w-full cursor-pointer rounded-xl transition-colors',
+                    hasActiveChild &&
+                      'bg-gradient-shoka-button text-primary-foreground shoka-button-shadow opacity-100 hover:bg-gradient-shoka-button',
+                  )}
                   aria-expanded={isExpanded}
                   aria-controls={collapseId}
                   aria-label={`${routeName}菜单`}
+                  data-route-active={hasActiveChild || undefined}
                   type="button"
                   onClick={() => toggleExpanded(collapseId)}>
                   {icon && (
@@ -123,28 +137,37 @@ export function HomeInfoPanel({
                         name: childName,
                         path: childPath,
                         icon: childIcon,
-                      }) => (
-                        <ButtonLink
-                          key={childPath}
-                          url={childPath}
-                          label={childName}
-                          variant="gradient-shoka"
-                          className={cn(
-                            'shoka-button-shadow h-12 w-40 rounded-xl text-base tracking-wider',
-                            {
-                              'text-muted-foreground/80 hover:bg-muted-foreground/10 bg-none shadow-none hover:shadow-none':
-                                childPath !== currentPath,
-                            },
-                          )}>
-                          {childIcon && (
-                            <i
-                              className={`mr-1.5 ${childIcon}`}
-                              aria-hidden="true"
-                            />
-                          )}
-                          {childName}
-                        </ButtonLink>
-                      ),
+                      }) => {
+                        const isActive = isRoutePathActive(
+                          childPath,
+                          currentPathname,
+                        );
+
+                        return (
+                          <ButtonLink
+                            key={childPath}
+                            url={childPath}
+                            label={childName}
+                            variant="gradient-shoka"
+                            aria-current={isActive ? 'page' : undefined}
+                            data-sidebar-route={childPath}
+                            className={cn(
+                              'shoka-button-shadow h-12 w-40 rounded-xl text-base tracking-wider',
+                              {
+                                'text-muted-foreground/80 hover:bg-muted-foreground/10 bg-none shadow-none hover:shadow-none':
+                                  !isActive,
+                              },
+                            )}>
+                            {childIcon && (
+                              <i
+                                className={`mr-1.5 ${childIcon}`}
+                                aria-hidden="true"
+                              />
+                            )}
+                            {childName}
+                          </ButtonLink>
+                        );
+                      },
                     )}
                   </div>
                 </div>
@@ -152,17 +175,22 @@ export function HomeInfoPanel({
             );
           }
 
+          const isActive = isRoutePathActive(path, currentPathname);
+
           return (
             <ButtonLink
               key={path}
               url={path}
               label={routeName}
               variant="gradient-shoka"
+              aria-current={isActive ? 'page' : undefined}
+              data-sidebar-route={path}
               className={cn(
                 'shoka-button-shadow h-12 w-40 rounded-xl text-base tracking-wider opacity-75 transition-all duration-300 hover:opacity-100',
+                isActive && 'opacity-100',
                 {
                   'text-muted-foreground/80 hover:bg-muted-foreground/10 bg-none shadow-none hover:shadow-none':
-                    path !== currentPath,
+                    !isActive,
                 },
               )}>
               {icon && <i className={`mr-1.5 ${icon}`} aria-hidden="true" />}

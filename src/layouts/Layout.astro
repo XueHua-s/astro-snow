@@ -162,6 +162,7 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
       <Header
         client:idle
         isPostPage={isPostPage}
+        currentPath={Astro.url.pathname}
         tocNumbering={post?.data.tocNumbering ?? true}
         tocHeadings={tocHeadings}
       />
