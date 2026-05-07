@@ -12,6 +12,52 @@ export const withBlogBase = (path: string) => {
   return `${BLOG_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 };
 
+export const normalizeRoutePath = (path?: string | null) => {
+  if (typeof path !== 'string') return '';
+
+  const trimmedPath = path.trim();
+  if (!trimmedPath) return '';
+
+  let pathname = trimmedPath;
+  if (/^[a-z][a-z\d+.-]*:/i.test(trimmedPath)) {
+    try {
+      pathname = new URL(trimmedPath).pathname;
+    } catch {
+      pathname = trimmedPath;
+    }
+  }
+
+  const pathWithoutSearch = pathname.split(/[?#]/)[0] ?? '';
+  const withLeadingSlash = pathWithoutSearch.startsWith('/')
+    ? pathWithoutSearch
+    : `/${pathWithoutSearch}`;
+  const withoutDuplicateSlashes = withLeadingSlash.replace(/\/{2,}/g, '/');
+  const withoutTrailingSlash = withoutDuplicateSlashes.replace(/\/+$/, '');
+
+  return withoutTrailingSlash || '/';
+};
+
+export const isRoutePathActive = (
+  routePath?: string | null,
+  currentPath?: string | null,
+) => {
+  const route = normalizeRoutePath(routePath);
+  const current = normalizeRoutePath(currentPath);
+
+  if (!route || !current) return false;
+
+  if (route === BLOG_BASE) {
+    const postsRoute = `${BLOG_BASE}/posts`;
+    return (
+      current === BLOG_BASE ||
+      current === postsRoute ||
+      current.startsWith(`${postsRoute}/`)
+    );
+  }
+
+  return current === route || current.startsWith(`${route}/`);
+};
+
 export enum Routes {
   Home = BLOG_BASE,
   About = `${BLOG_BASE}/about`,
