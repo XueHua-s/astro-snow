@@ -9,6 +9,22 @@ export interface FriendLink {
 
 export const friendsData: FriendLink[] = [
   {
+    site: 'CloudWings的小窝',
+    url: 'https://cloudwings.xyz/',
+    owner: 'CloudWings',
+    desc: '正在搭建的个人网站 :)',
+    image: 'https://example.com/avatar.jpg',
+    color: '#ffc0cb',
+  },
+  {
+    site: '云灿の随笔小站',
+    url: 'https://blog.yuncan.xyz/',
+    owner: '云灿',
+    desc: '浮云一别后，流水十年间',
+    image: 'https://yuncan.xyz/images/icon/favicon.ico',
+    color: '#c2fff3',
+  },
+  {
     site: "matto's blog",
     url: 'https://www.matto.top/',
     owner: 'matto',
