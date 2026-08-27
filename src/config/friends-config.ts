@@ -9,6 +9,14 @@ export interface FriendLink {
 
 export const friendsData: FriendLink[] = [
   {
+    site: 'slowbyteのblog',
+    url: 'https://blog.novaspace.me',
+    owner: 'slowbyte',
+    desc: 'Slow byte, steady build.',
+    image: 'https://blog.novaspace.me/img/avatar.webp',
+    color: '#6c7bb7',
+  },
+  {
     site: 'CloudWings的小窝',
     url: 'https://cloudwings.xyz/',
     owner: 'CloudWings',
