@@ -9,6 +9,14 @@ export interface FriendLink {
 
 export const friendsData: FriendLink[] = [
   {
+    site: 'Smirnova Oyama',
+    url: 'https://mahiro.uk/',
+    owner: 'Smirnova',
+    desc: 'An undergraduate student from China.',
+    image: 'https://mahiro.uk/favicon.ico',
+    color: '#c6613f',
+  },
+  {
     site: 'slowbyteのblog',
     url: 'https://blog.novaspace.me',
     owner: 'slowbyte',
