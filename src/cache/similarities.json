@@ -21,9 +21,9 @@
       "similarity": 0.513
     },
     {
-      "slug": "hexo博客github-actions自动部署配置",
-      "title": "Hexo博客GitHub Actions自动部署配置",
-      "similarity": 0.504
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.505
     }
   ],
   "谈谈我认为的electron为什么都喜欢用": [
@@ -831,9 +831,9 @@
       "similarity": 0.457
     },
     {
-      "slug": "rust-cow-learning-notes",
-      "title": "Rust Cow（Clone-On-Write）学习笔记：理解 Borrowed 状态",
-      "similarity": 0.428
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.454
     }
   ],
   "nuxt3学习笔记": [
@@ -942,6 +942,33 @@
       "slug": "nuxt3学习笔记",
       "title": "Nuxt3学习笔记",
       "similarity": 0.614
+    }
+  ],
+  "mcp开发与oauth授权踩坑记录": [
+    {
+      "slug": "配置 codex 自定义三方api",
+      "title": "配置 Codex 自定义三方API",
+      "similarity": 0.505
+    },
+    {
+      "slug": "vue3笔记",
+      "title": "Vue3学习笔记",
+      "similarity": 0.493
+    },
+    {
+      "slug": "vue.js基础",
+      "title": "Vue.js基础",
+      "similarity": 0.468
+    },
+    {
+      "slug": "ajax与axios库网络编程",
+      "title": "Ajax网络编程与Axios库",
+      "similarity": 0.464
+    },
+    {
+      "slug": "typescript项目经验笔记",
+      "title": "TypeScript项目经验笔记",
+      "similarity": 0.463
     }
   ],
   "javascript-es6笔记": [

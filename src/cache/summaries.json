@@ -139,6 +139,10 @@
     "title": "MongoDB学习",
     "summary": "喵～这是一份超级全面的MongoDB入门指南，从安装启动讲到数据库、集合、文档的基础操作，再到各种花式查询（嵌套文档、数组、条件组合什么的）和CRUD操作，最后还带上了Node.js连接教程喵～简单说就是带你从零玩转MongoDB，手把手那种哦！"
   },
+  "mcp开发与oauth授权踩坑记录": {
+    "title": "MCP 开发与 OAuth 授权踩坑记录",
+    "summary": "整理 MCP 服务接入 AI 客户端时的通用排查思路，涵盖 OAuth discovery、PKCE、redirect_uri、网关路由和 MCP Apps UI，使用虚构示例说明协议边界。"
+  },
   "javascript-es6笔记": {
     "title": "JavaScript-ES6笔记",
     "summary": "JavaScript高级 面向对象编程 面向对象与面向过程对比 面向对象的特性 面向对象的设计思想 创建对象的几种方式 constructor属性 instanceof语句 构造函数和实例对象的关系 静态成员和实例成员 构造函数的问题 原型对象 原型链 原型链查找机制 实例对象读写原型对象成员 更简单的原型语法 原型对象使用建议 内置构造函数的原型对象。"
