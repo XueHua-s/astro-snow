@@ -9,6 +9,14 @@ export interface FriendLink {
 
 export const friendsData: FriendLink[] = [
   {
+    site: '冷汐的杂货铺',
+    url: 'https://lengxiqwq.com',
+    owner: '冷汐OωO',
+    desc: '你好谢谢小笼包再见',
+    image: 'https://weavatar.com/avatar/52f243e67ccc2293d68c6f33db3f4083?s=640',
+    color: '#ff9b94',
+  },
+  {
     site: 'Smirnova Oyama',
     url: 'https://mahiro.uk/',
     owner: 'Smirnova',
@@ -29,7 +37,7 @@ export const friendsData: FriendLink[] = [
     url: 'https://cloudwings.xyz/',
     owner: 'CloudWings',
     desc: '正在搭建的个人网站 :)',
-    image: 'https://example.com/avatar.jpg',
+    image: 'https://blog.cloudwings.xyz/favicon/icon.png',
     color: '#ffc0cb',
   },
   {
@@ -166,7 +174,8 @@ export const friendsData: FriendLink[] = [
     url: 'https://www.hayrsiane.com/',
     owner: 'Hayrsiane',
     desc: '在互联网一隅，分享技术、生活、思考以及偶尔发癫～',
-    image: 'https://cdn.picui.cn/vip/2026/01/04/695a1e9196d1a.png',
+    // FIXED: 使用官网 /about 明确标注的个人头像，而非星球站点图标。
+    image: 'https://cdn.imgos.cn/vip/2026/01/04/695a20e3c1dd4.png',
   },
 ];
 
