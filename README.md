@@ -75,7 +75,7 @@ pnpm dev
 - 智能目录导航，支持 CSS 计数器自动编号（可按文章关闭）
 - 移动端文章阅读头部（显示当前章节标题、圆形阅读进度、可展开目录）
 - 友链系统与归档页面
-- [可开关] 基于语义相似度的智能文章推荐系统，使用 [transformers.js](https://huggingface.co/docs/transformers.js) 在本地生成文章嵌入向量，计算文章间的语义相似度
+- [可开关] 基于语义相似度的智能文章推荐系统，使用阿里云远端 `qwen3.7-text-embedding-flash` 生成文章嵌入向量，计算文章间的语义相似度
 
 ## 🙏 鸣谢
 
@@ -85,3 +85,17 @@ pnpm dev
 [astro-koharu](https://github.com/cosZone/astro-koharu)
 [cosine](https://github.com/yusixian)
 ...
+
+### 文章相似度模型配置
+
+文章相似度仅使用远端 `qwen3.7-text-embedding-flash`，无需下载本地模型。
+将 `.env.example` 复制为 `.env`，填写 `EMBEDDING_API_KEY`，然后执行
+`pnpm generate:similarities`。环境变量优先于 `.env`，且与摘要模型的 `OPENAI_*` 配置相互独立。
+
+默认连接北京工作空间的 HTTPS OpenAI 兼容接口；切换工作空间时设置
+`EMBEDDING_API_BASE_URL`，包含 `/compatible-mode/v1/` 路径。每批最多 20 篇，
+请求超时为 60 秒，网络错误、429 和 5xx 最多尝试 3 次。响应会校验并归一化，
+全部生成成功才更新 `src/cache/similarities.json`；失败退出并保留已有缓存，不回退本地模型。
+
+GitHub Actions 需要仓库 Secret `EMBEDDING_API_KEY`，可选仓库 Variable
+`EMBEDDING_API_BASE_URL`。站点构建读取生成的缓存，不向浏览器暴露密钥。

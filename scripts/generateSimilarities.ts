@@ -1,9 +1,7 @@
-import { pipeline } from '@huggingface/transformers';
 import { glob } from 'glob';
 import chalk from 'chalk';
 import {
   CONTENT_GLOB,
-  MODEL_NAME,
   OUTPUT_FILE,
   TOP_N_SIMILAR,
 } from './lib/similarities/config';
@@ -20,7 +18,6 @@ async function main() {
 
   try {
     const summaries = await loadSummaries();
-    const extractor = await pipeline('feature-extraction', MODEL_NAME);
 
     const files = await glob(CONTENT_GLOB);
     if (!files.length) return;
@@ -28,7 +25,7 @@ async function main() {
     const posts = await loadPosts(files, summaries);
     if (!posts.length) return;
 
-    const embeddings = await generateEmbeddings(posts, extractor);
+    const embeddings = await generateEmbeddings(posts);
     if (!embeddings.length) return;
 
     const similarities = computeSimilarities(posts, embeddings, TOP_N_SIMILAR);
