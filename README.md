@@ -95,7 +95,7 @@ pnpm dev
 默认连接北京工作空间的 HTTPS OpenAI 兼容接口；切换工作空间时设置
 `EMBEDDING_API_BASE_URL`，包含 `/compatible-mode/v1/` 路径。每批最多 20 篇，
 请求超时为 60 秒，网络错误、429 和 5xx 最多尝试 3 次。响应会校验并归一化，
-全部生成成功才更新 `src/cache/similarities.json`；失败退出并保留已有缓存，不回退本地模型。
+全部生成成功后通过临时文件原子替换 `src/cache/similarities.json`；请求或写入失败时保留已有缓存，不回退本地模型。
 
 GitHub Actions 需要仓库 Secret `EMBEDDING_API_KEY`，可选仓库 Variable
 `EMBEDDING_API_BASE_URL`。站点构建读取生成的缓存，不向浏览器暴露密钥。

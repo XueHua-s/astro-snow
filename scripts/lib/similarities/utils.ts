@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { randomUUID } from 'node:crypto';
 import matter from 'gray-matter';
 import chalk from 'chalk';
 import { remark } from 'remark';
@@ -29,12 +30,6 @@ export async function loadSummaries(): Promise<SummariesMap> {
   } catch {
     return {};
   }
-}
-
-export function normalize(vec: Float32Array): Float32Array {
-  const len = Math.hypot(...vec);
-  if (!len) return vec;
-  return new Float32Array(vec.map((x) => x / len));
 }
 
 export function dotProduct(a: Float32Array, b: Float32Array): number {
@@ -156,5 +151,14 @@ export async function saveResults(
 ): Promise<void> {
   const dir = path.dirname(outputPath);
   await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(outputPath, JSON.stringify(data, null, 2) + '\n');
+  // FIXED: Publish atomically so a failed write cannot truncate the previous cache.
+  const temporaryPath = `${outputPath}.${randomUUID()}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, JSON.stringify(data, null, 2) + '\n', {
+      flag: 'wx',
+    });
+    await fs.rename(temporaryPath, outputPath);
+  } finally {
+    await fs.rm(temporaryPath, { force: true });
+  }
 }

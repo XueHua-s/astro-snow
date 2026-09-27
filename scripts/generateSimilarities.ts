@@ -17,9 +17,10 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    const summaries = await loadSummaries();
-
-    const files = await glob(CONTENT_GLOB);
+    const [summaries, files] = await Promise.all([
+      loadSummaries(),
+      glob(CONTENT_GLOB),
+    ]);
     if (!files.length) return;
 
     const posts = await loadPosts(files, summaries);

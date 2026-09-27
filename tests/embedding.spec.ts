@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  generateEmbeddings,
-  getEmbeddingConfig,
-} from '../scripts/lib/similarities/embedding';
+import { generateEmbeddings } from '../scripts/lib/similarities/embedding';
+
+vi.mock('node:timers/promises', () => ({
+  setTimeout: vi.fn().mockResolvedValue(undefined),
+}));
 
 const post = (text = '文章内容') => ({
   slug: text,
@@ -15,7 +16,7 @@ const response = (data: unknown) => new Response(JSON.stringify({ data }));
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
-  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 function mockFetch() {
@@ -65,16 +66,20 @@ describe('remote embeddings', () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it('requires credentials and a secure base URL', () => {
+  it('requires credentials and a secure base URL', async () => {
+    const fetcher = mockFetch();
     vi.stubEnv('EMBEDDING_API_KEY', '');
-    expect(getEmbeddingConfig).toThrow('EMBEDDING_API_KEY');
+    await expect(generateEmbeddings([post()])).rejects.toThrow(
+      'EMBEDDING_API_KEY',
+    );
     vi.stubEnv('EMBEDDING_API_KEY', 'test-key');
     vi.stubEnv('EMBEDDING_API_BASE_URL', 'http://example.com/v1');
-    expect(getEmbeddingConfig).toThrow('HTTPS');
+    await expect(generateEmbeddings([post()])).rejects.toThrow('HTTPS');
+    expect(fetcher).not.toHaveBeenCalled();
     vi.stubEnv('EMBEDDING_API_BASE_URL', 'https://example.com/v1');
-    expect(getEmbeddingConfig().endpoint).toBe(
-      'https://example.com/v1/embeddings',
-    );
+    fetcher.mockResolvedValue(response([{ index: 0, embedding: [1] }]));
+    await generateEmbeddings([post()]);
+    expect(fetcher.mock.calls[0][0]).toBe('https://example.com/v1/embeddings');
   });
 
   it.each([
@@ -111,13 +116,11 @@ describe('remote embeddings', () => {
   });
 
   it.each([429, 500, 503])('retries HTTP %i', async (status) => {
-    vi.useFakeTimers();
     const fetcher = mockFetch();
     fetcher
       .mockResolvedValueOnce(new Response('', { status }))
       .mockResolvedValueOnce(response([{ index: 0, embedding: [1] }]));
     const result = generateEmbeddings([post()]);
-    await vi.runAllTimersAsync();
     await expect(result).resolves.toHaveLength(1);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
@@ -134,14 +137,56 @@ describe('remote embeddings', () => {
   });
 
   it('bounds network retries and sanitizes failures', async () => {
-    vi.useFakeTimers();
     const fetcher = mockFetch();
     fetcher.mockRejectedValue(new Error('sensitive network detail'));
     const result = expect(generateEmbeddings([post()])).rejects.toThrow(
       'after 3 attempts',
     );
-    await vi.runAllTimersAsync();
     await result;
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries when the response body disconnects after HTTP 200', async () => {
+    const fetcher = mockFetch();
+    const interrupted = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(new TypeError('connection terminated'));
+        },
+      }),
+    );
+    fetcher
+      .mockResolvedValueOnce(interrupted)
+      .mockResolvedValueOnce(response([{ index: 0, embedding: [3, 4] }]));
+    const result = await generateEmbeddings([post()]);
+    expect(result[0][0]).toBeCloseTo(0.6);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    expect(fetcher.mock.calls[0][1]?.redirect).toBe('error');
+  });
+
+  it('rejects dimension changes between batches instead of returning partial results', async () => {
+    const fetcher = mockFetch();
+    fetcher.mockResolvedValueOnce(
+      response(
+        Array.from({ length: 20 }, (_, index) => ({
+          index,
+          embedding: [1, 0],
+        })),
+      ),
+    );
+    fetcher.mockResolvedValueOnce(response([{ index: 0, embedding: [1] }]));
+    await expect(
+      generateEmbeddings(Array.from({ length: 21 }, () => post())),
+    ).rejects.toThrow('inconsistent');
+  });
+
+  it('stops after three unsuccessful HTTP attempts', async () => {
+    const fetcher = mockFetch();
+    fetcher.mockImplementation(() =>
+      Promise.resolve(new Response('', { status: 503 })),
+    );
+    await expect(generateEmbeddings([post()])).rejects.toThrow('HTTP 503');
     expect(fetcher).toHaveBeenCalledTimes(3);
   });
 

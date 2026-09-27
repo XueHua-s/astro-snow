@@ -1,9 +1,8 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import type { PostData } from './types';
-import { normalize } from './utils';
 import { MODEL_NAME } from './config';
 
-export function getEmbeddingConfig() {
+function getEmbeddingConfig() {
   const apiKey = process.env.EMBEDDING_API_KEY?.trim();
   if (!apiKey) throw new Error('EMBEDDING_API_KEY is required.');
   const baseUrl = new URL(
@@ -31,6 +30,7 @@ async function requestEmbeddings(
 ): Promise<unknown> {
   for (let attempt = 0; attempt < 3; attempt++) {
     let response: Response;
+    let body = '';
     try {
       response = await fetch(config.endpoint, {
         method: 'POST',
@@ -46,6 +46,8 @@ async function requestEmbeddings(
         }),
         signal: AbortSignal.timeout(60_000),
       });
+      // FIXED: The request is not complete until its body has been received.
+      if (response.ok) body = await response.text();
     } catch {
       if (attempt < 2) {
         await delay(1000 * 2 ** attempt);
@@ -56,7 +58,8 @@ async function requestEmbeddings(
       );
     }
     if (!response.ok) {
-      await response.body?.cancel();
+      // A failed cleanup must not hide the HTTP status or expose transport details.
+      await response.body?.cancel().catch(() => undefined);
       if ((response.status === 429 || response.status >= 500) && attempt < 2) {
         await delay(1000 * 2 ** attempt);
         continue;
@@ -65,16 +68,19 @@ async function requestEmbeddings(
       throw new Error(`Embedding API returned HTTP ${response.status}.`);
     }
     try {
-      return await response.json();
+      return JSON.parse(body) as unknown;
     } catch {
-      throw new Error(
-        'Embedding API returned invalid JSON or an incomplete response.',
-      );
+      throw new Error('Embedding API returned invalid JSON.');
     }
   }
   throw new Error('Embedding request failed.');
 }
 
+/**
+ * Returns finite, nonzero unit vectors in post order, with one shared dimension.
+ * Rejects the whole operation on invalid input or exhausted remote requests;
+ * callers must publish results only after this promise resolves.
+ */
 export async function generateEmbeddings(
   posts: PostData[],
 ): Promise<Float32Array[]> {
@@ -85,7 +91,7 @@ export async function generateEmbeddings(
   const embeddings: Float32Array[] = [];
   let dimension: number | undefined;
 
-  // FIXED: Keep requests within the provider's 20-input limit and restore index order.
+  // FIXED: Batch to reduce round trips; serialize batches to limit provider pressure.
   for (let offset = 0; offset < posts.length; offset += 20) {
     const batch = posts.slice(offset, offset + 20);
     const result = await requestEmbeddings(
@@ -125,16 +131,19 @@ export async function generateEmbeddings(
       }
       const vector = new Float32Array(item.embedding);
       dimension ??= vector.length;
+      const magnitude = Math.sqrt(
+        vector.reduce((sum, value) => sum + value * value, 0),
+      );
       if (
         vector.length !== dimension ||
         !vector.every(Number.isFinite) ||
-        !Math.hypot(...vector)
+        !magnitude
       ) {
         throw new Error(
           'Embedding API returned a zero, non-finite or inconsistent vector.',
         );
       }
-      ordered[item.index] = normalize(vector);
+      ordered[item.index] = vector.map((value) => value / magnitude);
     }
     embeddings.push(...ordered);
     console.log(`  Embedded ${embeddings.length}/${posts.length} posts.`);
