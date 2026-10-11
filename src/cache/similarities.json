@@ -6,6 +6,11 @@
       "similarity": 0.54
     },
     {
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.534
+    },
+    {
       "slug": "关于vue3如何判断父组件给子组件传了插槽",
       "title": "关于Vue3如何判断父组件给子组件传了插槽",
       "similarity": 0.533
@@ -19,11 +24,6 @@
       "slug": "c语言学习小记",
       "title": "C学习笔记",
       "similarity": 0.513
-    },
-    {
-      "slug": "hexo博客github-actions自动部署配置",
-      "title": "Hexo博客GitHub Actions自动部署配置",
-      "similarity": 0.504
     }
   ],
   "谈谈我认为的electron为什么都喜欢用": [
@@ -70,14 +70,14 @@
       "similarity": 0.516
     },
     {
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.5
+    },
+    {
       "slug": "前端链表运用场景",
       "title": "前端链表运用场景",
       "similarity": 0.497
-    },
-    {
-      "slug": "关于vue3如何判断父组件给子组件传了插槽",
-      "title": "关于Vue3如何判断父组件给子组件传了插槽",
-      "similarity": 0.494
     }
   ],
   "周刊-2026-02-07": [
@@ -92,6 +92,11 @@
       "similarity": 0.522
     },
     {
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.507
+    },
+    {
       "slug": "关于前端数据库indexdb",
       "title": "关于前端数据库indexDB",
       "similarity": 0.451
@@ -100,11 +105,6 @@
       "slug": "element-plus表格隐藏行数功能",
       "title": "element-plus表格隐藏行数功能",
       "similarity": 0.451
-    },
-    {
-      "slug": "typescript项目经验笔记",
-      "title": "TypeScript项目经验笔记",
-      "similarity": 0.449
     }
   ],
   "周刊-2026-01-18": [
@@ -784,29 +784,29 @@
   ],
   "react-effect依赖优化最佳实践与源码解析": [
     {
-      "slug": "nestjs关于循环依赖",
-      "title": "NestJs关于循环依赖",
-      "similarity": 0.538
+      "slug": "react18学习笔记",
+      "title": "React18学习笔记",
+      "similarity": 0.403
     },
     {
       "slug": "js循环依赖对象深拷贝",
       "title": "js循环依赖对象深拷贝",
-      "similarity": 0.435
+      "similarity": 0.384
     },
     {
-      "slug": "react18学习笔记",
-      "title": "React18学习笔记",
-      "similarity": 0.432
+      "slug": "nestjs关于循环依赖",
+      "title": "NestJs关于循环依赖",
+      "similarity": 0.377
     },
     {
-      "slug": "css-break-word导致的诡异换行问题排查记",
-      "title": "CSS break-word导致的诡异换行问题排查记",
-      "similarity": 0.416
+      "slug": "css3布局笔记",
+      "title": "CSS3布局笔记",
+      "similarity": 0.371
     },
     {
-      "slug": "three.js学习小记",
-      "title": "three.js学习小记",
-      "similarity": 0.407
+      "slug": "谈谈我认为的electron为什么都喜欢用",
+      "title": "谈谈我认为的\"Electron为什么都喜欢用\"",
+      "similarity": 0.352
     }
   ],
   "rk3528开发板部署openclaw-telegram-bot全记录": [
@@ -833,7 +833,7 @@
     {
       "slug": "mcp开发与oauth授权踩坑记录",
       "title": "MCP 开发与 OAuth 授权踩坑记录",
-      "similarity": 0.454
+      "similarity": 0.441
     }
   ],
   "nuxt3学习笔记": [
@@ -897,11 +897,6 @@
       "similarity": 0.564
     },
     {
-      "slug": "react-effect依赖优化最佳实践与源码解析",
-      "title": "React Effect 依赖优化最佳实践",
-      "similarity": 0.538
-    },
-    {
       "slug": "typescript项目经验笔记",
       "title": "TypeScript项目经验笔记",
       "similarity": 0.465
@@ -915,6 +910,11 @@
       "slug": "vue3笔记",
       "title": "Vue3学习笔记",
       "similarity": 0.457
+    },
+    {
+      "slug": "react18学习笔记",
+      "title": "React18学习笔记",
+      "similarity": 0.456
     }
   ],
   "mongodb学习": [
@@ -946,29 +946,29 @@
   ],
   "mcp开发与oauth授权踩坑记录": [
     {
-      "slug": "rk3528开发板部署openclaw-telegram-bot全记录",
-      "title": "在 RK3528 ARM 开发板上部署 OpenClaw + Telegram Bot 全记录",
-      "similarity": 0.454
-    },
-    {
-      "slug": "表格拖拽方法手写",
-      "title": "表格拖拽方法手写",
-      "similarity": 0.446
-    },
-    {
-      "slug": "js对象数组深拷贝",
-      "title": "JS对象数组深拷贝",
-      "similarity": 0.445
-    },
-    {
-      "slug": "feday2025参会笔记",
-      "title": "Feday 2025参会笔记",
-      "similarity": 0.441
+      "slug": "c语言学习小记",
+      "title": "C学习笔记",
+      "similarity": 0.563
     },
     {
       "slug": "配置 codex 自定义三方api",
       "title": "配置 Codex 自定义三方API",
-      "similarity": 0.44
+      "similarity": 0.534
+    },
+    {
+      "slug": "cenos-7-6搭建pptp服务",
+      "title": "CenOS-7.6搭建pptp服务",
+      "similarity": 0.521
+    },
+    {
+      "slug": "ajax与axios库网络编程",
+      "title": "Ajax网络编程与Axios库",
+      "similarity": 0.521
+    },
+    {
+      "slug": "mongodb学习",
+      "title": "MongoDB学习",
+      "similarity": 0.514
     }
   ],
   "javascript-es6笔记": [
@@ -1086,6 +1086,11 @@
       "similarity": 0.497
     },
     {
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.489
+    },
+    {
       "slug": "node.js学习",
       "title": "Node.js笔记",
       "similarity": 0.487
@@ -1099,11 +1104,6 @@
       "slug": "es2025-javascript新特性速览",
       "title": "ES2025 JavaScript新特性速览",
       "similarity": 0.467
-    },
-    {
-      "slug": "typescript项目经验笔记",
-      "title": "TypeScript项目经验笔记",
-      "similarity": 0.464
     }
   ],
   "electron热更新后启动性能优化-v8缓存与代码拆包实战": [
@@ -1162,6 +1162,11 @@
   ],
   "cenos-7-6搭建pptp服务": [
     {
+      "slug": "mcp开发与oauth授权踩坑记录",
+      "title": "MCP 开发与 OAuth 授权踩坑记录",
+      "similarity": 0.521
+    },
+    {
       "slug": "表格拖拽方法手写",
       "title": "表格拖拽方法手写",
       "similarity": 0.485
@@ -1180,11 +1185,6 @@
       "slug": "ajax与axios库网络编程",
       "title": "Ajax网络编程与Axios库",
       "similarity": 0.463
-    },
-    {
-      "slug": "关于前端数据库indexdb",
-      "title": "关于前端数据库indexDB",
-      "similarity": 0.457
     }
   ],
   "css3布局笔记": [

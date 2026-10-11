@@ -115,10 +115,6 @@
     "title": "React18学习笔记",
     "summary": "喵～这是一份超详细的React全家桶学习指南啦，从JSX语法、组件创建、props传值，到表单处理、生命周期、网络请求，再到Redux状态管理和react-router路由配置，全都覆盖了喵！可以说是从前端小萌新到React达人的一条龙修炼手册呢，喵呜～✨。"
   },
-  "react-effect依赖优化最佳实践与源码解析": {
-    "title": "React Effect 依赖优化最佳实践",
-    "summary": "前言 在使用 React Hooks 开发时，useEffect 的依赖数组管理是一个常见的痛点。很多开发者遇到过这样的困扰：依赖项过多导致 Effect 频繁执行，或者为了图方便直接禁用 ESLint 规则，最终引发难以调试的 bug。"
-  },
   "rk3528开发板部署openclaw-telegram-bot全记录": {
     "title": "在 RK3528 ARM 开发板上部署 OpenClaw + Telegram Bot 全记录",
     "summary": "在 RK3528 ARM 开发板上部署 OpenClaw + Telegram Bot 全记录这篇文章主要记录了）上，从零搭建了。 多模型，支持。 聊天、图片生成和系统代理操作。本文完整复盘部署步骤与核心踩坑。"
