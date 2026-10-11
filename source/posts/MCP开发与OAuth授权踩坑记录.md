@@ -8,7 +8,6 @@ tags:
   - Node.js
   - Docker
 categories: 技术教程
-description: 整理 MCP 服务接入 AI 客户端时的通用排查思路，涵盖 OAuth discovery、PKCE、redirect_uri、网关路由和 MCP Apps UI，使用虚构示例说明协议边界。
 ---
 
 ## 前言

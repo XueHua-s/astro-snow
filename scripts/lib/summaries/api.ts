@@ -63,7 +63,8 @@ export async function checkApiRunning(model: string): Promise<boolean> {
         messages: [{ role: 'user', content: 'ping' }],
         temperature: 0,
         max_tokens: 1,
-        stream: false,
+        // This proxy only exposes the streaming chat-completions route.
+        stream: true,
       }),
     });
 

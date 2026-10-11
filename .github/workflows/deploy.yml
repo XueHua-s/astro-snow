@@ -43,9 +43,9 @@ jobs:
           pnpm run generate:summaries
           pnpm run generate:similarities
         env:
-          OPENAI_API_BASE_URL: ${{ secrets.OPENAI_API_BASE_URL }}
+          OPENAI_API_BASE_URL: https://proxy.xhblog.top/v1/
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          OPENAI_MODEL: gpt-6.1-sol
 
       - name: Commit cache updates
         env:

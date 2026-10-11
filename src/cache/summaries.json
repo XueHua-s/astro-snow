@@ -141,7 +141,7 @@
   },
   "mcp开发与oauth授权踩坑记录": {
     "title": "MCP 开发与 OAuth 授权踩坑记录",
-    "summary": "整理 MCP 服务接入 AI 客户端时的通用排查思路，涵盖 OAuth discovery、PKCE、redirect_uri、网关路由和 MCP Apps UI，使用虚构示例说明协议边界。"
+    "summary": "前言 给 MCP 服务接入 OAuth 时，目标通常是让 ChatGPT 这类 AI 客户端在用户授权后调用业务工具。"
   },
   "javascript-es6笔记": {
     "title": "JavaScript-ES6笔记",
