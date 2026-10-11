@@ -1,4 +1,3 @@
-import { generateText } from '@xsai/generate-text';
 import { OPENAI_API_BASE_URL, OPENAI_API_KEY } from './config';
 import {
   buildFallbackSummary,
@@ -33,16 +32,76 @@ async function requestSummary(
   messages: Array<{ role: 'system' | 'user'; content: string }>,
   temperature: number,
 ): Promise<string> {
-  const { text: summary } = await generateText({
-    apiKey: OPENAI_API_KEY,
-    baseURL: OPENAI_API_BASE_URL,
-    model,
-    messages,
-    temperature,
-    maxTokens: 220,
+  const response = await fetch(`${OPENAI_API_BASE_URL}chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: 220,
+      stream: true,
+    }),
   });
 
-  return normalizeSummaryText(summary ?? '');
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Summary API returned ${response.status}: ${errorBody.slice(0, 500)}`,
+    );
+  }
+
+  if (!response.body) {
+    throw new Error('Summary API returned an empty response body');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let chunks = '';
+  let done = false;
+
+  while (!done) {
+    const result = await reader.read();
+    buffer += decoder.decode(result.value ?? new Uint8Array(), {
+      stream: !result.done,
+    });
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const data = line.trim().startsWith('data:')
+        ? line.trim().slice(5).trim()
+        : '';
+      if (!data) continue;
+      if (data === '[DONE]') {
+        done = true;
+        break;
+      }
+      try {
+        const chunk = JSON.parse(data) as {
+          choices?: Array<{
+            delta?: { content?: string };
+            finish_reason?: string | null;
+          }>;
+        };
+        for (const choice of chunk.choices ?? []) {
+          chunks += choice.delta?.content ?? '';
+          if (choice.finish_reason === 'stop') done = true;
+        }
+      } catch {
+        // Ignore incomplete/non-JSON SSE lines and continue reading.
+      }
+    }
+    done ||= result.done;
+  }
+
+  await reader.cancel();
+
+  return normalizeSummaryText(chunks);
 }
 
 export async function checkApiRunning(model: string): Promise<boolean> {

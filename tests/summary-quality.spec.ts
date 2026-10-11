@@ -28,6 +28,11 @@ describe('summary quality guards', () => {
   });
 
   it('rejects placeholder and tagged summaries', () => {
+    expect(
+      isSummaryAcceptable(
+        '前言 给 MCP 服务接入 OAuth 时，目标通常是让 ChatGPT 这类 AI 客户端在用户授权后调用业务工具。',
+      ),
+    ).toBe(false);
     expect(isSummaryAcceptable('[END]。')).toBe(false);
     expect(
       isSummaryAcceptable(
