@@ -21,9 +21,9 @@
       "similarity": 0.513
     },
     {
-      "slug": "mcp开发与oauth授权踩坑记录",
-      "title": "MCP 开发与 OAuth 授权踩坑记录",
-      "similarity": 0.505
+      "slug": "hexo博客github-actions自动部署配置",
+      "title": "Hexo博客GitHub Actions自动部署配置",
+      "similarity": 0.504
     }
   ],
   "谈谈我认为的electron为什么都喜欢用": [
@@ -946,29 +946,29 @@
   ],
   "mcp开发与oauth授权踩坑记录": [
     {
+      "slug": "rk3528开发板部署openclaw-telegram-bot全记录",
+      "title": "在 RK3528 ARM 开发板上部署 OpenClaw + Telegram Bot 全记录",
+      "similarity": 0.454
+    },
+    {
+      "slug": "表格拖拽方法手写",
+      "title": "表格拖拽方法手写",
+      "similarity": 0.446
+    },
+    {
+      "slug": "js对象数组深拷贝",
+      "title": "JS对象数组深拷贝",
+      "similarity": 0.445
+    },
+    {
+      "slug": "feday2025参会笔记",
+      "title": "Feday 2025参会笔记",
+      "similarity": 0.441
+    },
+    {
       "slug": "配置 codex 自定义三方api",
       "title": "配置 Codex 自定义三方API",
-      "similarity": 0.505
-    },
-    {
-      "slug": "vue3笔记",
-      "title": "Vue3学习笔记",
-      "similarity": 0.493
-    },
-    {
-      "slug": "vue.js基础",
-      "title": "Vue.js基础",
-      "similarity": 0.468
-    },
-    {
-      "slug": "ajax与axios库网络编程",
-      "title": "Ajax网络编程与Axios库",
-      "similarity": 0.464
-    },
-    {
-      "slug": "typescript项目经验笔记",
-      "title": "TypeScript项目经验笔记",
-      "similarity": 0.463
+      "similarity": 0.44
     }
   ],
   "javascript-es6笔记": [
