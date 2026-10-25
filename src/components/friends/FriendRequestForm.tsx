@@ -66,11 +66,11 @@ export default function FriendRequestForm() {
 
   return (
     <div className="mb-4 w-full">
-      <div className="glass glass-card relative overflow-hidden p-6 md:p-3">
+      <div className="glass glass-card relative overflow-hidden p-5 md:p-3">
         <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-pink-100/50 dark:bg-pink-900/20" />
         <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-blue-100/50 dark:bg-blue-900/20" />
 
-        <div className="grid grid-cols-2 gap-12 md:grid-cols-1 md:gap-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-1 md:gap-6">
           <div className="relative">
             <div className="mb-6">
               <h2 className="mb-2 flex items-center gap-2 text-2xl font-black text-gray-800 dark:text-white">
@@ -171,7 +171,7 @@ export default function FriendRequestForm() {
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-center rounded-xl bg-white/30 p-6 md:p-3 dark:bg-black/20">
+          <div className="relative flex flex-col justify-center rounded-xl bg-white/30 p-5 md:p-3 dark:bg-black/20">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold tracking-wider uppercase">
                 配置预览
