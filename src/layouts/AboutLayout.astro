@@ -27,7 +27,10 @@ const layoutFooterData = await getLayoutFooterData();
     <Cover slot="cover" title="关于我" />
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
-    <div class={`shadow-box bg-gradient-start mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}>
+    <div
+      class={`glass glass-panel mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}
+      data-glass-panel
+    >
       <div class="prose md:prose-sm dark:prose-invert custom-content">
         <slot />
       </div>

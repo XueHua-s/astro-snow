@@ -1,0 +1,415 @@
+/**
+ * Liquid Glass surface system.
+ *
+ * Layer model (keep blur only where the backdrop is dynamic):
+ *   L0 ambient  -> .site-ambient (fixed gradient mesh, no blur)
+ *   L1 chrome   -> .glass-bar / .glass-control
+ *   L2 panel    -> .glass-panel (tint only, no backdrop-filter)
+ *   L3 card     -> .glass-card (tint only, no backdrop-filter)
+ *   L4 control  -> .glass-control (small blur, only over dynamic content)
+ *   L5 overlay  -> .glass-overlay (strong blur + scrim)
+ *   hero        -> .glass-hero / .glass-refract (Chromium-only refraction)
+ *
+ * Do not add Tailwind utilities such as bg-white, shadow-card,
+ * backdrop-blur-* or rounded-* to glass elements: utilities win over the
+ * components layer and silently disable the glass surface.
+ */
+
+@layer base {
+  :root {
+    --glass-tint-hsl: 0 0% 100%;
+    --glass-tint-alpha: 0.62;
+    --glass-tint-alpha-strong: 0.8;
+
+    --glass-border: hsl(0 0% 100% / 0.55);
+    --glass-radius-panel: 1.75rem;
+    --glass-radius-card: 1.125rem;
+    --glass-radius-control: 0.875rem;
+    --glass-radius-overlay: 2rem;
+
+    --glass-shadow:
+      0 24px 60px -28px hsl(220 40% 20% / 0.35),
+      0 2px 6px hsl(220 40% 20% / 0.05);
+    --glass-inner:
+      inset 0 1px 0 hsl(0 0% 100% / 0.7), inset 0 -1px 0 hsl(220 30% 10% / 0.06);
+
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.28) 0%,
+      hsl(0 0% 100% / 0.06) 26%,
+      transparent 55%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.18),
+      transparent 62%
+    );
+
+    --glass-blur: 20px;
+    --glass-saturate: 170%;
+    --glass-brightness: 1.04;
+    --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.66);
+  }
+
+  .dark {
+    --glass-tint-hsl: 222 22% 10%;
+    --glass-tint-alpha: 0.58;
+    --glass-tint-alpha-strong: 0.76;
+
+    --glass-border: hsl(0 0% 100% / 0.14);
+    --glass-shadow:
+      0 28px 70px -30px hsl(230 60% 2% / 0.8), 0 2px 10px hsl(230 60% 2% / 0.35);
+    --glass-inner:
+      inset 0 1px 0 hsl(0 0% 100% / 0.16), inset 0 -1px 0 hsl(0 0% 0% / 0.4);
+
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.14) 0%,
+      hsl(0 0% 100% / 0.04) 26%,
+      transparent 55%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.1),
+      transparent 62%
+    );
+
+    --glass-saturate: 150%;
+    --glass-brightness: 0.96;
+    --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.72);
+  }
+
+  body {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+@layer components {
+  .glass {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius, var(--glass-radius-card));
+    background:
+      var(--glass-sheen), var(--glass-glow),
+      hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    box-shadow: var(--glass-shadow), var(--glass-inner);
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+      brightness(var(--glass-brightness));
+  }
+
+  /* Large content surface: tint + rim, never a full-page backdrop-filter. */
+  .glass-panel {
+    --glass-radius: var(--glass-radius-panel);
+    --glass-tint-alpha: var(--glass-tint-alpha-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Cards sit on a panel; a second blur would only add fog and GPU cost. */
+  .glass-card {
+    --glass-radius: var(--glass-radius-card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Nested control inside an already-frosted surface: tint only. */
+  .glass-flat {
+    --glass-radius: var(--glass-radius-control);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius-control);
+  }
+
+  /* Lightweight tint for nested groups where a full rim/shadow is too heavy. */
+  .glass-tint {
+    background: hsl(var(--glass-tint-hsl) / 0.35);
+  }
+
+  .dark .glass-tint {
+    background: hsl(var(--glass-tint-hsl) / 0.3);
+  }
+
+  .glass-control {
+    --glass-radius: var(--glass-radius-control);
+    --glass-tint-alpha: 0.55;
+    --glass-blur: 12px;
+  }
+
+  .glass-overlay {
+    --glass-radius: var(--glass-radius-overlay);
+    --glass-tint-alpha: var(--glass-tint-alpha-strong);
+    --glass-blur: 32px;
+  }
+
+  .glass-bar {
+    --glass-radius: 0;
+    --glass-tint-alpha: 0.45;
+    --glass-blur: 20px;
+  }
+
+  /* Home hero: stronger tint because it floats over a random wallpaper. */
+  .glass-hero {
+    --glass-radius: var(--glass-radius-panel);
+    --glass-tint-alpha: 0.68;
+    --glass-blur: 24px;
+  }
+
+  .dark .glass-hero {
+    --glass-tint-alpha: 0.6;
+  }
+
+  .glass-interactive {
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .glass-interactive:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        var(--glass-shadow),
+        var(--glass-inner),
+        0 0 0 1px hsl(0 0% 100% / 0.18);
+    }
+  }
+
+  .glass-interactive:active {
+    transform: scale(0.985);
+  }
+
+  .glass-interactive:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  /* Pointer-reactive specular layer used by the home hero. */
+  .glass-specular {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.9;
+    mix-blend-mode: soft-light;
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.28),
+      transparent 62%
+    );
+  }
+
+  .dark .glass-specular {
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.16),
+      transparent 62%
+    );
+  }
+
+  /* L0: fixed, GPU-cheap gradient mesh. No filter: blur() on huge layers. */
+  .site-ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(345 100% 88% / 0.55),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(200 100% 88% / 0.45),
+        transparent 70%
+      ),
+      radial-gradient(
+        70vmax 60vmax at 50% 110%,
+        hsl(40 100% 92% / 0.5),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #fdfbfb, #ebedee);
+  }
+
+  .dark .site-ambient {
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(335 60% 28% / 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(195 70% 24% / 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        70vmax 60vmax at 50% 110%,
+        hsl(250 40% 18% / 0.4),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #0b1226, #060b17);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-interactive,
+    .glass-interactive:hover,
+    .glass-interactive:active {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      --glass-blur: 16px;
+    }
+
+    .glass-overlay {
+      --glass-blur: 24px;
+    }
+
+    .glass-hero {
+      --glass-blur: 18px;
+    }
+  }
+}
+
+/*
+ * Refraction: an SVG displacement filter on the backdrop.
+ * Chromium only; Safari/Firefox keep the baseline blur above.
+ * The gate script in GlassFilterDefs.astro adds .glass-refract-supported.
+ */
+html.glass-refract-supported .glass-refract {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: url(#glass-refraction);
+}
+
+/*
+ * The theme toggle snapshots the page with the View Transitions API.
+ * A live backdrop-filter inside that snapshot can flash, so temporarily
+ * fall back to the tint while the circular reveal runs.
+ */
+html.theme-transition .glass,
+html.theme-transition .glass-control,
+html.theme-transition .glass-overlay,
+html.theme-transition .glass-bar,
+html.theme-transition .glass-hero {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Accessibility fallbacks: unlayered so they win over component utilities. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-bar,
+  .glass-hero {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-bar,
+  .glass-hero,
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.96);
+  }
+
+  .glass-tint {
+    background: hsl(var(--glass-tint-hsl) / 0.8);
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header.with-background .site-header-bg {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: hsl(var(--glass-tint-hsl) / 0.96);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-border: hsl(0 0% 0% / 0.35);
+  }
+
+  .dark {
+    --glass-border: hsl(0 0% 100% / 0.45);
+  }
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-bar,
+  .glass-hero {
+    background: hsl(var(--glass-tint-hsl) / 0.94);
+  }
+
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.94);
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header.with-background .site-header-bg {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: hsl(var(--glass-tint-hsl) / 0.94);
+  }
+}
+
+@media (forced-colors: active) {
+  .glass,
+  .glass-panel,
+  .glass-card,
+  .glass-flat,
+  .glass-control,
+  .glass-overlay,
+  .glass-bar,
+  .glass-hero,
+  .glass-input,
+  .glass-tint {
+    background: Canvas;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header.with-background .site-header-bg {
+    background: Canvas;
+    border-bottom-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

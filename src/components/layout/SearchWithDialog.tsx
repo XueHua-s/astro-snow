@@ -144,21 +144,17 @@ export default function SearchWithDialog() {
           container-type: scroll-state;
         }
         @container scroll-state(scrollable: bottom) {
-          .scroll-feather-mask::before {
-            content: '';
-            background: linear-gradient(
+          .scroll-feather-mask {
+            mask-image: linear-gradient(
               to bottom,
-              transparent 0%,
-              var(--gradient-bg-start) var(--scroll-mask-middle, 70%),
-              var(--gradient-bg-start) var(--scroll-mask-end, 100%)
+              #000 calc(100% - var(--scroll-mask-height, 5rem)),
+              transparent
             );
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 10;
-            display: block;
-            height: var(--scroll-mask-height, 5rem);
+            -webkit-mask-image: linear-gradient(
+              to bottom,
+              #000 calc(100% - var(--scroll-mask-height, 5rem)),
+              transparent
+            );
           }
         }
       `}</style>

@@ -96,7 +96,7 @@ function Popover({
             <FloatingFocusManager context={context} modal={false}>
               <motion.div
                 className={cn(
-                  'z-10 rounded-ss-2xl rounded-ee-2xl bg-black/30 backdrop-blur-sm',
+                  'glass glass-control z-10 rounded-ss-2xl rounded-ee-2xl bg-black/30',
                   className,
                 )}
                 initial={{ opacity: 0, scale: 0.85 }}

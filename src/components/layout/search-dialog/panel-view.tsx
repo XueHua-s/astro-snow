@@ -47,7 +47,7 @@ export function SearchDialogPanelView({
                 </h2>
                 <button
                   id="search-dialog-close"
-                  className="flex size-8 items-center justify-center rounded-full bg-black/5 transition-colors duration-300 hover:bg-black/10 md:size-7 dark:bg-white/10 dark:hover:bg-white/20"
+                  className="flex size-8 items-center justify-center rounded-full bg-[hsl(var(--glass-tint-hsl)/0.18)] transition-colors duration-300 hover:bg-[hsl(var(--glass-tint-hsl)/0.32)] md:size-7"
                   aria-label="关闭搜索"
                   onClick={onDialogClose}>
                   <i
@@ -62,7 +62,7 @@ export function SearchDialogPanelView({
                 <p>输入关键词搜索博客文章</p>
                 <p className="mt-1 text-xs">
                   按{' '}
-                  <kbd className="rounded bg-black/10 px-1.5 py-0.5 font-mono dark:bg-white/10">
+                  <kbd className="rounded bg-[hsl(var(--glass-tint-hsl)/0.18)] px-1.5 py-0.5 font-mono">
                     ESC
                   </kbd>{' '}
                   关闭

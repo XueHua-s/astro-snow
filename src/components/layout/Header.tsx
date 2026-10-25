@@ -27,7 +27,7 @@ export default function Header({
     <>
       <div
         id="site-header"
-        className="shadow-text fixed inset-x-0 top-0 z-10 gap-4 py-2.5 text-white select-none tablet:backdrop-blur tablet:py-2 tablet:pl-3 tablet:pr-3"
+        className="fixed inset-x-0 top-0 z-10 gap-4 py-2.5 select-none tablet:py-2 tablet:pl-3 tablet:pr-3"
         style={{ viewTransitionName: 'site-header' }}>
         <div className="site-header-bg pointer-events-none absolute inset-0"></div>
         <div

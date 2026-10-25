@@ -66,7 +66,7 @@ export function MobileDrawerPanel({ children }: MobileDrawerPanelProps) {
       <div
         id="mobile-drawer"
         className={cn(
-          'bg-gradient-start tablet:flex fixed inset-y-0 left-0 z-[70] hidden h-screen w-[70vw] min-w-64 transform px-4 pt-6 shadow-lg backdrop-blur-sm transition-transform duration-300 md:px-0',
+          'glass glass-overlay rounded-l-none border-l-0 tablet:flex fixed inset-y-0 left-0 z-[70] hidden h-screen w-[70vw] min-w-64 transform px-4 pt-6 transition-transform duration-300 md:px-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
         role="dialog"

@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function StyledLoading() {
   return (
-    <div className="flex-center fixed inset-0 z-50 bg-gradient-start">
+    <div className="flex-center bg-background/95 fixed inset-0 z-50 backdrop-blur-sm">
       <div className="flex flex-col">
         <div className="loading-cat scale-50">
           <div className="cat-body"></div>

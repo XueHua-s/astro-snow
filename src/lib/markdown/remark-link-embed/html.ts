@@ -56,7 +56,7 @@ export function generateLinkPreviewHTML(ogData: OGData): string {
         );
 
     return `<div class="link-preview-block not-prose" data-state="error">
-  <a href="${safeUrl}" target="_blank" class="hover:border-primary/50 group block rounded-lg border bg-card p-4 transition-all hover:shadow-md" aria-label="${safeDisplayText}">
+  <a href="${safeUrl}" target="_blank" class="hover:border-primary/50 glass-tint group block rounded-lg border p-4 transition-all hover:shadow-md" aria-label="${safeDisplayText}">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
@@ -84,7 +84,7 @@ export function generateLinkPreviewHTML(ogData: OGData): string {
 
   return `<div class="link-preview-block not-prose" data-state="success">
   <a href="${safeUrl}" target="_blank" class="group block overflow-hidden rounded-lg border border-border transition-all hover:border-primary/50 hover:shadow-md" aria-label="${safeTitle} - ${safeDomain}">
-    <div class="bg-card flex md:flex-col flex-row">
+    <div class="glass-tint flex md:flex-col flex-row">
       <div class="flex-1 p-4">
         <div class="mb-2 flex items-center gap-2">
           ${safeLogo ? `<img src="${safeLogo}" alt="" class="h-4 w-4 shrink-0" loading="lazy" aria-hidden="true" />` : ''}
@@ -97,7 +97,7 @@ export function generateLinkPreviewHTML(ogData: OGData): string {
           <svg class="h-3 w-3 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" viewBox="0 0 12 12"><path fill="currentColor" d="M4 3.5a.5.5 0 0 0-.5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-.25a.75.75 0 0 1 1.5 0V8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h.25a.75.75 0 0 1 0 1.5zm2.75 0a.75.75 0 0 1 0-1.5h2.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-.69L7.28 5.78a.75.75 0 0 1-1.06-1.06L7.44 3.5z"/></svg> 
         </div>
       </div>
-      ${safeImage ? `<div class="bg-muted relative md:w-full shrink-0 aspect-1200/630 h-38"><img src="${safeImage}" alt="${safeTitle}" class="h-full w-full object-cover" loading="lazy" /></div>` : ''}
+      ${safeImage ? `<div class="glass-tint relative md:w-full shrink-0 aspect-1200/630 h-38"><img src="${safeImage}" alt="${safeTitle}" class="h-full w-full object-cover" loading="lazy" /></div>` : ''}
     </div>
   </a>
 </div>`;

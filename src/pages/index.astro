@@ -8,6 +8,59 @@ const profile = await getHomePageProfile();
 
 <BaseLayout fullScreen={true}>
   <HomePage profile={profile} links={homePageLinks} />
+  <Fragment slot="body-end">
+    <script is:inline>
+      (() => {
+        const hero = document.querySelector("[data-glass-hero]");
+        if (!hero) return;
+
+        const specular = hero.querySelector(".glass-specular");
+        if (!specular) return;
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        );
+        const coarsePointer = window.matchMedia("(pointer: coarse)");
+        if (reduceMotion.matches || coarsePointer.matches) return;
+
+        let frame = 0;
+        let x = 50;
+        let y = 0;
+
+        const paint = () => {
+          frame = 0;
+          specular.style.setProperty("--sheen-x", x + "%");
+          specular.style.setProperty("--sheen-y", y + "%");
+        };
+
+        const schedule = () => {
+          if (!frame) frame = requestAnimationFrame(paint);
+        };
+
+        hero.addEventListener(
+          "pointermove",
+          (event) => {
+            const rect = hero.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            x = ((event.clientX - rect.left) / rect.width) * 100;
+            y = ((event.clientY - rect.top) / rect.height) * 100;
+            schedule();
+          },
+          { passive: true },
+        );
+
+        hero.addEventListener(
+          "pointerleave",
+          () => {
+            x = 50;
+            y = 0;
+            schedule();
+          },
+          { passive: true },
+        );
+      })();
+    </script>
+  </Fragment>
 </BaseLayout>
 
 <style>

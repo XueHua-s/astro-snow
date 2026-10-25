@@ -46,7 +46,7 @@ export const HomeSiderSegmented = ({
       {...props}
       options={options}
       className={cn(
-        'flex w-fit cursor-pointer rounded-sm bg-black/8 p-1 text-xs font-semibold backdrop-blur-lg select-none',
+        'flex w-fit cursor-pointer p-1 text-xs font-semibold select-none',
         className,
       )}
     />

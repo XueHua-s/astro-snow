@@ -69,7 +69,8 @@ const currentPostSlug = postSeriesData?.currentPostSlug ?? undefined;
 
 <div
   class={cn(
-    'page-home-sider shadow-home-sider sticky top-0 self-start flex min-w-64 max-w-64 flex-col tablet:hidden overflow-hidden h-screen min-h-0 items-center px-2',
+    'page-home-sider sticky top-0 self-start flex min-w-64 max-w-64 flex-col tablet:hidden overflow-hidden h-screen min-h-0 items-center px-2',
+    !isDrawer && 'glass glass-panel',
     className,
   )}
   {...transitionName ? { 'transition:name': transitionName } : {}}>

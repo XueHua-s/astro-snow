@@ -5,16 +5,16 @@
   pre {
     position: relative;
     border-radius: 0 0 0.75rem 0.75rem;
-    border: 1px solid hsl(var(--border));
+    border: 1px solid var(--glass-border);
     /* 重置 Typography 默认 padding */
     padding: 0;
     padding-inline-end: 0;
     overflow: hidden;
     margin: 0;
-    /* 覆盖 Typography 背景色 */
-    background-color: hsl(var(--card));
-    /* 阴影 */
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    /* 覆盖 Typography 背景色（保持高可读性） */
+    background-color: hsl(var(--glass-tint-hsl) / 0.88);
+    /* 玻璃内高光 */
+    box-shadow: var(--glass-inner);
   }
 
   pre code {

@@ -92,7 +92,7 @@ test.describe('Blog e2e regression suite', () => {
       expect(response?.status(), `route ${path}`).toBe(200);
 
       const zeroTextNodes = await page
-        .locator('main .shadow-box')
+        .locator('main [data-glass-panel]')
         .first()
         .evaluate((element) => {
           const walker = document.createTreeWalker(

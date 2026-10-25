@@ -42,20 +42,25 @@
 
 @layer components {
   #site-header .site-header-bg {
+    --glass-tint-alpha: 0.45;
     opacity: 0;
-    filter: blur(6px);
-    transition:
-      opacity 0.8s ease,
-      filter 0.8s ease;
-    will-change: opacity, filter;
-    @apply bg-gradient-header;
+    background:
+      var(--glass-sheen), var(--glass-glow),
+      hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    border-bottom: 1px solid transparent;
+    transition: opacity 0.4s ease;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   #site-header.with-background .site-header-bg {
     opacity: 1;
-    filter: blur(0);
+    --glass-tint-alpha: 0.7;
+    border-bottom-color: var(--glass-border);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
   }
   #site-header.with-background {
-    @apply border-border text-foreground border-b;
+    @apply text-foreground;
   }
   #site-header.with-background button,
   #site-header.with-background a {
@@ -67,12 +72,27 @@
     @apply bg-foreground;
   }
 
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    #site-header.with-background .site-header-bg {
+      background: hsl(var(--glass-tint-hsl) / 0.94);
+    }
+  }
+
   @supports (padding: max(0px)) {
     #site-header {
       transition:
         border-color 0.6s ease-in-out,
         color 0.6s ease-in-out;
       padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+    }
+  }
+
+  @media (max-width: 768px) {
+    #site-header.with-background .site-header-bg {
+      -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05);
+      backdrop-filter: blur(16px) saturate(180%) brightness(1.05);
     }
   }
 }

@@ -71,14 +71,25 @@ const HomePage = ({
     <section className="relative h-screen overflow-hidden bg-gradient-to-br">
       <div className="absolute inset-0">
         <div
-          className="fixed inset-0 h-screen w-screen bg-cover bg-center bg-fixed opacity-70"
+          className="fixed inset-0 h-screen w-screen bg-cover bg-center opacity-70"
           style={{ backgroundImage: `url('${profile.backgroundUrl}')` }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/35"
         />
       </div>
 
       <div className="relative mx-auto flex h-full w-full max-w-[860px] flex-col px-5">
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full rounded-[20px] border-2 border-pink-light bg-gradient-to-br from-white/95 to-pink-soft/95 p-6 shadow-pink-card backdrop-blur-md sm:p-10">
+          <div
+            className="glass glass-hero glass-refract relative w-full p-6 sm:p-10"
+            data-glass-hero
+            style={{ borderColor: 'hsl(345 100% 84% / 0.6)' }}>
+            <div
+              className="glass-specular pointer-events-none -z-10"
+              aria-hidden="true"
+            />
             <div className="flex justify-center">
               <div className="relative mb-6 h-[150px] w-[150px] rounded-full border-4 border-pink-border shadow-pink-avatar">
                 <img
@@ -95,7 +106,7 @@ const HomePage = ({
                 style={{ textShadow: '2px 2px 8px rgba(255,105,180,0.3)' }}>
                 {profile.name}
               </h1>
-              <p className="mx-auto mt-3 max-w-[560px] px-5 text-[1.1rem] italic text-[#666]">
+              <p className="mx-auto mt-3 max-w-[560px] px-5 text-[1.1rem] italic text-[#666] dark:text-gray-300">
                 {profile.tagline}
               </p>
             </div>
@@ -120,16 +131,14 @@ const HomePage = ({
         </div>
 
         <div className="fixed bottom-6 right-6 z-20 flex flex-col items-start gap-2">
-          <div className="w-[86px] h-[86px] overflow-hidden rounded-[14px] border border-pink-border/60 bg-white/80 shadow-[0_8px_18px_rgba(255,105,180,0.2)] backdrop-blur">
+          <div className="glass glass-flat h-[86px] w-[86px] overflow-hidden">
             <iframe
               title="网易云音乐播放器"
-              frameBorder="no"
-              marginWidth={0}
-              marginHeight={0}
               width={homePageMusic.size}
               height={homePageMusic.size}
               src={homePageMusic.src}
               sandbox="allow-scripts allow-same-origin"
+              style={{ border: 0 }}
             />
           </div>
         </div>

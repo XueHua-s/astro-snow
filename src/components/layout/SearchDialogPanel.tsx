@@ -155,7 +155,7 @@ export default function SearchDialogPanel() {
 
   const contentClassName = useMemo(
     () =>
-      `bg-gradient-start shadow-box w-full max-w-3xl overflow-auto rounded-xl transition-all duration-200 ${
+      `glass glass-overlay w-full max-w-3xl overflow-auto transition-[opacity,transform] duration-200 ${
         active ? 'opacity-100' : 'opacity-0'
       }`,
     [active],

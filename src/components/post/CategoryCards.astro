@@ -51,19 +51,19 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
       const posts = category?.posts?.slice(0, 6 - (childrenLen ?? 0));
       return (
         <FlippedCard>
-          <div slot="front" class="flex-center relative h-full rounded-md px-2 py-4">
+          <div slot="front" class="flex-center relative h-full rounded-[var(--glass-radius-card)] px-2 py-4">
             <img
               style={getLqipStyle(category.image)}
               src={category.image}
               alt={categoryInfo?.name}
               loading="lazy"
               decoding="async"
-              class="absolute inset-0 -z-10 h-full w-full rounded-md object-cover"
+              class="absolute inset-0 -z-10 h-full w-full rounded-[var(--glass-radius-card)] object-cover"
             />
-            <div class="bg-shoka-card-mask absolute inset-0 -z-10 h-full w-full rounded-md opacity-25" />
+            <div class="bg-shoka-card-mask absolute inset-0 -z-10 h-full w-full rounded-[var(--glass-radius-card)] opacity-25" />
             <h2 class="text-2xl text-white">{categoryInfo?.name}</h2>
           </div>
-          <div slot="back" class="bg-card relative h-full flex-col rounded-md px-6 pt-16 pb-4">
+          <div slot="back" class="glass glass-card relative h-full flex-col px-6 pt-16 pb-4">
             <div
               class={cn(
                 'from-gradient-shoka-button-start to-gradient-shoka-button-end absolute top-4 -left-4 grid h-8 max-w-[calc(100%+2rem)] place-items-center rounded-r-md bg-gradient-to-l px-4',

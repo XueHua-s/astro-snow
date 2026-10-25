@@ -1,0 +1,87 @@
+---
+/**
+ * SVG displacement filter used by `.glass-refract` on Chromium.
+ * Rendered once per layout; the inline script only enables the filter when
+ * the browser can actually render SVG filters inside backdrop-filter.
+ */
+---
+
+<svg
+  class="glass-filter-defs"
+  width="0"
+  height="0"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <filter
+      id="glass-refraction"
+      x="-30%"
+      y="-30%"
+      width="160%"
+      height="160%"
+      color-interpolation-filters="sRGB"
+    >
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.008 0.014"
+        numOctaves="2"
+        seed="11"
+        result="noise"></feTurbulence>
+      <feGaussianBlur
+        in="noise"
+        stdDeviation="1.2"
+        result="softNoise"></feGaussianBlur>
+      <feGaussianBlur
+        in="SourceGraphic"
+        stdDeviation="10"
+        result="blurred"></feGaussianBlur>
+      <feColorMatrix
+        in="blurred"
+        type="saturate"
+        values="1.7"
+        result="saturated"></feColorMatrix>
+      <feDisplacementMap
+        in="saturated"
+        in2="softNoise"
+        scale="12"
+        xChannelSelector="R"
+        yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
+
+<script is:inline>
+  (() => {
+    try {
+      const ua = navigator.userAgent || '';
+      const isIOS =
+        /iPad|iPhone|iPod/.test(ua) ||
+        (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+      const isGecko = /Firefox|FxiOS/.test(ua);
+      const isChromium =
+        /Chrome|Chromium|Edg\//.test(ua) && !isIOS && !isGecko;
+
+      if (
+        isChromium &&
+        typeof CSS !== 'undefined' &&
+        CSS.supports &&
+        CSS.supports('backdrop-filter', 'url(#glass-refraction)')
+      ) {
+        document.documentElement.classList.add('glass-refract-supported');
+      }
+    } catch {
+      // Keep the baseline blur if feature detection is unavailable.
+    }
+  })();
+</script>
+
+<style>
+  .glass-filter-defs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+</style>

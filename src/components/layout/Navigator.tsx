@@ -39,7 +39,7 @@ export default function Navigator({ currentPath }: NavigatorProps) {
               aria-current={isActive ? 'page' : undefined}
               data-header-route={item.path}
               className={cn(
-                'relative text-base tracking-wider after:absolute after:bottom-1 after:left-1/2 after:block after:h-0.5 after:w-0 after:-translate-x-1/2 after:transition-all after:duration-300',
+                'relative text-base tracking-wider after:absolute after:bottom-1 after:left-1/2 after:block after:h-0.5 after:w-0 after:-translate-x-1/2 after:transition-[width] after:duration-300',
                 isActive && 'after:w-9/12',
                 !isActive && 'hover:after:w-9/12',
               )}>

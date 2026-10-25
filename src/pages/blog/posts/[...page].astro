@@ -28,7 +28,8 @@ const layoutFooterData = await getLayoutFooterData();
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
     <div
-      class={`shadow-box bg-gradient-start tablet:shadow-none flex flex-col gap-4 overflow-hidden ${CONTENT_PADDING.standard}`}
+      class={`glass glass-panel flex flex-col gap-4 overflow-hidden ${CONTENT_PADDING.standard}`}
+      data-glass-panel
     >
       <Divider>文章列表</Divider>
       <PostList posts={page.data} page={page} />

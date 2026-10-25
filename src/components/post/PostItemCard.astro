@@ -57,7 +57,7 @@ const lqipProps = getLqipProps(finalCover);
 ---
 
 <div
-  class="hover:shadow-card-darker group text-card-foreground shadow-card relative flex gap-2 rounded-lg bg-white transition-shadow md:flex-col dark:bg-transparent"
+  class="glass glass-card glass-interactive group text-card-foreground relative flex gap-2 md:flex-col"
 >
   {
     !hideCover && (
@@ -66,7 +66,7 @@ const lqipProps = getLqipProps(finalCover);
         href={href}
         style={lqipProps.style}
         class={cn(
-          'md:clip-path-none relative h-46.5 max-h-46.5 w-[calc(50%-2rem)] overflow-hidden rounded-lg md:w-auto',
+          'md:clip-path-none relative h-46.5 max-h-46.5 w-[calc(50%-2rem)] overflow-hidden rounded-[calc(var(--glass-radius-card)-4px)] md:w-auto',
           leftClip ? 'clip-path-post-img-left order-1' : 'clip-path-post-img-right order-2',
           'md:clip-path-none md:order-0',
           lqipProps.class,

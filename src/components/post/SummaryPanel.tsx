@@ -87,14 +87,13 @@ export function SummaryPanel({
 
   return (
     <ErrorBoundary FallbackComponent={InlineErrorFallback}>
-      <div className={cn('overflow-hidden rounded-lg', className)}>
+      <div className={cn('glass glass-flat overflow-hidden', className)}>
         <button
           onClick={handleToggle}
           className={cn(
-            'bg-foreground/5 flex w-full cursor-pointer items-center justify-between px-4 py-3 transition-all duration-250',
-            'hover:bg-foreground/10',
-            isExpanded && 'bg-foreground/10 rounded-t-lg',
-            !isExpanded && 'rounded-lg',
+            'flex w-full cursor-pointer items-center justify-between px-4 py-3 transition-colors duration-250',
+            'bg-[hsl(var(--glass-tint-hsl)/0.18)] hover:bg-[hsl(var(--glass-tint-hsl)/0.32)]',
+            isExpanded && 'bg-[hsl(var(--glass-tint-hsl)/0.28)]',
           )}
           aria-expanded={isExpanded}
           aria-controls="summary-panel-content">

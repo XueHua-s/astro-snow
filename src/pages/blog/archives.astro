@@ -23,7 +23,10 @@ const [{ posts, postsByYear, years }, postIndexMap, layoutFooterData] = await Pr
     <Cover slot="cover" title="归档" />
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
-    <div class={`shadow-box bg-gradient-start mx-0 flex w-full flex-col ${CONTENT_PADDING.standard}`}>
+    <div
+      class={`glass glass-panel mx-0 flex w-full flex-col ${CONTENT_PADDING.standard}`}
+      data-glass-panel
+    >
       <h2 class="shoka-decoration-circle group relative h-19 px-6 py-5 text-2xl/9 font-bold md:text-xl/9">
         <a href={Routes.Home} class="dashed-border text-muted-foreground group-hover:border-blue group-hover:text-blue border-b">
           首页

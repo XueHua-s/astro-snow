@@ -53,7 +53,7 @@ export const Segmented = <T extends string | number = string | number>({
     <div
       id={id}
       className={cn(
-        'bg-muted flex w-fit cursor-pointer rounded-sm p-1 text-xs font-semibold backdrop-blur-lg select-none',
+        'glass glass-flat flex w-fit cursor-pointer p-1 text-xs font-semibold select-none',
         className,
       )}>
       {options.map((option) => {

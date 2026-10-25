@@ -52,7 +52,7 @@ const OpenMenuButton = ({ className, id, buttonRef }: MenuButtonProps) => {
       style={{ viewTransitionName: 'home-menu-icon' }}>
       <button
         className={cn(
-          'flex-center text-shoka size-10 cursor-pointer rounded-full bg-white/20 select-none',
+          'glass glass-control flex-center text-shoka size-10 cursor-pointer rounded-full select-none',
           isOpen && 'hidden',
         )}
         onClick={handleOpen}
@@ -86,7 +86,7 @@ const CloseMenuButton = ({ className, id, buttonRef }: MenuButtonProps) => {
     <div className={cn(className)} id={id}>
       <button
         className={cn(
-          'flex-center text-shoka size-10 cursor-pointer rounded-full bg-white/20 select-none',
+          'glass glass-flat flex-center text-shoka size-10 cursor-pointer rounded-full select-none',
           !isOpen && 'hidden',
         )}
         onClick={handleClose}

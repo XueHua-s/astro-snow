@@ -84,7 +84,7 @@ function Tooltip({
         {open && (
           <div
             className={cn(
-              'bg-background/80 text-card-foreground z-10 rounded-lg border px-3 py-1 text-xs/3.5 backdrop-blur-lg',
+              'glass glass-control text-card-foreground z-10 px-3 py-1 text-xs/3.5',
               className,
             )}
             ref={floatingRef}

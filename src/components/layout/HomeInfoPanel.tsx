@@ -97,13 +97,13 @@ export function HomeInfoPanel({
               <div
                 key={collapseId}
                 className={cn(
-                  'bg-foreground/10 flex w-40 flex-col rounded-xl opacity-75 transition-all duration-300 hover:opacity-100',
+                  'glass-tint flex w-40 flex-col rounded-xl opacity-75 transition-all duration-300 hover:opacity-100',
                   hasActiveChild && 'opacity-100',
                 )}
                 data-collapsible>
                 <button
                   className={cn(
-                    'flex-center hover:bg-foreground/5 h-12 w-full cursor-pointer rounded-xl transition-colors',
+                    'flex-center hover:bg-[hsl(var(--glass-tint-hsl)/0.28)] h-12 w-full cursor-pointer rounded-xl transition-colors',
                     hasActiveChild &&
                       'bg-gradient-shoka-button text-primary-foreground shoka-button-shadow opacity-100 hover:bg-gradient-shoka-button',
                   )}

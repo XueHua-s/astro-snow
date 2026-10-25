@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import GlassFilterDefs from "@components/common/GlassFilterDefs.astro";
 import {baseLayoutConfig} from "@config/indexConfig.ts";
 
 interface Props {
@@ -36,6 +37,22 @@ const mainClass = fullScreen
     <title>{title}</title>
     <meta name="description" content={description} />
     <script is:inline>
+      // 立即执行主题检查 否则会闪烁
+      if (
+        localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        document.documentElement.dataset.theme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        document.documentElement.dataset.theme = 'light';
+      }
+    </script>
+    <script is:inline>
       // iOS Safari pinch-zoom guard (viewport meta alone is not always respected)
       (() => {
         const blockGesture = (event) => event.preventDefault();
@@ -46,8 +63,10 @@ const mainClass = fullScreen
     </script>
   </head>
   <body class={bodyClass}>
+    <GlassFilterDefs />
     <main class={mainClass}>
       <slot />
     </main>
+    <slot name="body-end" />
   </body>
 </html>
