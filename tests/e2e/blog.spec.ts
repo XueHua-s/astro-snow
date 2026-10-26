@@ -22,6 +22,75 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
+  test('cover banner image should be painted above the ambient layer', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    const response = await page.goto('/blog', {
+      waitUntil: 'domcontentloaded',
+    });
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('.site-ambient')).toHaveCount(1);
+
+    await expect
+      .poll(
+        async () =>
+          page
+            .locator('#banner-box img')
+            .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+        { timeout: 10000 },
+      )
+      .toBeGreaterThan(0);
+
+    await page.locator('#banner-box img').evaluate(async (img) => {
+      await (img as HTMLImageElement).decode().catch(() => undefined);
+    });
+
+    const state = await page.locator('#banner-box').evaluate((box) => {
+      const img = box.querySelector('img');
+      const coverRoot = box.parentElement;
+      if (!img || !coverRoot) return null;
+      return {
+        visibility: getComputedStyle(img).visibility,
+        zIndex: getComputedStyle(box).zIndex,
+        isolation: getComputedStyle(coverRoot).isolation,
+      };
+    });
+
+    expect(state).not.toBeNull();
+    expect(state?.visibility).not.toBe('hidden');
+    expect(state?.zIndex).toBe('-10');
+    expect(state?.isolation).toBe('isolate');
+
+    const bannerBox = await page.locator('#banner-box').boundingBox();
+    if (!bannerBox) {
+      throw new Error('Banner box is not visible');
+    }
+
+    // The banner image is opaque: hiding the ambient layer behind it must not
+    // change a single pixel. If the ambient paints above the banner, the
+    // screenshots differ.
+    const clip = {
+      x: bannerBox.x + 20,
+      y: bannerBox.y + 100,
+      width: 120,
+      height: 100,
+    };
+    const before = await page.screenshot({ clip });
+    await page.addStyleTag({
+      content: '.site-ambient{display:none!important}',
+    });
+    await page.waitForTimeout(100);
+    const after = await page.screenshot({ clip });
+
+    expect(Buffer.compare(before, after)).toBe(0);
+
+    await page.waitForTimeout(1200);
+    runtime.assertClean();
+  });
+
   for (const path of BLOG_ROUTES) {
     test(`route should be accessible: ${path}`, async ({ page }) => {
       const runtime = setupRuntimeErrorCollector(page);
@@ -325,6 +394,39 @@ test.describe('Blog e2e regression suite', () => {
 
     const scrollY = await page.evaluate(() => window.scrollY);
     expect(scrollY).toBeLessThan(50);
+
+    runtime.assertClean();
+  });
+
+  test('floating group capsule should shrink when collapsed', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1200);
+
+    const capsule = page.locator('#floating-nav > .glass');
+    await expect(capsule).toBeVisible();
+
+    const expandedBox = await capsule.boundingBox();
+    if (!expandedBox) {
+      throw new Error('Floating group capsule is not visible when expanded');
+    }
+
+    await page.locator('#toggle-nav').click();
+    await page.waitForTimeout(500);
+
+    const collapsedBox = await capsule.boundingBox();
+    if (!collapsedBox) {
+      throw new Error('Floating group capsule is not visible when collapsed');
+    }
+
+    // Regression guard: the collapsed capsule must actually lose the height of
+    // #nav-content instead of keeping an empty glass area above the toggle.
+    expect(collapsedBox.height).toBeLessThan(70);
+    expect(expandedBox.height).toBeGreaterThanOrEqual(collapsedBox.height + 30);
 
     runtime.assertClean();
   });

@@ -72,10 +72,7 @@ export function HomeSiderPanel({
   const activeSlot =
     effectiveSegment === HomeSiderSegmentType.INFO ? (
       <div className="sider-slot" data-slot-type="info">
-        <HomeInfoPanel
-          className={type === HomeSiderType.HOME ? 'pt-18 md:pt-0' : ''}
-          {...homeInfo}
-        />
+        <HomeInfoPanel {...homeInfo} />
       </div>
     ) : effectiveSegment === HomeSiderSegmentType.SERIES ? (
       <div className="sider-slot" data-slot-type="series">

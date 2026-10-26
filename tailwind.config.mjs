@@ -110,7 +110,6 @@ export default {
       backgroundImage: {
         gradient: 'var(--gradient-bg)',
         'gradient-pink': 'var(--gradient-pink)',
-        'gradient-header': 'var(--gradient-header)',
         'gradient-shoka-button': 'var(--gradient-shoka-button)',
         'shoka-card-mask': 'linear-gradient(135deg,#434343 0,#000 100%)',
       },

@@ -10,14 +10,24 @@ import FloatingGroupClient from './FloatingGroup';
   }
 
   #nav-content {
+    max-height: 10rem;
+    overflow: hidden;
     transform-origin: bottom;
-    transition: all 0.15s ease-in-out;
+    transition:
+      transform 0.15s ease-in-out,
+      opacity 0.15s ease-in-out,
+      max-height 0.15s ease-in-out;
   }
 
   #floating-nav[data-expanded='false'] #nav-content {
+    max-height: 0;
     transform: translateY(150%);
     opacity: 0;
     pointer-events: none;
+  }
+
+  #floating-nav[data-expanded='false'] > .glass {
+    gap: 0;
   }
 
   #floating-nav[data-expanded='true'] #nav-content {

@@ -11,7 +11,7 @@ export default function PostFooter({
   postIndexMap,
 }: Props) {
   return (
-    <div className="tablet:grid-cols-1 grid grid-cols-2 gap-4 px-8 md:px-5">
+    <div className="tablet:grid-cols-1 grid grid-cols-2 gap-4 px-8 tablet:px-5">
       <RandomPostList
         posts={randomPosts.slice(0, 5)}
         postIndexMap={postIndexMap}

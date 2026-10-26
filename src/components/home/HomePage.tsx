@@ -83,7 +83,7 @@ const HomePage = ({
       <div className="relative mx-auto flex h-full w-full max-w-[860px] flex-col px-5">
         <div className="flex flex-1 items-center justify-center">
           <div
-            className="glass glass-hero glass-refract relative w-full p-6 sm:p-10"
+            className="glass glass-hero glass-refract relative w-full p-6"
             data-glass-hero
             style={{ borderColor: 'hsl(345 100% 84% / 0.6)' }}>
             <div

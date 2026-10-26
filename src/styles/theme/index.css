@@ -7,7 +7,6 @@
     var(--gradient-bg-end) 100%
   );
   --gradient-pink: linear-gradient(279deg, #f96676 0%, #e91e63 100%);
-  --gradient-header: linear-gradient(-225deg, #e3fdf5 0, #ffe6fa 100%);
 
   /* shoka migrate */
   --box-bg-shadow: rgba(0, 0, 0, 0.1);
@@ -34,7 +33,6 @@
     var(--gradient-bg-end) 100%
   );
   --gradient-pink: linear-gradient(279deg, #f96676 0%, #e91e63 100%);
-  --gradient-header: linear-gradient(-225deg, #2d3230 0, #322d31 100%);
 
   /* shoka migrate */
   --box-bg-shadow: rgba(0, 0, 0, 0.5);

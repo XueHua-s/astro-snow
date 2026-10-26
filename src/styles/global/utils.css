@@ -8,18 +8,11 @@
   .flex-center-y {
     @apply flex flex-col items-center justify-center;
   }
-  .shadow-home-sider {
-    box-shadow: var(--box-bg-shadow) 50px -10px 30px -50px;
-  }
   .shadow-card {
     box-shadow: var(--box-bg-shadow) 0px 5px 15px;
   }
   .shadow-card-darker {
     box-shadow: 0 0 2rem var(--box-bg-shadow);
-  }
-  .shadow-box {
-    box-shadow: var(--box-bg-shadow) 0px 50px 50px -50px;
-    @apply md:shadow-none;
   }
   .shadow-text {
     text-shadow: 0 0.2rem 0.3rem rgba(0, 0, 0, 0.5);

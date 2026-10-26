@@ -3,7 +3,7 @@
  *
  * Layer model (keep blur only where the backdrop is dynamic):
  *   L0 ambient  -> .site-ambient (fixed gradient mesh, no blur)
- *   L1 chrome   -> .glass-bar / .glass-control
+ *   L1 chrome   -> .glass-control
  *   L2 panel    -> .glass-panel (tint only, no backdrop-filter)
  *   L3 card     -> .glass-card (tint only, no backdrop-filter)
  *   L4 control  -> .glass-control (small blur, only over dynamic content)
@@ -20,6 +20,8 @@
     --glass-tint-hsl: 0 0% 100%;
     --glass-tint-alpha: 0.62;
     --glass-tint-alpha-strong: 0.8;
+    /* Surface ink: contrasts with the glass tint in both themes. */
+    --glass-surface-hsl: 220 20% 30%;
 
     --glass-border: hsl(0 0% 100% / 0.55);
     --glass-radius-panel: 1.75rem;
@@ -49,14 +51,15 @@
     --glass-saturate: 170%;
     --glass-brightness: 1.04;
     --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.66);
-    --glass-input-bg: hsl(220 20% 60% / 0.08);
-    --glass-input-border: hsl(220 20% 30% / 0.14);
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.08);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.65);
   }
 
   .dark {
     --glass-tint-hsl: 222 22% 10%;
     --glass-tint-alpha: 0.58;
     --glass-tint-alpha-strong: 0.76;
+    --glass-surface-hsl: 0 0% 100%;
 
     --glass-border: hsl(0 0% 100% / 0.14);
     --glass-shadow:
@@ -79,8 +82,8 @@
     --glass-saturate: 150%;
     --glass-brightness: 0.96;
     --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.72);
-    --glass-input-bg: hsl(0 0% 100% / 0.06);
-    --glass-input-border: hsl(0 0% 100% / 0.14);
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.06);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.45);
   }
 
   body {
@@ -140,11 +143,7 @@
 
   /* Lightweight tint for nested groups where a full rim/shadow is too heavy. */
   .glass-tint {
-    background: hsl(var(--glass-tint-hsl) / 0.35);
-  }
-
-  .dark .glass-tint {
-    background: hsl(var(--glass-tint-hsl) / 0.3);
+    background: hsl(var(--glass-surface-hsl) / 0.08);
   }
 
   .glass-control {
@@ -157,12 +156,6 @@
     --glass-radius: var(--glass-radius-overlay);
     --glass-tint-alpha: var(--glass-tint-alpha-strong);
     --glass-blur: 32px;
-  }
-
-  .glass-bar {
-    --glass-radius: 0;
-    --glass-tint-alpha: 0.45;
-    --glass-blur: 20px;
   }
 
   /* Home hero: stronger tint because it floats over a random wallpaper. */
@@ -313,8 +306,8 @@ html.glass-refract-supported .glass-refract {
 html.theme-transition .glass,
 html.theme-transition .glass-control,
 html.theme-transition .glass-overlay,
-html.theme-transition .glass-bar,
-html.theme-transition .glass-hero {
+html.theme-transition .glass-hero,
+html.theme-transition #site-header.with-background .site-header-bg {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
@@ -324,7 +317,6 @@ html.theme-transition .glass-hero {
   .glass,
   .glass-control,
   .glass-overlay,
-  .glass-bar,
   .glass-hero {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -333,14 +325,13 @@ html.theme-transition .glass-hero {
   .glass,
   .glass-control,
   .glass-overlay,
-  .glass-bar,
   .glass-hero,
   .glass-input {
     background: hsl(var(--glass-tint-hsl) / 0.96);
   }
 
   .glass-tint {
-    background: hsl(var(--glass-tint-hsl) / 0.8);
+    background: hsl(var(--glass-surface-hsl) / 0.12);
   }
 
   html.glass-refract-supported .glass-refract {
@@ -356,12 +347,20 @@ html.theme-transition .glass-hero {
 }
 
 @media (prefers-contrast: more) {
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.16);
+  }
+}
+
+@media (prefers-contrast: more) {
   :root {
     --glass-border: hsl(0 0% 0% / 0.35);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.75);
   }
 
   .dark {
     --glass-border: hsl(0 0% 100% / 0.45);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.55);
   }
 }
 
@@ -371,7 +370,6 @@ html.theme-transition .glass-hero {
   .glass,
   .glass-control,
   .glass-overlay,
-  .glass-bar,
   .glass-hero {
     background: hsl(var(--glass-tint-hsl) / 0.94);
   }
@@ -399,7 +397,6 @@ html.theme-transition .glass-hero {
   .glass-flat,
   .glass-control,
   .glass-overlay,
-  .glass-bar,
   .glass-hero,
   .glass-input,
   .glass-tint {

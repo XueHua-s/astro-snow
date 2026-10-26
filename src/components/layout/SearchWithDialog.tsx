@@ -140,22 +140,17 @@ export default function SearchWithDialog() {
       </div>
 
       <style>{`
-        .scroll-feather-mask {
-          container-type: scroll-state;
-        }
-        @container scroll-state(scrollable: bottom) {
-          .scroll-feather-mask {
-            mask-image: linear-gradient(
-              to bottom,
-              #000 calc(100% - var(--scroll-mask-height, 5rem)),
-              transparent
-            );
-            -webkit-mask-image: linear-gradient(
-              to bottom,
-              #000 calc(100% - var(--scroll-mask-height, 5rem)),
-              transparent
-            );
-          }
+        .scroll-feather-mask.scroll-feather-active {
+          mask-image: linear-gradient(
+            to bottom,
+            #000 calc(100% - var(--scroll-mask-height, 5rem)),
+            transparent
+          );
+          -webkit-mask-image: linear-gradient(
+            to bottom,
+            #000 calc(100% - var(--scroll-mask-height, 5rem)),
+            transparent
+          );
         }
       `}</style>
     </>

@@ -5,7 +5,7 @@
   /* --pagefind-ui-scale: 1; */
   --pagefind-ui-primary: hsl(var(--primary));
   --pagefind-ui-text: #393939;
-  --pagefind-ui-background: hsl(var(--glass-tint-hsl) / 0.5);
+  --pagefind-ui-background: hsl(var(--glass-surface-hsl) / 0.06);
   --pagefind-ui-border: var(--glass-border);
   --pagefind-ui-tag: rgba(237, 110, 160, 0.15);
   --pagefind-ui-border-width: 1px;
@@ -16,7 +16,7 @@
 
 .dark {
   --pagefind-ui-text: #e5e5e5;
-  --pagefind-ui-background: hsl(var(--glass-tint-hsl) / 0.5);
+  --pagefind-ui-background: hsl(var(--glass-surface-hsl) / 0.08);
   --pagefind-ui-border: var(--glass-border);
   --pagefind-ui-tag: rgba(241, 139, 179, 0.2);
 }
@@ -69,13 +69,13 @@
 
 /* Result Item */
 .pagefind-ui__result {
-  background: hsl(var(--glass-tint-hsl) / 0.35);
+  background: hsl(var(--glass-surface-hsl) / 0.06);
   transition: background-color 0.25s ease;
   @apply mb-2 rounded-lg !border-none !p-3;
 }
 
 .dark .pagefind-ui__result {
-  background: hsl(var(--glass-tint-hsl) / 0.4);
+  background: hsl(var(--glass-surface-hsl) / 0.08);
 }
 
 /* Keyboard navigation selected state */

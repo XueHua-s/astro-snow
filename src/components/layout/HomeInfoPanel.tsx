@@ -103,7 +103,7 @@ export function HomeInfoPanel({
                 data-collapsible>
                 <button
                   className={cn(
-                    'flex-center hover:bg-[hsl(var(--glass-tint-hsl)/0.28)] h-12 w-full cursor-pointer rounded-xl transition-colors',
+                    'flex-center hover:bg-[hsl(var(--glass-surface-hsl)/0.12)] h-12 w-full cursor-pointer rounded-xl transition-colors',
                     hasActiveChild &&
                       'bg-gradient-shoka-button text-primary-foreground shoka-button-shadow opacity-100 hover:bg-gradient-shoka-button',
                   )}
