@@ -25,7 +25,9 @@ const hasRootChildren = hasItems(rootCategory?.children ?? []);
 ---
 
 <div
-  class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.normal}`}>
+  class={`glass glass-panel mx-0 flex w-full flex-col ${CONTENT_PADDING.normal}`}
+  data-glass-panel
+>
   <h2
     class={cn(
       'shoka-decoration-circle px-6 group relative py-5 text-2xl/9 font-bold',

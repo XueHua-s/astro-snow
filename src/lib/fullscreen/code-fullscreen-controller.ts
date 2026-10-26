@@ -5,7 +5,7 @@ import {
   type CodeBlockData,
 } from '@store/ui';
 import { copyToClipboard } from '@lib/code-block-enhancer';
-import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
+import { lockBodyScroll } from '@lib/body-scroll-lock';
 
 interface Elements {
   overlay: HTMLElement;
@@ -62,8 +62,23 @@ export function initCodeFullscreenController() {
 
   let currentData: CodeBlockData | null = null;
   let copyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let frameId: number | null = null;
+  let releaseScroll: (() => void) | null = null;
+  const listeners = new AbortController();
+  const { signal } = listeners;
+
+  const cancelAnimation = () => {
+    if (closeTimeoutId !== null) clearTimeout(closeTimeoutId);
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    closeTimeoutId = null;
+    frameId = null;
+  };
 
   const open = (data: CodeBlockData) => {
+    // FIXED: Reopening cancels stale close work and keeps one lock per owner.
+    cancelAnimation();
+    releaseScroll ??= lockBodyScroll();
     elements.language.textContent = data.language;
     elements.pre.className = `${data.preClassName} p-4`;
     elements.pre.removeAttribute('style');
@@ -73,28 +88,34 @@ export function initCodeFullscreenController() {
 
     elements.overlay.dataset.state = 'open';
     elements.dialog.dataset.state = 'open';
-    lockBodyScroll();
-    requestAnimationFrame(() => {
+    frameId = requestAnimationFrame(() => {
+      frameId = null;
       elements.overlay.classList.replace('opacity-0', 'opacity-100');
       elements.content.classList.replace('opacity-0', 'opacity-100');
     });
   };
 
   const close = () => {
+    currentData = null;
+    // Initial null subscriptions never acquired a lock or opened the overlay.
+    if (!releaseScroll) return;
+    cancelAnimation();
     elements.overlay.classList.replace('opacity-100', 'opacity-0');
     elements.content.classList.replace('opacity-100', 'opacity-0');
-    setTimeout(() => {
+    closeTimeoutId = setTimeout(() => {
+      closeTimeoutId = null;
       elements.overlay.dataset.state = 'closed';
       elements.dialog.dataset.state = 'closed';
-      unlockBodyScroll();
+      releaseScroll?.();
+      releaseScroll = null;
     }, 200);
-    currentData = null;
   };
 
   const onCopy = async () => {
     if (!currentData) return;
-    const success = await copyToClipboard(currentData.code);
-    if (!success) return;
+    const data = currentData;
+    const success = await copyToClipboard(data.code);
+    if (!success || signal.aborted || currentData !== data) return;
 
     if (copyTimeoutId) clearTimeout(copyTimeoutId);
     elements.copyIcon.classList.add('hidden');
@@ -123,22 +144,32 @@ export function initCodeFullscreenController() {
     'keydown',
     (e) =>
       e.key === 'Escape' && codeFullscreenData.get() && closeCodeFullscreen(),
+    { signal },
   );
-  elements.closeBtn.addEventListener('click', () => closeCodeFullscreen());
+  elements.closeBtn.addEventListener('click', () => closeCodeFullscreen(), {
+    signal,
+  });
   elements.dialog.addEventListener(
     'click',
     (e) => e.target === elements.dialog && closeCodeFullscreen(),
+    { signal },
   );
-  elements.copyBtn.addEventListener('click', () => void onCopy());
+  elements.copyBtn.addEventListener('click', () => void onCopy(), { signal });
 
   const customEventListener = ((e: CustomEvent<CodeBlockData>) => {
     openCodeFullscreen(e.detail);
   }) as EventListener;
-  window.addEventListener('open-code-fullscreen', customEventListener);
+  window.addEventListener('open-code-fullscreen', customEventListener, {
+    signal,
+  });
 
   return () => {
     if (copyTimeoutId) clearTimeout(copyTimeoutId);
+    cancelAnimation();
+    currentData = null;
+    releaseScroll?.();
+    releaseScroll = null;
+    listeners.abort();
     unsubscribe();
-    window.removeEventListener('open-code-fullscreen', customEventListener);
   };
 }

@@ -24,9 +24,9 @@ const DropdownNavComponent = ({
 
   const renderDropdownContent = useCallback(
     () => (
-      <div className="nav-dropdown flex flex-col items-center">
+      <div className="nav-dropdown flex flex-col items-stretch p-1">
         {children?.length
-          ? children.map((child: Router, index) => {
+          ? children.map((child: Router) => {
               const isActive = isRoutePathActive(child.path, currentPath);
 
               return (
@@ -35,15 +35,8 @@ const DropdownNavComponent = ({
                   href={child.path}
                   aria-current={isActive ? 'page' : undefined}
                   data-header-route={child.path}
-                  className={cn(
-                    'group hover:bg-gradient-shoka-button px-4 py-2 text-base outline-hidden transition-colors duration-300',
-                    {
-                      'rounded-ss-2xl': index === 0,
-                      'rounded-ee-2xl': index === children.length - 1,
-                      'bg-gradient-shoka-button text-muted': isActive,
-                    },
-                  )}>
-                  <div className="flex items-center gap-2 text-white transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white">
+                  className="material-row w-full rounded-lg px-4 py-2 text-base">
+                  <div className="flex items-center gap-2">
                     {child.icon && (
                       <i
                         className={cn('text-sm', child.icon)}
@@ -67,12 +60,13 @@ const DropdownNavComponent = ({
       onOpenChange={setIsOpen}
       placement="bottom-start"
       trigger="hover"
+      className="glass-menu"
       render={renderDropdownContent}>
       <button
         className={cn(
           'inline-flex h-10 items-center px-4 py-2 text-base tracking-wider',
           'relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0',
-          'after:-translate-x-1/2 after:bg-white after:transition-all after:duration-300 after:content-[""]',
+          'after:-translate-x-1/2 after:transition-[width] after:duration-300 after:content-[""]',
           hasActiveChild && 'after:w-9/12',
           className,
         )}

@@ -1,7 +1,9 @@
-import type { MouseEvent } from 'react';
+import { useEffect, useRef, type MouseEvent } from 'react';
+import { SearchContent } from './search-content';
 
 interface SearchDialogPanelViewProps {
   state: 'open' | 'closed';
+  isOpen: boolean;
   overlayClassName: string;
   dialogClassName: string;
   contentClassName: string;
@@ -11,12 +13,50 @@ interface SearchDialogPanelViewProps {
 
 export function SearchDialogPanelView({
   state,
+  isOpen,
   overlayClassName,
   dialogClassName,
   contentClassName,
   onDialogBackgroundClick,
   onDialogClose,
 }: SearchDialogPanelViewProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // FIXED: toggle the fade mask on the scroll viewport itself, since the
+  // mask was previously applied to the content-sized inner container where
+  // the fade band scrolled away with the content.
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const update = () => {
+      const hasOverflow = scroller.scrollHeight > scroller.clientHeight + 4;
+      const atBottom =
+        scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
+      scroller.classList.toggle(
+        'scroll-feather-active',
+        hasOverflow && !atBottom,
+      );
+    };
+
+    update();
+    scroller.addEventListener('scroll', update, { passive: true });
+
+    // Pagefind replaces the results container contents, so its height changes
+    // without a window resize; observe both the viewport and the content.
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(scroller);
+    const container = document.getElementById('search-dialog-container');
+    if (container) {
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      scroller.removeEventListener('scroll', update);
+      resizeObserver.disconnect();
+    };
+  }, [state]);
+
   return (
     <>
       <button
@@ -47,7 +87,7 @@ export function SearchDialogPanelView({
                 </h2>
                 <button
                   id="search-dialog-close"
-                  className="flex size-8 items-center justify-center rounded-full bg-black/5 transition-colors duration-300 hover:bg-black/10 md:size-7 dark:bg-white/10 dark:hover:bg-white/20"
+                  className="flex size-8 items-center justify-center rounded-full bg-[hsl(var(--glass-surface-hsl)/0.08)] transition-colors duration-300 hover:bg-[hsl(var(--glass-surface-hsl)/0.14)] md:size-7"
                   aria-label="关闭搜索"
                   onClick={onDialogClose}>
                   <i
@@ -62,14 +102,18 @@ export function SearchDialogPanelView({
                 <p>输入关键词搜索博客文章</p>
                 <p className="mt-1 text-xs">
                   按{' '}
-                  <kbd className="rounded bg-black/10 px-1.5 py-0.5 font-mono dark:bg-white/10">
+                  <kbd className="rounded bg-[hsl(var(--glass-surface-hsl)/0.08)] px-1.5 py-0.5 font-mono">
                     ESC
                   </kbd>{' '}
                   关闭
                 </p>
               </div>
-              <div className="vertical-scrollbar scroll-feather-mask -mx-6 h-[calc(80dvh-140px)] overflow-auto scroll-smooth px-6 pb-10 md:-mx-3 md:h-[calc(80dvh-120px)] md:px-3">
-                <div id="search-dialog-container" />
+              <div
+                ref={scrollRef}
+                className="vertical-scrollbar scroll-feather-mask -mx-6 h-[calc(80dvh-140px)] overflow-auto scroll-smooth px-6 pb-10 md:-mx-3 md:h-[calc(80dvh-120px)] md:px-3">
+                <div id="search-dialog-container">
+                  <SearchContent isOpen={isOpen} />
+                </div>
               </div>
             </div>
             <div className="bg-background/2 absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-4 px-4 pt-2 pb-4 text-xs text-black/50 dark:border-white/10 dark:text-white/50">

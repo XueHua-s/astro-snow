@@ -57,7 +57,7 @@ const lqipProps = getLqipProps(finalCover);
 ---
 
 <div
-  class="hover:shadow-card-darker group text-card-foreground shadow-card relative flex gap-2 rounded-lg bg-white transition-shadow md:flex-col dark:bg-transparent"
+  class="glass glass-card glass-interactive group text-card-foreground relative flex gap-2 md:flex-col"
 >
   {
     !hideCover && (
@@ -66,9 +66,9 @@ const lqipProps = getLqipProps(finalCover);
         href={href}
         style={lqipProps.style}
         class={cn(
-          'md:clip-path-none relative h-46.5 max-h-46.5 w-[calc(50%-2rem)] overflow-hidden rounded-lg md:w-auto',
+          'md:clip-path-none relative min-h-46.5 w-[calc(50%-2rem)] self-stretch overflow-hidden rounded-[calc(var(--glass-radius-card)-4px)] md:h-46.5 md:max-h-46.5 md:min-h-0 md:w-auto',
           leftClip ? 'clip-path-post-img-left order-1' : 'clip-path-post-img-right order-2',
-          'md:clip-path-none md:order-0',
+          'md:clip-path-none md:order-none',
           lqipProps.class,
         )}
       >
@@ -76,20 +76,20 @@ const lqipProps = getLqipProps(finalCover);
           src={finalCover}
           loading="lazy"
           alt="post cover"
-          class="h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-110 group-hover:rotate-3"
+          class="absolute inset-0 h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       </a>
     )
   }
   <div
     class={cn(
-      'flex flex-col gap-2 px-4 pb-2 md:pb-4 pt-4 md:pt-1',
+      'flex min-w-0 flex-col gap-2 px-4 pt-4 md:pt-1',
       hideCover ? 'w-full' : 'w-[calc(50%+2rem)] md:w-full',
       !hideCover && (leftClip ? 'order-2' : 'order-1'),
-      'md:order-0',
+      'md:order-none',
     )}
   >
-    <div class={cn('flex w-full justify-between', { 'order-2 justify-start gap-4 pb-3 md:pb-0': isSimple })}>
+    <div class={cn('flex w-full flex-wrap justify-between gap-2', { 'order-2 justify-start gap-4': isSimple })}>
       {
         catalog === false ? null : (
           <a href={categoryLink} class="flex-center hover:text-blue text-muted-foreground text-xs transition duration-300">
@@ -98,7 +98,7 @@ const lqipProps = getLqipProps(finalCover);
           </a>
         )
       }
-      <div class="text-muted-foreground flex justify-end gap-4 text-xs">
+      <div class="text-muted-foreground flex flex-wrap justify-end gap-x-4 gap-y-1 text-xs">
         {
           date ? (
             <p class="flex-center gap-1">
@@ -145,52 +145,47 @@ const lqipProps = getLqipProps(finalCover);
     >
       {postDescription}
     </p>
-    {
-      showTags && (
-        <div
-          class={cn(
-            '@container mt-1 flex gap-2',
-            hideCover ? 'justify-start' : { 'justify-end': !leftClip },
-            'md:justify-start',
-          )}
-        >
-          {tags.length
-            ? tags.map((tag: string, index: number) => (
-                <Badge
-                  className={cn(
-                    'hover:text-badge-primary/80 hidden cursor-pointer gap-0.5 border-none px-1 text-xs font-bold whitespace-nowrap transition-colors duration-300 @md:flex',
-                    {
-                      '@xs:flex': index < 2,
-                      '@sm:flex': index < 3,
-                    },
-                  )}
-                  variant="outline"
-                >
-                  <i class="fa-solid fa-tags text-xs" aria-hidden="true"></i> {tag}
-                </Badge>
-              ))
-            : null}
-        </div>
-      )
-    }
-    <a
-      href={href}
-      aria-label="more info"
-      class={cn('absolute -bottom-1', hideCover ? '-right-1' : leftClip ? '-right-1' : '-left-1', 'md:left-auto md:-right-1')}
-    >
-      <Button
-        className={cn(
-          'bg-gradient-shoka-button rounded-2xl transition-all hover:translate-y-1 hover:scale-105 md:h-7 md:px-2 md:py-1 md:text-xs',
-          hideCover
-            ? 'rounded-se-none rounded-es-none hover:translate-x-1'
-            : leftClip
-              ? 'rounded-se-none rounded-es-none hover:translate-x-1'
-              : 'rounded-ss-none rounded-ee-none hover:-translate-x-1',
-          'md:rounded-ss-2xl md:rounded-se-none md:rounded-ee-2xl md:rounded-es-none md:hover:translate-x-1',
+    {/* FIXED: Tags and the corner action share normal flow, so neither can cover the other. */}
+    <div class="order-3 -mx-4 -mb-px mt-auto flex min-w-0 items-end gap-3" data-post-footer>
+      <div
+        class={cn(
+          'flex min-w-0 flex-1 flex-wrap gap-x-2 gap-y-1 pb-2',
+          hideCover || leftClip ? 'pl-4' : 'justify-end pr-4 md:justify-start md:pr-0 md:pl-4',
+        )}
+        data-post-tags
+      >
+        {
+          showTags && tags.map((tag: string) => (
+            <Badge
+              className="hover:text-badge-primary/80 min-w-0 max-w-full cursor-pointer gap-0.5 border-none px-1 text-xs font-bold transition-colors duration-300"
+              variant="outline"
+            >
+              <i class="fa-solid fa-tags shrink-0 text-xs" aria-hidden="true"></i>
+              <span class="min-w-0 truncate">{tag}</span>
+            </Badge>
+          ))
+        }
+      </div>
+      <a
+        href={href}
+        aria-label="more info"
+        class={cn(
+          'shrink-0',
+          hideCover || leftClip ? '-mr-px' : 'order-first -ml-px md:order-last md:ml-0 md:-mr-px',
         )}
       >
-        more...
-      </Button>
-    </a>
+        <Button
+          variant="ghost"
+          className={cn(
+            'material-action md:h-7 md:px-2 md:py-1 md:text-xs',
+            hideCover || leftClip
+              ? 'rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none'
+              : 'rounded-ss-none rounded-se-2xl rounded-ee-none rounded-es-[var(--glass-radius-card)] md:rounded-ss-2xl md:rounded-se-none md:rounded-ee-[var(--glass-radius-card)] md:rounded-es-none',
+          )}
+        >
+          more...
+        </Button>
+      </a>
+    </div>
   </div>
 </div>

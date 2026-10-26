@@ -11,7 +11,12 @@ import {
 import { useControlledState } from '@hooks/useControlledState';
 import { useFloatingUI } from '@hooks/useFloatingUI';
 import { cn } from '@lib/utils';
-import { AnimatePresence, motion, type MotionProps } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  type MotionProps,
+  useReducedMotion,
+} from 'motion/react';
 import React, { cloneElement, useCallback } from 'react';
 import { animation } from '@constants/design-tokens';
 import { withFloatingErrorBoundary } from '@components/common/FloatingErrorBoundary';
@@ -39,6 +44,8 @@ function Popover({
   motionProps,
   trigger = 'click',
 }: React.PropsWithChildren<PopoverProps>) {
+  const shouldReduceMotion = useReducedMotion();
+
   // Use useControlledState for open/close state management
   const [isOpen, setIsOpen] = useControlledState({
     value: passedOpen,
@@ -61,13 +68,14 @@ function Popover({
     delay: { open: 0, close: animation.duration.fast },
   });
   const click = useClick(context, {
-    enabled: trigger === 'click',
+    // FIXED: Hover menus still need native Enter/Space and touch activation.
+    ignoreMouse: trigger === 'hover',
   });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([
     hover,
     click,
-    useDismiss(context),
+    useDismiss(context, { ancestorScroll: true }),
     useRole(context),
   ]);
 
@@ -93,16 +101,20 @@ function Popover({
       <AnimatePresence>
         {isOpen && (
           <FloatingPortal>
-            <FloatingFocusManager context={context} modal={false}>
+            <FloatingFocusManager
+              context={context}
+              modal={false}
+              initialFocus={trigger === 'hover' ? -1 : 0}>
               <motion.div
-                className={cn(
-                  'z-10 rounded-ss-2xl rounded-ee-2xl bg-black/30 backdrop-blur-sm',
-                  className,
-                )}
-                initial={{ opacity: 0, scale: 0.85 }}
+                className={cn('glass glass-control z-10', className)}
+                initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
                 animate={{ opacity: 1, scale: 1, originY: 0 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={animation.spring.popoverContent}
+                exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0 }
+                    : animation.spring.popoverContent
+                }
                 style={{ ...floatingStyles }}
                 {...motionProps}
                 ref={setFloating}

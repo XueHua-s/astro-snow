@@ -110,7 +110,6 @@ export default {
       backgroundImage: {
         gradient: 'var(--gradient-bg)',
         'gradient-pink': 'var(--gradient-pink)',
-        'gradient-header': 'var(--gradient-header)',
         'gradient-shoka-button': 'var(--gradient-shoka-button)',
         'shoka-card-mask': 'linear-gradient(135deg,#434343 0,#000 100%)',
       },
@@ -143,6 +142,7 @@ export default {
         16.5: '4.125rem',
         17: '4.25rem',
         19: '4.75rem',
+        46.5: '11.625rem',
       },
       maxWidth: {
         '8xl': '87.5rem',

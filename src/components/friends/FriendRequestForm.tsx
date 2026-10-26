@@ -66,11 +66,11 @@ export default function FriendRequestForm() {
 
   return (
     <div className="mb-4 w-full">
-      <div className="relative overflow-hidden rounded-3xl border-2 border-gray-100 bg-white p-6 shadow-sm md:p-3 dark:border-gray-800 dark:bg-gray-900">
+      <div className="glass glass-card relative overflow-hidden p-5 md:p-3">
         <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-pink-100/50 dark:bg-pink-900/20" />
         <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-blue-100/50 dark:bg-blue-900/20" />
 
-        <div className="grid grid-cols-2 gap-12 md:grid-cols-1 md:gap-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-1 md:gap-6">
           <div className="relative">
             <div className="mb-6">
               <h2 className="mb-2 flex items-center gap-2 text-2xl font-black text-gray-800 dark:text-white">
@@ -142,7 +142,7 @@ export default function FriendRequestForm() {
                     主题色
                   </label>
                   <div className="flex items-center gap-3">
-                    <div className="relative h-10 w-10 overflow-hidden rounded-xl border-2 border-gray-100 shadow-sm transition-transform hover:scale-105 dark:border-gray-700">
+                    <div className="relative h-10 w-10 overflow-hidden rounded-xl border-2 border-white/60 shadow-sm transition-transform hover:scale-105 dark:border-white/20">
                       <input
                         type="color"
                         id="friend-color-picker"
@@ -171,7 +171,7 @@ export default function FriendRequestForm() {
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-center rounded-xl bg-gray-50 p-6 md:p-3 dark:bg-gray-800/50">
+          <div className="relative flex flex-col justify-center rounded-xl bg-white/30 p-5 md:p-3 dark:bg-black/20">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold tracking-wider uppercase">
                 配置预览
@@ -184,7 +184,7 @@ export default function FriendRequestForm() {
               </button>
             </div>
 
-            <div className="relative flex-1 overflow-hidden rounded-xl border-2 border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-950/50">
+            <div className="glass-input relative flex-1 overflow-hidden p-4">
               <pre className="font-mono text-xs leading-relaxed whitespace-pre-wrap text-gray-600 dark:text-gray-300">
                 {yaml}
               </pre>

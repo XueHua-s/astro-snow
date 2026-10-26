@@ -8,7 +8,7 @@ export interface Props {
   direction?: 'horizontal' | 'vertical';
   /**
    * 翻转动画时长(ms)
-   * @default 600
+   * @default 220
    */
   duration?: number;
   /**
@@ -23,7 +23,7 @@ export interface Props {
   disabled?: boolean;
 }
 
-const { className, direction = 'horizontal', duration = 600, delay = 100, disabled = false } = Astro.props;
+const { className, direction = 'horizontal', duration = 220, delay = 100, disabled = false } = Astro.props;
 ---
 
 <div class:list={['flip-card h-56', className, { 'flip-card-disabled': disabled }]} data-direction={direction}>
@@ -59,13 +59,14 @@ const { className, direction = 'horizontal', duration = 600, delay = 100, disabl
     width: 100%;
     height: 100%;
     text-align: center;
-    transition: transform 600ms;
+    transition: transform calc(var(--duration) * 1ms) ease;
     transform-style: preserve-3d;
     will-change: transform;
     pointer-events: none;
   }
 
-  .flip-card:not(.flip-card-disabled):hover .flip-card-inner {
+  /* FIXED: Keyboard entry reveals the back before any pointer hover. */
+  .flip-card:not(.flip-card-disabled):is(:hover, :focus-within) .flip-card-inner {
     transform: rotateY(-180deg);
     transition-delay: calc(var(--delay) * 1ms);
   }
@@ -78,7 +79,7 @@ const { className, direction = 'horizontal', duration = 600, delay = 100, disabl
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     transform-style: preserve-3d;
-    border-radius: 0.5rem;
+    border-radius: var(--glass-radius-card);
     pointer-events: auto;
   }
 
@@ -95,18 +96,11 @@ const { className, direction = 'horizontal', duration = 600, delay = 100, disabl
     opacity: 0.6;
   }
 
-  /* 添加一些过渡效果 */
-  .flip-card-front,
-  .flip-card-back {
-    transition: all calc(var(--duration) * 1ms) ease-in-out;
-  }
-
-  /* 添加阴影效果 */
-  .flip-card:not(.flip-card-disabled):hover .flip-card-front {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .flip-card:not(.flip-card-disabled):hover .flip-card-back {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  @media (prefers-reduced-motion: reduce) {
+    .flip-card-inner,
+    .flip-card:not(.flip-card-disabled):is(:hover, :focus-within) .flip-card-inner {
+      transition: none;
+      transition-delay: 0s;
+    }
   }
 </style>

@@ -1,13 +1,89 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import HomePage from "~/components/home/HomePage";
-import { getHomePageProfile, homePageLinks } from "@/config/homePageConfig";
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import HomePage from '~/components/home/HomePage';
+import { getHomePageProfile, homePageLinks } from '@/config/homePageConfig';
 
 const profile = await getHomePageProfile();
 ---
 
 <BaseLayout fullScreen={true}>
   <HomePage profile={profile} links={homePageLinks} />
+  <Fragment slot="body-end">
+    <script is:inline>
+      (() => {
+        const hero = document.querySelector('[data-glass-hero]');
+        if (!hero) return;
+
+        const specular = hero.querySelector('.glass-specular');
+        if (!specular) return;
+
+        const reduceMotion = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        );
+        const coarsePointer = window.matchMedia('(pointer: coarse)');
+        const motionAllowed = () =>
+          !reduceMotion.matches && !coarsePointer.matches;
+
+        let frame = 0;
+        let x = 50;
+        let y = 0;
+
+        // FIXED: Preferences can change after initialization, even between a
+        // pointer event and its queued paint. Cancel and reset both paths.
+        const reset = () => {
+          if (frame) cancelAnimationFrame(frame);
+          frame = 0;
+          x = 50;
+          y = 0;
+          specular.style.removeProperty('--sheen-x');
+          specular.style.removeProperty('--sheen-y');
+        };
+
+        const syncPreferences = () => {
+          if (!motionAllowed()) reset();
+        };
+        reduceMotion.addEventListener('change', syncPreferences);
+        coarsePointer.addEventListener('change', syncPreferences);
+
+        const paint = () => {
+          frame = 0;
+          if (!motionAllowed()) {
+            reset();
+            return;
+          }
+          specular.style.setProperty('--sheen-x', x + '%');
+          specular.style.setProperty('--sheen-y', y + '%');
+        };
+
+        const schedule = () => {
+          if (motionAllowed() && !frame) frame = requestAnimationFrame(paint);
+        };
+
+        hero.addEventListener(
+          'pointermove',
+          (event) => {
+            if (!motionAllowed()) return;
+            const rect = hero.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            x = ((event.clientX - rect.left) / rect.width) * 100;
+            y = ((event.clientY - rect.top) / rect.height) * 100;
+            schedule();
+          },
+          { passive: true },
+        );
+
+        hero.addEventListener(
+          'pointerleave',
+          () => {
+            x = 50;
+            y = 0;
+            schedule();
+          },
+          { passive: true },
+        );
+      })();
+    </script>
+  </Fragment>
 </BaseLayout>
 
 <style>

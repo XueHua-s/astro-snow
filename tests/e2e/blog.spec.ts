@@ -1,6 +1,80 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { BLOG_ROUTES } from './helpers/blog-routes';
 import { setupRuntimeErrorCollector } from './helpers/runtime-errors';
+
+async function expectMoreTabFlush(card: Locator, corner: 'left' | 'right') {
+  await expect
+    .poll(
+      () =>
+        card.evaluate((element, side) => {
+          const button = element.querySelector<HTMLElement>(
+            'a[aria-label="more info"] button',
+          );
+          if (!button) throw new Error('More tab is missing');
+          const cardRect = element.getBoundingClientRect();
+          const buttonRect = button.getBoundingClientRect();
+          const cardStyle = getComputedStyle(element);
+          const buttonStyle = getComputedStyle(button);
+          const radiusProperty =
+            side === 'right'
+              ? 'borderBottomRightRadius'
+              : 'borderBottomLeftRadius';
+          return Math.max(
+            Math.abs(buttonRect[side] - cardRect[side]),
+            Math.abs(buttonRect.bottom - cardRect.bottom),
+            Math.abs(
+              parseFloat(buttonStyle[radiusProperty]) -
+                parseFloat(cardStyle[radiusProperty]),
+            ),
+          );
+        }, corner),
+      {
+        message: `More tab must match the card's bottom-${corner} edge and radius`,
+      },
+    )
+    .toBeLessThan(0.5);
+  await expectMoreTabsClear(card);
+}
+
+async function expectMoreTabsClear(cards: Locator) {
+  await expect
+    .poll(
+      () =>
+        cards.evaluateAll((elements) =>
+          elements.flatMap((card, index) => {
+            const button = card.querySelector<HTMLElement>(
+              'a[aria-label="more info"] button',
+            );
+            if (!button) throw new Error('More tab is missing');
+            const buttonRect = button.getBoundingClientRect();
+            return Array.from(
+              card.querySelectorAll<HTMLElement>(
+                'p, h1, [data-post-tags] > div',
+              ),
+            ).flatMap((content) => {
+              const rect = content.getBoundingClientRect();
+              const overlapX =
+                Math.min(rect.right, buttonRect.right) -
+                Math.max(rect.left, buttonRect.left);
+              const overlapY =
+                Math.min(rect.bottom, buttonRect.bottom) -
+                Math.max(rect.top, buttonRect.top);
+              return rect.width > 0 &&
+                rect.height > 0 &&
+                overlapX > 0.5 &&
+                overlapY > 0.5
+                ? [{ card: index, text: content.textContent?.trim() }]
+                : [];
+            });
+          }),
+        ),
+      {
+        message:
+          'More tabs must not cover visible tags, titles or descriptions',
+      },
+    )
+    .toEqual([]);
+}
 
 test.describe('Blog e2e regression suite', () => {
   test('home blog page should render and expose post links', async ({
@@ -19,6 +93,75 @@ test.describe('Blog e2e regression suite', () => {
     ).toBeVisible();
     await page.waitForTimeout(1200);
 
+    runtime.assertClean();
+  });
+
+  test('cover banner image should be painted above the ambient layer', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    const response = await page.goto('/blog', {
+      waitUntil: 'domcontentloaded',
+    });
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('.site-ambient')).toHaveCount(1);
+
+    await expect
+      .poll(
+        async () =>
+          page
+            .locator('#banner-box img')
+            .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+        { timeout: 10000 },
+      )
+      .toBeGreaterThan(0);
+
+    await page.locator('#banner-box img').evaluate(async (img) => {
+      await (img as HTMLImageElement).decode().catch(() => undefined);
+    });
+
+    const state = await page.locator('#banner-box').evaluate((box) => {
+      const img = box.querySelector('img');
+      const coverRoot = box.parentElement;
+      if (!img || !coverRoot) return null;
+      return {
+        visibility: getComputedStyle(img).visibility,
+        zIndex: getComputedStyle(box).zIndex,
+        isolation: getComputedStyle(coverRoot).isolation,
+      };
+    });
+
+    expect(state).not.toBeNull();
+    expect(state?.visibility).not.toBe('hidden');
+    expect(state?.zIndex).toBe('-10');
+    expect(state?.isolation).toBe('isolate');
+
+    const bannerBox = await page.locator('#banner-box').boundingBox();
+    if (!bannerBox) {
+      throw new Error('Banner box is not visible');
+    }
+
+    // The banner image is opaque: hiding the ambient layer behind it must not
+    // change a single pixel. If the ambient paints above the banner, the
+    // screenshots differ.
+    const clip = {
+      x: bannerBox.x + 20,
+      y: bannerBox.y + 100,
+      width: 120,
+      height: 100,
+    };
+    const before = await page.screenshot({ clip });
+    await page.addStyleTag({
+      content: '.site-ambient{display:none!important}',
+    });
+    await page.waitForTimeout(100);
+    const after = await page.screenshot({ clip });
+
+    expect(Buffer.compare(before, after)).toBe(0);
+
+    await page.waitForTimeout(1200);
     runtime.assertClean();
   });
 
@@ -92,7 +235,7 @@ test.describe('Blog e2e regression suite', () => {
       expect(response?.status(), `route ${path}`).toBe(200);
 
       const zeroTextNodes = await page
-        .locator('main .shadow-box')
+        .locator('main [data-glass-panel]')
         .first()
         .evaluate((element) => {
           const walker = document.createTreeWalker(
@@ -262,29 +405,170 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
-  test('search dialog should open and close via keyboard', async ({ page }) => {
+  test('search dialog should restore focus after real results on every close path', async ({
+    page,
+  }) => {
     const runtime = setupRuntimeErrorCollector(page);
-
     await page.goto('/blog', { waitUntil: 'domcontentloaded' });
     const trigger = page.locator('#search-trigger');
-    await expect(trigger).toBeVisible();
-    await trigger.click();
-
     const dialog = page.locator('#search-dialog');
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+
+    await expect(trigger).toHaveAttribute('aria-controls', 'search-dialog');
+    await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    for (const closePath of ['Escape', 'button', 'backdrop'] as const) {
+      await test.step(closePath, async () => {
+        await trigger.click();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(dialog).toBeVisible();
+        await expect(input).toBeVisible({ timeout: 15000 });
+        await expect(input).toBeFocused();
+        await input.fill('react');
+        // Do not close while focus is still incidentally on the trigger. Wait
+        // for Pagefind's actual index response and an input that owns focus.
+        await expect(
+          page.locator('#search-dialog-container .pagefind-ui__message'),
+        ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+        await expect(
+          page
+            .locator('#search-dialog-container .pagefind-ui__result-link')
+            .first(),
+        ).toBeVisible();
+        await expect(input).toBeFocused();
+        if (closePath === 'Escape') await page.keyboard.press('Escape');
+        else if (closePath === 'button')
+          await page.locator('#search-dialog-close').click();
+        else await dialog.click({ position: { x: 8, y: 8 } });
+        await expect(dialog).toBeHidden();
+        await expect(trigger).toBeFocused();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(
+          page.locator('#search-component-portal .pagefind-ui__search-input'),
+        ).toBeHidden();
+      });
+    }
+    // Tippy remains functional, but its visibility must not overwrite the
+    // trigger's independently declared search-dialog expansion state.
+    await trigger.hover();
+    await expect(
+      page.getByRole('tooltip').filter({ hasText: '搜索 (⌘K)' }),
+    ).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    runtime.assertClean();
+  });
+
+  test('search dialog should cancel a pending close when reopened', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const trigger = page.locator('#search-trigger');
+    const dialog = page.locator('#search-dialog');
+    const content = page.locator('#search-dialog-content');
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+    await trigger.click();
+    await expect(input).toBeFocused();
+    await input.fill('react');
+    await expect(
+      page.locator('#search-dialog-container .pagefind-ui__message'),
+    ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(() =>
+        content.evaluate((element) =>
+          Number(getComputedStyle(element).opacity),
+        ),
+      )
+      .toBeLessThan(1);
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(content).toHaveCSS('opacity', '1');
     await expect(dialog).toBeVisible();
+    await expect(input).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
     await expect(
       page.locator('#search-dialog-container .pagefind-ui__search-input'),
-    ).toBeVisible({ timeout: 15000 });
-
-    const searchInput = page.locator('.pagefind-ui__search-input').first();
-    await expect(searchInput).toBeVisible();
-    await searchInput.fill('react');
-    await page.waitForTimeout(600);
-
+    ).toHaveCount(1);
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await page.waitForTimeout(600);
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    runtime.assertClean();
+  });
 
+  test('plain header tooltips stay outside the React root before hydration and across navigation', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    let releaseHeader = () => {};
+    let sawHeaderRequest = false;
+    const hydrationGate = new Promise<void>((resolve) => {
+      releaseHeader = resolve;
+    });
+    // Delay only the real island module, not tooltip scripts or Pagefind data.
+    // This reproduces a user hovering the SSR controls before client:idle runs.
+    await page.route(
+      /\/Header(?:\.tsx|\.[^/]+\.js)(?:\?.*)?$/,
+      async (route) => {
+        sawHeaderRequest = true;
+        await hydrationGate;
+        await route.continue();
+      },
+    );
+    const island = page.locator('astro-island:has(#site-header)');
+    try {
+      await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+      const trigger = page.locator('#search-trigger');
+      await expect(trigger).toHaveAttribute('title', '');
+      await expect(island).toHaveAttribute('ssr', '');
+      await trigger.hover();
+      await expect(
+        page.getByRole('tooltip').filter({ hasText: '搜索 (⌘K)' }),
+      ).toBeVisible();
+      await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(
+        0,
+      );
+      const logo = page.locator('#site-header > .relative > a');
+      const logoLabel = await logo.getAttribute('aria-label');
+      if (!logoLabel) throw new Error('Header logo label is missing');
+      await logo.hover();
+      await expect(
+        page.getByRole('tooltip').filter({ hasText: logoLabel }),
+      ).toBeVisible();
+      await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(
+        0,
+      );
+      await expect.poll(() => sawHeaderRequest).toBe(true);
+      await expect(island).toHaveAttribute('ssr', '');
+    } finally {
+      releaseHeader();
+    }
+    await expect(island).not.toHaveAttribute('ssr');
+    const trigger = page.locator('#search-trigger');
+    await trigger.click();
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+    await expect(input).toBeFocused();
+    await input.fill('react');
+    await expect(
+      page.locator('#search-dialog-container .pagefind-ui__message'),
+    ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#search-dialog')).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.hover();
+    // A real document navigation retains the pointer over the header, matching
+    // the production reproduction; do not inject or force any tooltip state.
+    await page.goto('/blog/post/48', { waitUntil: 'domcontentloaded' });
+    await expect(island).not.toHaveAttribute('ssr');
+    await expect(page.locator('article')).toBeVisible();
+    await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(0);
     runtime.assertClean();
   });
 
@@ -326,6 +610,214 @@ test.describe('Blog e2e regression suite', () => {
     const scrollY = await page.evaluate(() => window.scrollY);
     expect(scrollY).toBeLessThan(50);
 
+    runtime.assertClean();
+  });
+
+  test('floating group capsule should shrink when collapsed', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1200);
+
+    const capsule = page.locator('#floating-nav > .glass');
+    await expect(capsule).toBeVisible();
+
+    const expandedBox = await capsule.boundingBox();
+    if (!expandedBox) {
+      throw new Error('Floating group capsule is not visible when expanded');
+    }
+
+    await page.locator('#toggle-nav').click();
+    await page.waitForTimeout(500);
+
+    const collapsedBox = await capsule.boundingBox();
+    if (!collapsedBox) {
+      throw new Error('Floating group capsule is not visible when collapsed');
+    }
+
+    // Regression guard: the collapsed capsule must actually lose the height of
+    // #nav-content instead of keeping an empty glass area above the toggle.
+    expect(collapsedBox.height).toBeLessThan(70);
+    expect(expandedBox.height).toBeGreaterThanOrEqual(collapsedBox.height + 30);
+
+    runtime.assertClean();
+  });
+
+  for (const { name, route, hasCover } of [
+    { name: 'post', route: '/blog', hasCover: true },
+    { name: 'no-cover post', route: '/blog/weekly', hasCover: false },
+  ]) {
+    test(`${name} card more tabs should stay flush in all interaction states`, async ({
+      page,
+    }) => {
+      const runtime = setupRuntimeErrorCollector(page);
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      const cards = page.locator('.glass-card.glass-interactive');
+      await expect(cards.nth(1)).toBeVisible();
+
+      for (const width of [1440, 768, 390]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const dark of [false, true]) {
+          await page.evaluate((enabled) => {
+            document.documentElement.classList.toggle('dark', enabled);
+          }, dark);
+          for (const index of hasCover ? [0, 1, 3] : [0, 1]) {
+            const card = cards.nth(index);
+            const button = card.locator('a[aria-label="more info"] button');
+            const corner =
+              hasCover && index % 2 === 1 && width > 768 ? 'left' : 'right';
+            await page.mouse.move(0, 0);
+            await button.evaluate((element) =>
+              element.scrollIntoView({ block: 'center', behavior: 'instant' }),
+            );
+            await expectMoreTabFlush(card, corner);
+
+            await button.hover();
+            await button.evaluate(async (element) => {
+              await Promise.all(
+                element.getAnimations().map((animation) => animation.finished),
+              );
+            });
+            await expectMoreTabFlush(card, corner);
+
+            await page.mouse.move(0, 0);
+            await button.focus();
+            await expect(button).toBeFocused();
+            await expectMoreTabFlush(card, corner);
+          }
+        }
+      }
+      runtime.assertClean();
+    });
+  }
+
+  test('post card more tabs should not cover tags or text at any breakpoint', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const cards = page.locator('.glass-card.glass-interactive');
+    await expect(cards.nth(3)).toBeAttached();
+    for (const width of [
+      1440, 1380, 1280, 1024, 993, 992, 769, 768, 390, 320,
+    ]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const dark of [false, true]) {
+        await page.evaluate((enabled) => {
+          document.documentElement.classList.toggle('dark', enabled);
+        }, dark);
+        await expectMoreTabsClear(cards);
+      }
+    }
+    runtime.assertClean();
+  });
+
+  test('post footer should handle many, long and empty tags without clipping controls', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const cards = page.locator('.glass-card.glass-interactive');
+    const labels = [
+      Array.from({ length: 12 }, (_, index) => `标签-${index + 1}`),
+      ['LongUnbrokenTag'.repeat(12), '中文长标签'.repeat(20)],
+      [],
+    ];
+    for (const tags of labels) {
+      for (const index of [0, 1]) {
+        await cards
+          .nth(index)
+          .locator('[data-post-tags]')
+          .evaluate((group, texts) => {
+            const template = group.firstElementChild;
+            if (!template)
+              throw new Error('Tag fixture requires an existing badge');
+            group.replaceChildren(
+              ...texts.map((text) => {
+                const badge = template.cloneNode(true) as HTMLElement;
+                const label = badge.querySelector('span');
+                if (!label) throw new Error('Tag label is missing');
+                label.textContent = text;
+                return badge;
+              }),
+            );
+          }, tags);
+      }
+      for (const width of [1440, 1280, 1024, 769, 768, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const index of [0, 1]) {
+          const card = cards.nth(index);
+          const badges = card.locator('[data-post-tags] > div');
+          await expect(badges).toHaveCount(tags.length);
+          await expectMoreTabsClear(card);
+          const overflowing = await badges.evaluateAll((elements) =>
+            elements
+              .filter((badge) => {
+                const parent = badge.parentElement;
+                if (!parent) throw new Error('Tag group is missing');
+                const group = parent.getBoundingClientRect();
+                const rect = badge.getBoundingClientRect();
+                return (
+                  rect.width === 0 ||
+                  rect.height === 0 ||
+                  rect.left < group.left - 0.5 ||
+                  rect.right > group.right + 0.5
+                );
+              })
+              .map((badge) => badge.textContent?.trim()),
+          );
+          expect(overflowing).toEqual([]);
+          const corner = index === 1 && width > 768 ? 'left' : 'right';
+          await expectMoreTabFlush(card, corner);
+        }
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth),
+        ).toBeLessThanOrEqual(width);
+      }
+    }
+    runtime.assertClean();
+  });
+
+  test('category card more tab should stay flush after flipping', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const flip = page.locator('.flip-card').first();
+    const card = flip.locator('.flip-card-back .glass-card');
+    const button = card.locator('a[aria-label="more info"] button');
+
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const dark of [false, true]) {
+        await page.evaluate((enabled) => {
+          document.documentElement.classList.toggle('dark', enabled);
+        }, dark);
+        await flip.evaluate((element) =>
+          element.scrollIntoView({ block: 'center', behavior: 'instant' }),
+        );
+        await flip.hover();
+        await flip.locator('.flip-card-inner').evaluate(async (element) => {
+          await Promise.all(
+            element.getAnimations().map((animation) => animation.finished),
+          );
+        });
+        await expectMoreTabFlush(card, 'right');
+        await button.hover();
+        await button.evaluate(async (element) => {
+          await Promise.all(
+            element.getAnimations().map((animation) => animation.finished),
+          );
+        });
+        await expectMoreTabFlush(card, 'right');
+        await button.focus();
+        await expect(button).toBeFocused();
+        await expectMoreTabFlush(card, 'right');
+      }
+    }
     runtime.assertClean();
   });
 

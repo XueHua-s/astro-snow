@@ -122,7 +122,7 @@ export function MobileTOCDropdown({
                   left: '50%',
                   marginLeft: '-9rem',
                 }}
-                className="bg-background/80 border-border z-[90] max-h-[60vh] w-72 overflow-auto rounded-2xl border p-3 backdrop-blur-md"
+                className="glass glass-control z-[90] max-h-[60vh] w-72 overflow-auto p-3"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1, originY: 0 }}
                 exit={{ opacity: 0, scale: 0.85 }}

@@ -17,6 +17,7 @@ import FloatingGroup from '@components/layout/FloatingGroup.astro';
 import Header from '@components/layout/Header';
 import MobileDrawer from '@components/layout/MobileDrawer.astro';
 import SearchDialog from '@components/layout/SearchDialog.astro';
+import GlassFilterDefs from '@components/common/GlassFilterDefs.astro';
 import CodeBlockFullscreen from '@components/markdown/CodeBlockFullscreen.astro';
 import MermaidFullscreen from '@components/markdown/MermaidFullscreen.astro';
 import { blogSeoConfig, blogLayoutConfig } from '@/config/blogLayoutConfig';
@@ -158,6 +159,8 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
     </script>
   </head>
   <body>
+    <GlassFilterDefs />
+    <div class="site-ambient" aria-hidden="true"></div>
     <div class="flex min-h-screen flex-col text-black dark:text-white">
       <Header
         client:idle

@@ -1,0 +1,554 @@
+/**
+ * Liquid Glass surface system.
+ *
+ * Layer model (keep blur only where the backdrop is dynamic):
+ *   L0 ambient  -> .site-ambient (fixed gradient mesh, no blur)
+ *   L1 chrome   -> .glass-control
+ *   L2 panel    -> .glass-panel (tint only, no backdrop-filter)
+ *   L3 card     -> .glass-card (tint only, no backdrop-filter)
+ *   L4 control  -> .glass-control (small blur, only over dynamic content)
+ *   L5 overlay  -> .glass-overlay (strong blur + scrim)
+ *   hero        -> .glass-hero / .glass-refract (Chromium-only refraction)
+ *
+ * Do not add Tailwind utilities such as bg-white, shadow-card,
+ * backdrop-blur-* or rounded-* to glass elements: utilities win over the
+ * components layer and silently disable the glass surface.
+ */
+
+@layer base {
+  :root {
+    --glass-tint-hsl: 0 0% 100%;
+    --glass-tint-alpha: 0.62;
+    --glass-tint-alpha-strong: 0.8;
+    /* Surface ink: contrasts with the glass tint in both themes. */
+    --glass-surface-hsl: 220 20% 30%;
+    --glass-action-hsl: 222 18% 91%;
+    --glass-primary-hsl: 346 65% 35%;
+    --glass-primary-ink: 0 0% 100%;
+
+    --glass-border: hsl(0 0% 100% / 0.55);
+    --glass-radius-panel: 1.5rem;
+    --glass-radius-card: 1rem;
+    --glass-radius-control: 0.75rem;
+    --glass-radius-overlay: 1.5rem;
+
+    --glass-shadow:
+      0 24px 60px -28px hsl(220 40% 20% / 0.35),
+      0 2px 6px hsl(220 40% 20% / 0.05);
+    --glass-inner:
+      inset 0 1px 0 hsl(0 0% 100% / 0.7), inset 0 -1px 0 hsl(220 30% 10% / 0.06);
+
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.28) 0%,
+      hsl(0 0% 100% / 0.06) 26%,
+      transparent 55%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.18),
+      transparent 62%
+    );
+
+    --glass-blur: 20px;
+    --glass-saturate: 170%;
+    --glass-brightness: 1.04;
+    --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.66);
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.08);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.65);
+  }
+
+  .dark {
+    --glass-tint-hsl: 222 22% 10%;
+    --glass-tint-alpha: 0.58;
+    --glass-tint-alpha-strong: 0.76;
+    --glass-surface-hsl: 0 0% 100%;
+    --glass-action-hsl: 222 18% 23%;
+    --glass-primary-hsl: 346 65% 80%;
+    --glass-primary-ink: 222 22% 10%;
+
+    --glass-border: hsl(0 0% 100% / 0.14);
+    --glass-shadow:
+      0 28px 70px -30px hsl(230 60% 2% / 0.8), 0 2px 10px hsl(230 60% 2% / 0.35);
+    --glass-inner:
+      inset 0 1px 0 hsl(0 0% 100% / 0.16), inset 0 -1px 0 hsl(0 0% 0% / 0.4);
+
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.14) 0%,
+      hsl(0 0% 100% / 0.04) 26%,
+      transparent 55%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.1),
+      transparent 62%
+    );
+
+    --glass-saturate: 150%;
+    --glass-brightness: 0.96;
+    --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.72);
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.06);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.45);
+  }
+
+  body {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+@layer components {
+  .glass {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius, var(--glass-radius-card));
+    background:
+      var(--glass-sheen), var(--glass-glow),
+      hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    box-shadow: var(--glass-shadow), var(--glass-inner);
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+      brightness(var(--glass-brightness));
+  }
+
+  /* FIXED: Reading surfaces are quiet tint, not repeated chrome finishes. */
+  .glass-panel,
+  .glass-card,
+  .glass-flat {
+    background: hsl(var(--glass-tint-hsl) / 0.9);
+    border-color: hsl(var(--glass-surface-hsl) / 0.12);
+    box-shadow: none;
+  }
+
+  /* Large content surface: tint + separator, never a full-page backdrop-filter. */
+  .glass-panel {
+    --glass-radius: var(--glass-radius-panel);
+    box-shadow: 0 4px 16px -12px hsl(220 30% 10% / 0.12);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Cards sit on a panel; a second blur would only add fog and GPU cost. */
+  .glass-card {
+    --glass-radius: var(--glass-radius-card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Nested control inside an already-frosted surface: tint only. */
+  .glass-flat {
+    --glass-radius: var(--glass-radius-control);
+    background: hsl(var(--glass-surface-hsl) / 0.04);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .glass-input {
+    background: var(--glass-input-bg);
+    border: 1px solid var(--glass-input-border);
+    border-radius: var(--glass-radius-control);
+    box-shadow: inset 0 1px 2px hsl(220 30% 10% / 0.05);
+  }
+
+  .dark .glass-input {
+    box-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.2);
+  }
+
+  /* Lightweight tint for nested groups where a full rim/shadow is too heavy. */
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .glass-control {
+    --glass-radius: var(--glass-radius-control);
+    --glass-tint-alpha: 0.82;
+    --glass-blur: 16px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  .glass-menu {
+    --glass-tint-alpha: 0.94;
+    --glass-blur: 24px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+  }
+
+  .glass-overlay {
+    --glass-radius: var(--glass-radius-overlay);
+    --glass-tint-alpha: var(--glass-tint-alpha-strong);
+    --glass-blur: 32px;
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  /* These are separate layers from the dialog panels they sit behind. */
+  .glass-scrim {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  /* FIXED: One owner for action ink, surface and accessibility fallbacks,
+   * including image controls revealed by hovering an arbitrary photo. */
+  .material-action,
+  .prose .markdown-image-fullscreen {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    background: hsl(var(--glass-action-hsl));
+    box-shadow: none;
+  }
+
+  .material-action:hover,
+  .prose .markdown-image-fullscreen:hover {
+    background: hsl(var(--glass-action-hsl) / 0.9);
+  }
+
+  .material-row {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    transition: background-color 160ms ease;
+  }
+
+  .material-row:hover,
+  .material-row:focus-visible {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .material-row[aria-current='page'],
+  .material-row[data-route-active='true'] {
+    background: hsl(var(--glass-surface-hsl) / 0.12);
+    font-weight: 600;
+  }
+
+  .material-row:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+
+  .header-icon-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    transition: background-color 160ms ease;
+  }
+
+  .header-icon-button:hover {
+    background: hsl(0 0% 100% / 0.14);
+  }
+
+  #site-header.with-background .header-icon-button:hover {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .header-icon-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  /* Home hero: stronger tint because it floats over a random wallpaper. */
+  .glass-hero {
+    --glass-radius: var(--glass-radius-panel);
+    --glass-tint-alpha: 0.68;
+    --glass-blur: 24px;
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  .dark .glass-hero {
+    --glass-tint-alpha: 0.6;
+  }
+
+  .glass-interactive {
+    transition: border-color 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .glass-interactive:hover {
+      border-color: hsl(var(--glass-surface-hsl) / 0.24);
+    }
+  }
+
+  .glass-interactive:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  /* Pointer-reactive specular layer used by the home hero. */
+  .glass-specular {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.9;
+    mix-blend-mode: soft-light;
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.28),
+      transparent 62%
+    );
+  }
+
+  .dark .glass-specular {
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.16),
+      transparent 62%
+    );
+  }
+
+  /* L0: fixed, GPU-cheap gradient mesh. No filter: blur() on huge layers. */
+  .site-ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(345 100% 88% / 0.55),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(200 100% 88% / 0.45),
+        transparent 70%
+      ),
+      radial-gradient(
+        70vmax 60vmax at 50% 110%,
+        hsl(40 100% 92% / 0.5),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #fdfbfb, #ebedee);
+  }
+
+  .dark .site-ambient {
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(335 60% 28% / 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(195 70% 24% / 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        70vmax 60vmax at 50% 110%,
+        hsl(250 40% 18% / 0.4),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #0b1226, #060b17);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-interactive,
+    .glass-interactive:hover,
+    .glass-interactive:active {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      --glass-blur: 16px;
+    }
+
+    .glass-overlay {
+      --glass-blur: 24px;
+    }
+
+    .glass-hero {
+      --glass-blur: 18px;
+    }
+  }
+}
+
+/*
+ * Refraction: an SVG displacement filter on the backdrop.
+ * Chromium only; Safari/Firefox keep the baseline blur above.
+ * The gate script in GlassFilterDefs.astro adds .glass-refract-supported.
+ */
+html.glass-refract-supported .glass-refract {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: url(#glass-refraction);
+}
+
+/*
+ * The theme toggle snapshots the page with the View Transitions API.
+ * A live backdrop-filter inside that snapshot can flash, so temporarily
+ * fall back to the tint while the circular reveal runs.
+ */
+html.theme-transition .glass,
+html.theme-transition .glass-control,
+html.theme-transition .glass-overlay,
+html.theme-transition .glass-hero,
+html.theme-transition .glass-scrim,
+html.theme-transition #site-header .site-header-bg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* FIXED: Tailwind v3 flattens layers. Important material overrides are deliberate:
+ * they must beat dark/scrolled/mobile selectors and the opt-in SVG filter. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  .material-action,
+  .prose .markdown-image-fullscreen {
+    background: hsl(var(--glass-action-hsl)) !important;
+  }
+
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.12);
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.16);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-border: hsl(0 0% 0% / 0.35);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.75);
+  }
+
+  .dark {
+    --glass-border: hsl(0 0% 100% / 0.45);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.55);
+  }
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .glass,
+  .glass-panel,
+  .glass-card,
+  .glass-flat,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-input,
+  .glass-tint,
+  .material-action,
+  .prose .markdown-image-fullscreen,
+  .material-row {
+    color: CanvasText;
+    background: Canvas !important;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    background: Canvas !important;
+    border-bottom-color: CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* FIXED: Reduce descendant motion too, not just the outer card wrapper. */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto !important;
+  }
+
+  .glass-interactive *,
+  .flip-card *,
+  [data-glass-hero] *,
+  .header-icon-button,
+  .header-icon-button *,
+  #site-header,
+  #site-header .site-header-bg {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* FIXED: CSS also suppresses the JS-driven sheen on live preference changes. */
+  .glass-specular {
+    display: none;
+  }
+
+  .glass-interactive img,
+  [data-glass-hero] img,
+  [data-glass-hero] a {
+    transform: none !important;
+  }
+
+  html.theme-transition::view-transition-new(root),
+  html.theme-transition::view-transition-old(root) {
+    animation-duration: 0s;
+    animation-delay: 0s;
+  }
+}

@@ -19,7 +19,9 @@ const { categories, countMap, totalCount } = Astro.props;
 ---
 
 <div
-  class={`shadow-box mx-0 flex w-full flex-col bg-gradient-start ${CONTENT_PADDING.standard}`}>
+  class={`glass glass-panel mx-0 flex w-full flex-col ${CONTENT_PADDING.standard}`}
+  data-glass-panel
+>
   <h2
     class="shoka-decoration-circle group relative px-6 py-5 text-2xl/9 font-bold md:text-xl/9">
     <a

@@ -76,7 +76,10 @@ const summaryData = getPostSummaryData(post);
     <Cover slot="cover" data={post} />
     <HomeSider slot="sider" type={HomeSiderType.POST} post={post} tocHeadings={headings} />
     <LayoutFooter slot="footer" {...layoutFooterData} />
-    <div class={`shadow-box bg-gradient-start flex flex-col gap-2 ${CONTENT_PADDING.standard}`}>
+    <div
+      class={`glass glass-panel flex flex-col gap-2 ${CONTENT_PADDING.standard}`}
+      data-glass-panel
+    >
       <!-- Breadcrumb Navigation -->
       <nav class="text-muted-foreground flex items-center gap-2 text-sm">
         <div class="flex items-center gap-1">

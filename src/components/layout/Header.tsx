@@ -27,16 +27,19 @@ export default function Header({
     <>
       <div
         id="site-header"
-        className="shadow-text fixed inset-x-0 top-0 z-10 gap-4 py-2.5 text-white select-none tablet:backdrop-blur tablet:py-2 tablet:pl-3 tablet:pr-3"
-        style={{ viewTransitionName: 'site-header' }}>
+        className="fixed inset-x-0 top-0 z-10 gap-4 py-2.5 select-none tablet:py-2 tablet:pl-3 tablet:pr-3">
         <div className="site-header-bg pointer-events-none absolute inset-0"></div>
+        {/* FIXED: A named transition ancestor prevents Chromium from diffusing
+            the child backdrop. Snapshot only foreground chrome, not its material. */}
         <div
-          className={`relative z-10 mx-auto flex items-center justify-between px-6 tablet:w-full tablet:px-0 ${MAX_WIDTH.content}`}>
+          className={`relative z-10 mx-auto flex items-center justify-between px-6 tablet:w-full tablet:px-0 ${MAX_WIDTH.content}`}
+          style={{ viewTransitionName: 'site-header' }}>
           <a
             className="tablet:hidden -my-4 mr-4 flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap"
             href={Routes.Home}
             target="_self"
             title={alternate || title}
+            data-tooltip-interactive="false"
             aria-label={alternate || title}
             suppressHydrationWarning
             data-astro-transition-persist="page-header-avatar"

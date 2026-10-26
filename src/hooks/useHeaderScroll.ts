@@ -88,7 +88,13 @@ const useHeaderScroll = () => {
       return;
     }
 
-    if (currentScrollY > 0) {
+    // FIXED: Returning all the way to zero must reveal the reference too;
+    // otherwise keyboard/hover navigation remains translated out of view.
+    if (currentScrollY <= 0) {
+      setHeaderVisible(siteHeader, true);
+      siteHeader?.classList.remove('with-background');
+      isHeaderPinnedRef.current = false;
+    } else {
       if (isDesktop) {
         const isScrollingUp = currentScrollY < lastScrollYRef.current;
         if (currentScrollY <= hide) {
@@ -147,7 +153,8 @@ const useHeaderScroll = () => {
     mobileMenuRef.current = document.getElementById('mobile-menu-container');
 
     if (siteHeaderRef.current) {
-      siteHeaderRef.current.style.transition = 'transform 0.3s ease';
+      siteHeaderRef.current.style.transition =
+        'transform 0.3s ease, color 0.6s ease-in-out';
       siteHeaderRef.current.style.willChange = 'transform';
     }
 

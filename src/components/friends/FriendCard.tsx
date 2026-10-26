@@ -84,14 +84,14 @@ export default function FriendCard({ friend, index }: FriendCardProps) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}>
       <motion.div
-        className="relative h-full w-full rounded-2xl bg-white p-3 shadow-xl ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10"
+        className="glass glass-card relative h-full w-full p-3"
         style={{
           transformStyle: 'preserve-3d',
           rotateX,
           rotateY,
         }}>
         {/* Inner Card Container */}
-        <div className="relative h-full w-full overflow-hidden rounded-xl bg-gray-50 dark:bg-gray-900">
+        <div className="relative h-full w-full overflow-hidden rounded-xl bg-white/30 dark:bg-black/20">
           {/* Background Image / Color */}
           <div
             className="absolute inset-0 h-16 w-full"
@@ -102,7 +102,7 @@ export default function FriendCard({ friend, index }: FriendCardProps) {
 
           {/* Avatar */}
           <div className="absolute top-8 left-1/2 -translate-x-1/2">
-            <div className="relative h-14 w-14 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg dark:border-gray-800 dark:bg-gray-800">
+            <div className="relative h-14 w-14 overflow-hidden rounded-full border-4 border-white/70 bg-white/50 shadow-lg dark:border-black/40 dark:bg-black/30">
               <img
                 src={avatarImage}
                 alt={friend.owner}

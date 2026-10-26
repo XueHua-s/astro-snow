@@ -22,7 +22,8 @@ const { posts, page } = buildHomePageData(allPosts);
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
     <div
-      class={`bg-gradient-start shadow-box tablet:shadow-none flex flex-col gap-4 overflow-hidden  ${CONTENT_PADDING.standard}`}
+      class={`glass glass-panel flex flex-col gap-4 overflow-hidden  ${CONTENT_PADDING.standard}`}
+      data-glass-panel
     >
       <PostList posts={posts} page={page} showPaginator={true} baseUrl={Routes.Posts} isHomePage={true} />
       <CategoryCards />

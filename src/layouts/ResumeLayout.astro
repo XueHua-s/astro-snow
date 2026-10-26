@@ -33,10 +33,10 @@ const description = frontmatter.description ?? 'snow 的公开 Markdown 简历';
     <Cover slot="cover" title="snow Resume" />
     <aside
       slot="sider"
-      class="page-home-sider shadow-home-sider sticky top-0 self-start flex h-screen min-h-0 min-w-64 max-w-64 flex-col overflow-hidden px-2 tablet:hidden"
+      class="page-home-sider glass glass-panel sticky top-0 self-start flex h-screen min-h-0 min-w-64 max-w-64 flex-col overflow-hidden px-2 tablet:hidden"
       aria-label="简历目录">
       <div
-        class="my-4 rounded-sm bg-black/8 px-3 py-2 text-center text-sm/6 font-semibold text-primary-foreground backdrop-blur-lg">
+        class="glass-tint my-4 rounded-sm px-3 py-2 text-center text-sm/6 font-semibold text-muted-foreground">
         简历目录
       </div>
       <div
@@ -50,7 +50,9 @@ const description = frontmatter.description ?? 'snow 的公开 Markdown 简历';
     </aside>
     <div
       data-pagefind-ignore
-      class={`shadow-box bg-gradient-start mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}>
+      class={`glass glass-panel mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}
+      data-glass-panel
+    >
       <article
         class="resume-content prose md:prose-sm dark:prose-invert custom-content">
         <slot />

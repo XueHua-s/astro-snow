@@ -48,7 +48,7 @@ export function HomeInfoPanel({
         className="h-40 w-40 rounded-full"
         style={lqipGradient ? { backgroundImage: lqipGradient } : undefined}>
         <img
-          className="shadow-card-darker hover:animate-shake h-full w-full rounded-full transition"
+          className="shadow-sm h-full w-full rounded-full transition"
           src={avatar}
           alt={`${name ?? ''} avatar`}
           loading="eager"
@@ -96,17 +96,10 @@ export function HomeInfoPanel({
             return (
               <div
                 key={collapseId}
-                className={cn(
-                  'bg-foreground/10 flex w-40 flex-col rounded-xl opacity-75 transition-all duration-300 hover:opacity-100',
-                  hasActiveChild && 'opacity-100',
-                )}
+                className="glass-tint flex w-40 flex-col rounded-xl"
                 data-collapsible>
                 <button
-                  className={cn(
-                    'flex-center hover:bg-foreground/5 h-12 w-full cursor-pointer rounded-xl transition-colors',
-                    hasActiveChild &&
-                      'bg-gradient-shoka-button text-primary-foreground shoka-button-shadow opacity-100 hover:bg-gradient-shoka-button',
-                  )}
+                  className="material-row flex-center h-12 w-full cursor-pointer rounded-xl"
                   aria-expanded={isExpanded}
                   aria-controls={collapseId}
                   aria-label={`${routeName}菜单`}
@@ -148,16 +141,10 @@ export function HomeInfoPanel({
                             key={childPath}
                             url={childPath}
                             label={childName}
-                            variant="gradient-shoka"
+                            variant="unstyle"
                             aria-current={isActive ? 'page' : undefined}
                             data-sidebar-route={childPath}
-                            className={cn(
-                              'shoka-button-shadow h-12 w-40 rounded-xl text-base tracking-wider',
-                              {
-                                'text-muted-foreground/80 hover:bg-muted-foreground/10 bg-none shadow-none hover:shadow-none':
-                                  !isActive,
-                              },
-                            )}>
+                            className="material-row h-12 w-40 rounded-xl text-base tracking-wider">
                             {childIcon && (
                               <i
                                 className={`mr-1.5 ${childIcon}`}
@@ -182,17 +169,10 @@ export function HomeInfoPanel({
               key={path}
               url={path}
               label={routeName}
-              variant="gradient-shoka"
+              variant="unstyle"
               aria-current={isActive ? 'page' : undefined}
               data-sidebar-route={path}
-              className={cn(
-                'shoka-button-shadow h-12 w-40 rounded-xl text-base tracking-wider opacity-75 transition-all duration-300 hover:opacity-100',
-                isActive && 'opacity-100',
-                {
-                  'text-muted-foreground/80 hover:bg-muted-foreground/10 bg-none shadow-none hover:shadow-none':
-                    !isActive,
-                },
-              )}>
+              className="material-row h-12 w-40 rounded-xl text-base tracking-wider">
               {icon && <i className={`mr-1.5 ${icon}`} aria-hidden="true" />}
               {routeName}
             </ButtonLink>

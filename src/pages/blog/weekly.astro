@@ -21,7 +21,10 @@ const pageTitle = weeklyConfig.title || weeklyConfig.categoryName;
     <Cover slot="cover" title={pageTitle} />
     <HomeSider slot="sider" />
     <LayoutFooter slot="footer" {...layoutFooterData} />
-    <div class={`shadow-box bg-gradient-start mx-0 flex w-full flex-col gap-4 ${CONTENT_PADDING.standard}`}>
+    <div
+      class={`glass glass-panel mx-0 flex w-full flex-col gap-4 ${CONTENT_PADDING.standard}`}
+      data-glass-panel
+    >
       <Divider>{pageTitle}</Divider>
       {weeklyConfig.description && <p class="text-muted-foreground text-sm">{weeklyConfig.description}</p>}
       <div class="text-muted-foreground text-sm">共 {posts.length} 篇文章</div>

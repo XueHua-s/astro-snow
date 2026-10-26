@@ -18,25 +18,33 @@
       &:nth-child(1) {
         animation-delay: -2s;
         transform: translate(-160px, 0%);
-        fill: var(--gradient-bg-start);
-        opacity: 0.75;
+        fill: var(--glass-wave-fill);
+        opacity: 0.55;
         @apply brightness-110;
       }
       &:nth-child(2) {
         animation-delay: -3s;
         animation-duration: 7s;
-        fill: var(--gradient-bg-start);
-        opacity: 0.6;
+        fill: var(--glass-wave-fill);
+        opacity: 0.75;
         @apply brightness-125;
       }
       &:nth-child(3) {
         animation-delay: -4s;
         animation-duration: 4s;
         transform: translate(-75px, 0%);
-        opacity: 1;
-        fill: var(--gradient-bg-start);
+        opacity: 0.95;
+        fill: var(--glass-wave-fill);
       }
     }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave-wrap .parallax > use {
+    -webkit-animation: none !important;
+    -moz-animation: none !important;
+    -o-animation: none !important;
+    animation: none !important;
   }
 }
 @-webkit-keyframes move-forever {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { generateTextMock } = vi.hoisted(() => ({
   generateTextMock: vi.fn(),
@@ -14,6 +14,14 @@ import { isSummaryAcceptable } from '../scripts/lib/summaries/quality';
 describe('summary api fallback', () => {
   beforeEach(() => {
     generateTextMock.mockReset();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('provider unavailable')),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('falls back to local summary generation when api requests fail', async () => {

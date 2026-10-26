@@ -9,7 +9,7 @@ export default function FriendsGrid() {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <div className="w-full">
         {/* Grid Container */}
-        <div className="grid grid-cols-3 gap-6 md:grid-cols-2 md:gap-4 xl:grid-cols-4 xl:gap-8">
+        <div className="grid grid-cols-3 gap-6 md:grid-cols-2 md:gap-4">
           {friendsData.map((friend, index) => (
             <FriendCard key={friend.url} friend={friend} index={index} />
           ))}

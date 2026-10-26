@@ -10,9 +10,9 @@
  */
 export const CONTENT_PADDING = {
   // Standard content with top spacing
-  standard: 'px-10 py-8 tablet:px-6 tablet:pt-6 tablet:pb-2',
+  standard: 'px-8 py-6 tablet:px-5 tablet:pt-5 tablet:pb-2',
   // Content without extra top spacing
-  normal: 'px-6 py-4 tablet:px-6',
+  normal: 'px-8 py-4 tablet:px-5',
   // Compact content (for nested items)
   compact: 'px-4 py-2 tablet:px-2 tablet:py-1',
 } as const;

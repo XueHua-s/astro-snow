@@ -1,26 +1,25 @@
-/**
- * Body scroll lock with reference counting.
- *
- * Multiple components (drawer, search dialog, fullscreen overlays) may need to
- * lock body scroll simultaneously. A simple `document.body.style.overflow = 'hidden'`
- * breaks when the second locker unlocks — it clears the lock for the first.
- *
- * This module uses a counter: overflow is set to 'hidden' on the first lock and
- * cleared only when the last locker releases.
- */
+/** Each acquisition owns an idempotent release; one overlay cannot unlock another. */
+const locks = new WeakMap<HTMLElement, { count: number; overflow: string }>();
 
-let lockCount = 0;
-
-export function lockBodyScroll(): void {
-  lockCount++;
-  if (lockCount === 1) {
-    document.body.style.overflow = 'hidden';
+export function lockBodyScroll(): () => void {
+  const body = document.body;
+  let lock = locks.get(body);
+  if (!lock) {
+    lock = { count: 0, overflow: body.style.overflow };
+    locks.set(body, lock);
   }
-}
+  lock.count++;
+  body.style.overflow = 'hidden';
 
-export function unlockBodyScroll(): void {
-  lockCount = Math.max(0, lockCount - 1);
-  if (lockCount === 0) {
-    document.body.style.overflow = '';
-  }
+  // FIXED: Delayed/duplicate cleanup only releases this owner's acquisition,
+  // including after Astro has replaced the original body during navigation.
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--lock.count === 0) {
+      body.style.overflow = lock.overflow;
+      locks.delete(body);
+    }
+  };
 }

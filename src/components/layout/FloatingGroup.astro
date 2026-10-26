@@ -9,15 +9,34 @@ import FloatingGroupClient from './FloatingGroup';
     transition: transform 0.3s ease-in-out;
   }
 
+  /* FIXED: Modal isolation must not wait for this idle island's JS. The marker
+     switches off this guard atomically with the live store styles after hydration. */
+  body:has(#search-dialog[data-state='open']) #floating-nav[data-hydrated='false'],
+  body:has(#drawer-overlay[aria-hidden='false']) #floating-nav[data-hydrated='false'] {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   #nav-content {
+    max-height: 10rem;
+    overflow: hidden;
     transform-origin: bottom;
-    transition: all 0.15s ease-in-out;
+    transition:
+      transform 0.15s ease-in-out,
+      opacity 0.15s ease-in-out,
+      max-height 0.15s ease-in-out;
   }
 
   #floating-nav[data-expanded='false'] #nav-content {
+    max-height: 0;
     transform: translateY(150%);
     opacity: 0;
     pointer-events: none;
+  }
+
+  #floating-nav[data-expanded='false'] > .glass {
+    gap: 0;
   }
 
   #floating-nav[data-expanded='true'] #nav-content {
@@ -32,5 +51,16 @@ import FloatingGroupClient from './FloatingGroup';
 
   #floating-nav button:hover {
     opacity: 1;
+  }
+  /* FIXED: Wrapper dismissal and real collapsed height respect reduced motion,
+     including the button/icon utilities nested inside this capsule. */
+  @media (prefers-reduced-motion: reduce) {
+    #floating-nav,
+    #nav-content,
+    #floating-nav button,
+    #floating-nav button * {
+      transition: none;
+      animation: none;
+    }
   }
 </style>
