@@ -100,7 +100,7 @@ export default function ThemeToggle() {
   return (
     <>
       <button
-        className="theme-toggle text-2xl cursor-pointer bg-transparent border-0 p-0 transition-transform duration-300 hover:scale-110"
+        className="theme-toggle header-icon-button border-0 p-0"
         id="theme-toggle-btn"
         type="button"
         aria-label="toggle theme"
@@ -109,10 +109,10 @@ export default function ThemeToggle() {
         suppressHydrationWarning
         ref={buttonRef}>
         <i
-          className="fa-solid fa-sun text-2xl theme-icon-light transition-all duration-300"
+          className="fa-solid fa-sun text-xl theme-icon-light transition-all duration-300"
           suppressHydrationWarning></i>
         <i
-          className="fa-solid fa-moon text-2xl theme-icon-dark transition-all duration-300"
+          className="fa-solid fa-moon text-xl theme-icon-dark transition-all duration-300"
           suppressHydrationWarning></i>
       </button>
       <style>{`
@@ -139,13 +139,13 @@ export default function ThemeToggle() {
         }
         .theme-icon-dark {
           opacity: 0;
-          transform: rotate(-180deg) scale(0);
+          transform: scale(0.9);
         }
 
         /* Dark mode: hide sun, show moon */
         html.dark .theme-icon-light {
           opacity: 0;
-          transform: rotate(180deg) scale(0);
+          transform: scale(0.9);
         }
         html.dark .theme-icon-dark {
           opacity: 1;

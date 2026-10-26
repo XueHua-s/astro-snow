@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import { useEventListener } from '@reactuses/core';
+import { useEventListener, useLatest } from '@reactuses/core';
 import { closeSearch, openSearch, searchOpen } from '@store/ui';
 import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +16,10 @@ export default function SearchDialogPanel() {
   const closeTimerRef = useRef<number | null>(null);
   const focusTimerRef = useRef<number | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const focusPendingRef = useRef(false);
+  const scrollLockedRef = useRef(false);
   const documentTarget = useCallback(() => document, []);
   const {
     selectedIndex,
@@ -26,18 +30,40 @@ export default function SearchDialogPanel() {
     navigateToSelected,
   } = useSearchSelection();
 
+  const clearSelectionRef = useLatest(clearSelection);
+  const clearSelectionDomRef = useLatest(clearSelectionDom);
+
+  const focusSearchInput = useCallback(() => {
+    if (!searchOpen.get() || !focusPendingRef.current) return;
+    const input = document.querySelector<HTMLInputElement>(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+    input?.focus({ preventScroll: true });
+    if (input && document.activeElement === input) {
+      focusPendingRef.current = false;
+    }
+  }, []);
+
+  const releaseScrollLock = useCallback(() => {
+    if (!scrollLockedRef.current) return;
+    scrollLockedRef.current = false;
+    unlockBodyScroll();
+  }, []);
+
   const setupResultsObserver = useCallback(() => {
     observerRef.current?.disconnect();
     const container = document.getElementById('search-dialog-container');
     if (!container) return;
 
     const observer = new MutationObserver(() => {
-      clearSelection();
+      clearSelectionRef.current();
+      // FIXED: Lazy Pagefind initialization may finish after the focus delay.
+      focusSearchInput();
     });
 
     observer.observe(container, { childList: true, subtree: true });
     observerRef.current = observer;
-  }, [clearSelection]);
+  }, [clearSelectionRef, focusSearchInput]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -47,7 +73,11 @@ export default function SearchDialogPanel() {
         return;
       }
       if (!searchOpen.get()) return;
-      if (event.key === 'Escape') return closeSearch();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSearch();
+        return;
+      }
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         return selectResult(selectedIndex + 1);
@@ -68,6 +98,12 @@ export default function SearchDialogPanel() {
     closeSearch();
   }, []);
 
+  const handleBeforePreparation = useCallback(() => {
+    // Navigation owns focus on the destination page, not the closing dialog.
+    returnFocusRef.current = null;
+    closeSearch();
+  }, []);
+
   const onDialogBackgroundClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       if (event.target === event.currentTarget) {
@@ -77,69 +113,117 @@ export default function SearchDialogPanel() {
     [],
   );
 
+  const handleBackdropClick = useCallback((event: MouseEvent) => {
+    if (
+      searchOpen.get() &&
+      event.target === document.getElementById('search-dialog')
+    ) {
+      closeSearch();
+    }
+  }, []);
+
   useEffect(() => {
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    if (focusTimerRef.current) {
-      window.clearTimeout(focusTimerRef.current);
-      focusTimerRef.current = null;
-    }
+    const cancelPending = () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      if (focusTimerRef.current !== null) {
+        window.clearTimeout(focusTimerRef.current);
+        focusTimerRef.current = null;
+      }
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
 
     if (isOpen) {
-      lockBodyScroll();
-      requestAnimationFrame(() => {
+      if (!returnFocusRef.current) {
+        const focused = document.activeElement;
+        const dialog = document.getElementById('search-dialog');
+        returnFocusRef.current =
+          focused instanceof HTMLElement &&
+          focused !== document.body &&
+          !dialog?.contains(focused)
+            ? focused
+            : document.getElementById('search-trigger');
+      }
+      if (!scrollLockedRef.current) {
+        lockBodyScroll();
+        scrollLockedRef.current = true;
+      }
+      focusPendingRef.current = true;
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = null;
+        if (!searchOpen.get()) return;
         setState('open');
         setActive(true);
       });
-
-      focusTimerRef.current = window.setTimeout(() => {
-        const searchInput = document.querySelector<HTMLInputElement>(
-          '.pagefind-ui__search-input',
-        );
-        searchInput?.focus();
-      }, FOCUS_DELAY_MS);
-
+      focusTimerRef.current = window.setTimeout(
+        focusSearchInput,
+        FOCUS_DELAY_MS,
+      );
       setupResultsObserver();
-      return;
+      return cancelPending;
     }
 
-    clearSelectionDom();
+    focusPendingRef.current = false;
+    clearSelectionDomRef.current();
     observerRef.current?.disconnect();
     observerRef.current = null;
-    requestAnimationFrame(() => {
+    if (!scrollLockedRef.current) return cancelPending;
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
       setActive(false);
     });
-    queueMicrotask(() => {
-      setSelectedIndex(-1);
-    });
-
+    setSelectedIndex(-1);
     closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      if (searchOpen.get()) return;
       setState('closed');
-      unlockBodyScroll();
+      releaseScrollLock();
+      // FIXED: The input may already be in the hidden portal. Restore the
+      // opener after the shared close lifecycle, for Escape/button/backdrop.
+      const opener = returnFocusRef.current;
+      returnFocusRef.current = null;
+      const target = opener?.isConnected
+        ? opener
+        : opener
+          ? document.getElementById('search-trigger')
+          : null;
+      target?.focus({ preventScroll: true });
     }, CLOSE_ANIMATION_MS);
-  }, [clearSelectionDom, isOpen, setSelectedIndex, setupResultsObserver]);
+    return cancelPending;
+  }, [
+    clearSelectionDomRef,
+    focusSearchInput,
+    isOpen,
+    releaseScrollLock,
+    setSelectedIndex,
+    setupResultsObserver,
+  ]);
 
   useEventListener('keydown', handleKeyDown, documentTarget);
+  useEventListener('click', handleBackdropClick, documentTarget);
   useEventListener(
     'astro:before-preparation',
-    handleDialogClose,
+    handleBeforePreparation,
     documentTarget,
   );
 
   useEffect(() => {
     return () => {
-      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-      if (focusTimerRef.current) window.clearTimeout(focusTimerRef.current);
       observerRef.current?.disconnect();
-      unlockBodyScroll();
+      returnFocusRef.current = null;
+      releaseScrollLock();
     };
-  }, []);
+  }, [releaseScrollLock]);
 
   const overlayClassName = useMemo(
     () =>
-      `fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${
+      `fixed inset-0 z-40 bg-black/50 glass-scrim transition-opacity duration-200 ${
         active ? 'opacity-100' : 'opacity-0'
       } ${state === 'closed' ? 'hidden' : ''}`,
     [active, state],

@@ -405,29 +405,170 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
-  test('search dialog should open and close via keyboard', async ({ page }) => {
+  test('search dialog should restore focus after real results on every close path', async ({
+    page,
+  }) => {
     const runtime = setupRuntimeErrorCollector(page);
-
     await page.goto('/blog', { waitUntil: 'domcontentloaded' });
     const trigger = page.locator('#search-trigger');
-    await expect(trigger).toBeVisible();
-    await trigger.click();
-
     const dialog = page.locator('#search-dialog');
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+
+    await expect(trigger).toHaveAttribute('aria-controls', 'search-dialog');
+    await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    for (const closePath of ['Escape', 'button', 'backdrop'] as const) {
+      await test.step(closePath, async () => {
+        await trigger.click();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(dialog).toBeVisible();
+        await expect(input).toBeVisible({ timeout: 15000 });
+        await expect(input).toBeFocused();
+        await input.fill('react');
+        // Do not close while focus is still incidentally on the trigger. Wait
+        // for Pagefind's actual index response and an input that owns focus.
+        await expect(
+          page.locator('#search-dialog-container .pagefind-ui__message'),
+        ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+        await expect(
+          page
+            .locator('#search-dialog-container .pagefind-ui__result-link')
+            .first(),
+        ).toBeVisible();
+        await expect(input).toBeFocused();
+        if (closePath === 'Escape') await page.keyboard.press('Escape');
+        else if (closePath === 'button')
+          await page.locator('#search-dialog-close').click();
+        else await dialog.click({ position: { x: 8, y: 8 } });
+        await expect(dialog).toBeHidden();
+        await expect(trigger).toBeFocused();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(
+          page.locator('#search-component-portal .pagefind-ui__search-input'),
+        ).toBeHidden();
+      });
+    }
+    // Tippy remains functional, but its visibility must not overwrite the
+    // trigger's independently declared search-dialog expansion state.
+    await trigger.hover();
+    await expect(
+      page.getByRole('tooltip').filter({ hasText: '搜索 (⌘K)' }),
+    ).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    runtime.assertClean();
+  });
+
+  test('search dialog should cancel a pending close when reopened', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const trigger = page.locator('#search-trigger');
+    const dialog = page.locator('#search-dialog');
+    const content = page.locator('#search-dialog-content');
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+    await trigger.click();
+    await expect(input).toBeFocused();
+    await input.fill('react');
+    await expect(
+      page.locator('#search-dialog-container .pagefind-ui__message'),
+    ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(() =>
+        content.evaluate((element) =>
+          Number(getComputedStyle(element).opacity),
+        ),
+      )
+      .toBeLessThan(1);
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(content).toHaveCSS('opacity', '1');
     await expect(dialog).toBeVisible();
+    await expect(input).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
     await expect(
       page.locator('#search-dialog-container .pagefind-ui__search-input'),
-    ).toBeVisible({ timeout: 15000 });
-
-    const searchInput = page.locator('.pagefind-ui__search-input').first();
-    await expect(searchInput).toBeVisible();
-    await searchInput.fill('react');
-    await page.waitForTimeout(600);
-
+    ).toHaveCount(1);
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await page.waitForTimeout(600);
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    runtime.assertClean();
+  });
 
+  test('plain header tooltips stay outside the React root before hydration and across navigation', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    let releaseHeader = () => {};
+    let sawHeaderRequest = false;
+    const hydrationGate = new Promise<void>((resolve) => {
+      releaseHeader = resolve;
+    });
+    // Delay only the real island module, not tooltip scripts or Pagefind data.
+    // This reproduces a user hovering the SSR controls before client:idle runs.
+    await page.route(
+      /\/Header(?:\.tsx|\.[^/]+\.js)(?:\?.*)?$/,
+      async (route) => {
+        sawHeaderRequest = true;
+        await hydrationGate;
+        await route.continue();
+      },
+    );
+    const island = page.locator('astro-island:has(#site-header)');
+    try {
+      await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+      const trigger = page.locator('#search-trigger');
+      await expect(trigger).toHaveAttribute('title', '');
+      await expect(island).toHaveAttribute('ssr', '');
+      await trigger.hover();
+      await expect(
+        page.getByRole('tooltip').filter({ hasText: '搜索 (⌘K)' }),
+      ).toBeVisible();
+      await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(
+        0,
+      );
+      const logo = page.locator('#site-header > .relative > a');
+      const logoLabel = await logo.getAttribute('aria-label');
+      if (!logoLabel) throw new Error('Header logo label is missing');
+      await logo.hover();
+      await expect(
+        page.getByRole('tooltip').filter({ hasText: logoLabel }),
+      ).toBeVisible();
+      await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(
+        0,
+      );
+      await expect.poll(() => sawHeaderRequest).toBe(true);
+      await expect(island).toHaveAttribute('ssr', '');
+    } finally {
+      releaseHeader();
+    }
+    await expect(island).not.toHaveAttribute('ssr');
+    const trigger = page.locator('#search-trigger');
+    await trigger.click();
+    const input = page.locator(
+      '#search-dialog-container .pagefind-ui__search-input',
+    );
+    await expect(input).toBeFocused();
+    await input.fill('react');
+    await expect(
+      page.locator('#search-dialog-container .pagefind-ui__message'),
+    ).toHaveText(/\d+ 个结果/, { timeout: 15000 });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#search-dialog')).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.hover();
+    // A real document navigation retains the pointer over the header, matching
+    // the production reproduction; do not inject or force any tooltip state.
+    await page.goto('/blog/post/48', { waitUntil: 'domcontentloaded' });
+    await expect(island).not.toHaveAttribute('ssr');
+    await expect(page.locator('article')).toBeVisible();
+    await expect(page.locator('#site-header [data-tippy-root]')).toHaveCount(0);
     runtime.assertClean();
   });
 

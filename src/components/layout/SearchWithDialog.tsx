@@ -56,6 +56,9 @@ export default function SearchWithDialog() {
 
     const module =
       (await import('@pagefind/default-ui')) as unknown as PagefindUiModule;
+    // FIXED: Closing/reopening while the import is pending must not initialize
+    // a detached root or create a second Pagefind instance.
+    if (initializedRef.current || !searchRootRef.current) return;
     const { PagefindUI } = module;
     new PagefindUI({
       element: searchRootRef.current,
@@ -86,15 +89,22 @@ export default function SearchWithDialog() {
   const isSearchOpen = useStore(searchOpen);
 
   useEffect(() => {
+    let cancelled = false;
+    let frame: number | null = null;
     if (isSearchOpen) {
       void initPagefind().then(() => {
-        requestAnimationFrame(() => {
-          moveSearchToDialog();
+        if (cancelled || !searchOpen.get()) return;
+        frame = requestAnimationFrame(() => {
+          if (!cancelled && searchOpen.get()) moveSearchToDialog();
         });
       });
     } else {
       moveSearchBack();
     }
+    return () => {
+      cancelled = true;
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
   }, [isSearchOpen, initPagefind, moveSearchToDialog, moveSearchBack]);
 
   useEffect(() => {
@@ -113,13 +123,17 @@ export default function SearchWithDialog() {
     <>
       <button
         id="search-trigger"
-        className="group cursor-pointer transition duration-300 hover:scale-125"
+        className="header-icon-button"
         aria-label="搜索"
+        aria-controls="search-dialog"
+        aria-haspopup="dialog"
+        aria-expanded={isSearchOpen}
         title="搜索 (⌘K)"
+        data-tooltip-interactive="false"
         suppressHydrationWarning
         onClick={openSearch}>
         <i
-          className="fa-solid fa-magnifying-glass text-2xl"
+          className="fa-solid fa-magnifying-glass text-xl"
           aria-hidden="true"></i>
       </button>
 

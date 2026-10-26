@@ -22,12 +22,15 @@
     --glass-tint-alpha-strong: 0.8;
     /* Surface ink: contrasts with the glass tint in both themes. */
     --glass-surface-hsl: 220 20% 30%;
+    --glass-action-hsl: 222 18% 91%;
+    --glass-primary-hsl: 346 65% 35%;
+    --glass-primary-ink: 0 0% 100%;
 
     --glass-border: hsl(0 0% 100% / 0.55);
-    --glass-radius-panel: 1.75rem;
-    --glass-radius-card: 1.125rem;
-    --glass-radius-control: 0.875rem;
-    --glass-radius-overlay: 2rem;
+    --glass-radius-panel: 1.5rem;
+    --glass-radius-card: 1rem;
+    --glass-radius-control: 0.75rem;
+    --glass-radius-overlay: 1.5rem;
 
     --glass-shadow:
       0 24px 60px -28px hsl(220 40% 20% / 0.35),
@@ -60,6 +63,9 @@
     --glass-tint-alpha: 0.58;
     --glass-tint-alpha-strong: 0.76;
     --glass-surface-hsl: 0 0% 100%;
+    --glass-action-hsl: 222 18% 23%;
+    --glass-primary-hsl: 346 65% 80%;
+    --glass-primary-ink: 222 22% 10%;
 
     --glass-border: hsl(0 0% 100% / 0.14);
     --glass-shadow:
@@ -108,10 +114,19 @@
       brightness(var(--glass-brightness));
   }
 
-  /* Large content surface: tint + rim, never a full-page backdrop-filter. */
+  /* FIXED: Reading surfaces are quiet tint, not repeated chrome finishes. */
+  .glass-panel,
+  .glass-card,
+  .glass-flat {
+    background: hsl(var(--glass-tint-hsl) / 0.9);
+    border-color: hsl(var(--glass-surface-hsl) / 0.12);
+    box-shadow: none;
+  }
+
+  /* Large content surface: tint + separator, never a full-page backdrop-filter. */
   .glass-panel {
     --glass-radius: var(--glass-radius-panel);
-    --glass-tint-alpha: var(--glass-tint-alpha-strong);
+    box-shadow: 0 4px 16px -12px hsl(220 30% 10% / 0.12);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -126,6 +141,7 @@
   /* Nested control inside an already-frosted surface: tint only. */
   .glass-flat {
     --glass-radius: var(--glass-radius-control);
+    background: hsl(var(--glass-surface-hsl) / 0.04);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -148,14 +164,85 @@
 
   .glass-control {
     --glass-radius: var(--glass-radius-control);
-    --glass-tint-alpha: 0.55;
-    --glass-blur: 12px;
+    --glass-tint-alpha: 0.82;
+    --glass-blur: 16px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  .glass-menu {
+    --glass-tint-alpha: 0.94;
+    --glass-blur: 24px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
   }
 
   .glass-overlay {
     --glass-radius: var(--glass-radius-overlay);
     --glass-tint-alpha: var(--glass-tint-alpha-strong);
     --glass-blur: 32px;
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  /* These are separate layers from the dialog panels they sit behind. */
+  .glass-scrim {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  /* FIXED: Opaque neutral controls keep small labels readable over any cover. */
+  .material-action {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    background: hsl(var(--glass-action-hsl));
+    box-shadow: none;
+  }
+
+  .material-action:hover {
+    background: hsl(var(--glass-action-hsl) / 0.9);
+  }
+
+  .material-row {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    transition: background-color 160ms ease;
+  }
+
+  .material-row:hover,
+  .material-row:focus-visible {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .material-row[aria-current='page'],
+  .material-row[data-route-active='true'] {
+    background: hsl(var(--glass-surface-hsl) / 0.12);
+    font-weight: 600;
+  }
+
+  .material-row:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+
+  .header-icon-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    transition: background-color 160ms ease;
+  }
+
+  .header-icon-button:hover {
+    background: hsl(0 0% 100% / 0.14);
+  }
+
+  #site-header.with-background .header-icon-button:hover {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .header-icon-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
   }
 
   /* Home hero: stronger tint because it floats over a random wallpaper. */
@@ -163,6 +250,7 @@
     --glass-radius: var(--glass-radius-panel);
     --glass-tint-alpha: 0.68;
     --glass-blur: 24px;
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
   }
 
   .dark .glass-hero {
@@ -170,24 +258,13 @@
   }
 
   .glass-interactive {
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease,
-      background-color 180ms ease;
+    transition: border-color 180ms ease;
   }
 
   @media (hover: hover) {
     .glass-interactive:hover {
-      transform: translateY(-2px);
-      box-shadow:
-        var(--glass-shadow),
-        var(--glass-inner),
-        0 0 0 1px hsl(0 0% 100% / 0.18);
+      border-color: hsl(var(--glass-surface-hsl) / 0.24);
     }
-  }
-
-  .glass-interactive:active {
-    transform: scale(0.985);
   }
 
   .glass-interactive:focus-visible {
@@ -307,19 +384,22 @@ html.theme-transition .glass,
 html.theme-transition .glass-control,
 html.theme-transition .glass-overlay,
 html.theme-transition .glass-hero,
+html.theme-transition .glass-scrim,
 html.theme-transition #site-header .site-header-bg {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
 
-/* Accessibility fallbacks: unlayered so they win over component utilities. */
+/* FIXED: Tailwind v3 flattens layers. Important material overrides are deliberate:
+ * they must beat dark/scrolled/mobile selectors and the opt-in SVG filter. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .glass,
   .glass-control,
   .glass-overlay,
-  .glass-hero {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+  .glass-hero,
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 
   .glass,
@@ -327,7 +407,7 @@ html.theme-transition #site-header .site-header-bg {
   .glass-overlay,
   .glass-hero,
   .glass-input {
-    background: hsl(var(--glass-tint-hsl) / 0.96);
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 
   .glass-tint {
@@ -340,9 +420,9 @@ html.theme-transition #site-header .site-header-bg {
   }
 
   #site-header .site-header-bg {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: hsl(var(--glass-tint-hsl) / 0.96);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 }
 
@@ -371,11 +451,11 @@ html.theme-transition #site-header .site-header-bg {
   .glass-control,
   .glass-overlay,
   .glass-hero {
-    background: hsl(var(--glass-tint-hsl) / 0.94);
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 
   .glass-input {
-    background: hsl(var(--glass-tint-hsl) / 0.94);
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 
   html.glass-refract-supported .glass-refract {
@@ -384,9 +464,9 @@ html.theme-transition #site-header .site-header-bg {
   }
 
   #site-header .site-header-bg {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: hsl(var(--glass-tint-hsl) / 0.94);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 }
 
@@ -399,12 +479,20 @@ html.theme-transition #site-header .site-header-bg {
   .glass-overlay,
   .glass-hero,
   .glass-input,
-  .glass-tint {
-    background: Canvas;
+  .glass-tint,
+  .material-action,
+  .material-row {
+    color: CanvasText;
+    background: Canvas !important;
     border: 1px solid CanvasText;
     box-shadow: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 
   html.glass-refract-supported .glass-refract {
@@ -413,9 +501,40 @@ html.theme-transition #site-header .site-header-bg {
   }
 
   #site-header .site-header-bg {
-    background: Canvas;
+    background: Canvas !important;
     border-bottom-color: CanvasText;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* FIXED: Reduce descendant motion too, not just the outer card wrapper. */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto !important;
+  }
+
+  .glass-interactive *,
+  .flip-card *,
+  [data-glass-hero] *,
+  .header-icon-button,
+  .header-icon-button *,
+  #site-header,
+  #site-header .site-header-bg {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .glass-interactive img,
+  [data-glass-hero] img,
+  [data-glass-hero] a {
+    transform: none !important;
+  }
+
+  html.theme-transition::view-transition-new(root),
+  html.theme-transition::view-transition-old(root) {
+    animation-duration: 0s;
+    animation-delay: 0s;
   }
 }

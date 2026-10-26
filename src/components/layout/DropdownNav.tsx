@@ -24,9 +24,9 @@ const DropdownNavComponent = ({
 
   const renderDropdownContent = useCallback(
     () => (
-      <div className="nav-dropdown flex flex-col items-center">
+      <div className="nav-dropdown flex flex-col items-stretch p-1">
         {children?.length
-          ? children.map((child: Router, index) => {
+          ? children.map((child: Router) => {
               const isActive = isRoutePathActive(child.path, currentPath);
 
               return (
@@ -35,15 +35,8 @@ const DropdownNavComponent = ({
                   href={child.path}
                   aria-current={isActive ? 'page' : undefined}
                   data-header-route={child.path}
-                  className={cn(
-                    'group hover:bg-gradient-shoka-button px-4 py-2 text-base outline-hidden transition-colors duration-300',
-                    {
-                      'rounded-ss-2xl': index === 0,
-                      'rounded-ee-2xl': index === children.length - 1,
-                      'bg-gradient-shoka-button text-muted': isActive,
-                    },
-                  )}>
-                  <div className="flex items-center gap-2 text-white transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white">
+                  className="material-row w-full rounded-lg px-4 py-2 text-base">
+                  <div className="flex items-center gap-2">
                     {child.icon && (
                       <i
                         className={cn('text-sm', child.icon)}
@@ -67,6 +60,7 @@ const DropdownNavComponent = ({
       onOpenChange={setIsOpen}
       placement="bottom-start"
       trigger="hover"
+      className="glass-menu"
       render={renderDropdownContent}>
       <button
         className={cn(

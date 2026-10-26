@@ -76,7 +76,7 @@ const lqipProps = getLqipProps(finalCover);
           src={finalCover}
           loading="lazy"
           alt="post cover"
-          class="absolute inset-0 h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-110 group-hover:rotate-3"
+          class="absolute inset-0 h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       </a>
     )
@@ -175,8 +175,9 @@ const lqipProps = getLqipProps(finalCover);
         )}
       >
         <Button
+          variant="ghost"
           className={cn(
-            'bg-gradient-shoka-button transition-[filter] hover:brightness-110 md:h-7 md:px-2 md:py-1 md:text-xs',
+            'material-action md:h-7 md:px-2 md:py-1 md:text-xs',
             hideCover || leftClip
               ? 'rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none'
               : 'rounded-ss-none rounded-se-2xl rounded-ee-none rounded-es-[var(--glass-radius-card)] md:rounded-ss-2xl md:rounded-se-none md:rounded-ee-[var(--glass-radius-card)] md:rounded-es-none',

@@ -1,4 +1,5 @@
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { cn } from '@/lib/utils';
 import {
   homePageLinks,
   homePageMusic,
@@ -7,8 +8,6 @@ import {
 
 interface SocialButton {
   href: string;
-  gradient: string;
-  shadow: string;
   icon: string;
   label: string;
   external?: boolean;
@@ -18,40 +17,30 @@ function getSocialButtons(links: typeof homePageLinks): SocialButton[] {
   return [
     {
       href: links.bilibiliUrl,
-      gradient: 'from-[#00a1d6] to-[#0086b3]',
-      shadow: 'shadow-[0_4px_10px_rgba(0,161,214,0.35)]',
       icon: 'fa-brands fa-bilibili',
       label: '哔哩哔哩',
       external: true,
     },
     {
       href: links.telegramUrl,
-      gradient: 'from-[#229ed9] to-[#1b84b4]',
-      shadow: 'shadow-[0_4px_10px_rgba(34,158,217,0.35)]',
       icon: 'fa-brands fa-telegram',
       label: 'Telegram',
       external: true,
     },
     {
       href: links.xUrl,
-      gradient: 'from-[#111111] to-[#2a2a2a]',
-      shadow: 'shadow-[0_4px_10px_rgba(17,17,17,0.3)]',
       icon: 'fa-brands fa-x-twitter',
       label: 'X',
       external: true,
     },
     {
       href: links.githubUrl,
-      gradient: 'from-[#24292e] to-[#1f2327]',
-      shadow: 'shadow-[0_4px_10px_rgba(36,41,46,0.3)]',
       icon: 'fa-brands fa-github',
       label: 'GitHub',
       external: true,
     },
     {
       href: '/blog',
-      gradient: 'from-[#ff7aa2] to-[#ff4f87]',
-      shadow: 'shadow-[0_4px_10px_rgba(255,79,135,0.3)]',
       icon: 'fa-solid fa-pen-nib',
       label: '进入博客',
     },
@@ -84,26 +73,23 @@ const HomePage = ({
         <div className="flex flex-1 items-center justify-center">
           <div
             className="glass glass-hero glass-refract relative w-full p-6"
-            data-glass-hero
-            style={{ borderColor: 'hsl(345 100% 84% / 0.6)' }}>
+            data-glass-hero>
             <div
               className="glass-specular pointer-events-none -z-10"
               aria-hidden="true"
             />
             <div className="flex justify-center">
-              <div className="relative mb-6 h-[150px] w-[150px] rounded-full border-4 border-pink-border shadow-pink-avatar">
+              <div className="relative mb-6 h-[150px] w-[150px] rounded-full border-2 border-[var(--glass-border)]">
                 <img
                   src={profile.avatarUrl}
                   alt={profile.avatarAlt}
-                  className="h-full w-full rounded-full object-cover transition-transform duration-700 ease-in-out hover:rotate-[360deg]"
+                  className="h-full w-full rounded-full object-cover"
                 />
               </div>
             </div>
 
             <div className="text-center">
-              <h1
-                className="text-[2.5rem] font-bold tracking-[1px] text-pink-main"
-                style={{ textShadow: '2px 2px 8px rgba(255,105,180,0.3)' }}>
+              <h1 className="text-[2.5rem] font-bold tracking-[1px]">
                 {profile.name}
               </h1>
               <p className="mx-auto mt-3 max-w-[560px] px-5 text-[1.1rem] italic text-[#666] dark:text-gray-300">
@@ -113,10 +99,15 @@ const HomePage = ({
 
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               {getSocialButtons(links).map(
-                ({ href, gradient, shadow, icon, label, external }) => (
+                ({ href, icon, label, external }) => (
                   <a
                     key={label}
-                    className={`flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] bg-gradient-to-r ${gradient} px-5 py-2.5 text-sm font-semibold text-white ${shadow} transition hover:-translate-y-0.5`}
+                    className={cn(
+                      'flex min-w-[200px] items-center justify-center gap-2 rounded-[25px] px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--glass-primary-hsl))]',
+                      external
+                        ? 'material-action'
+                        : 'bg-[hsl(var(--glass-primary-hsl))] text-[hsl(var(--glass-primary-ink))] hover:brightness-110',
+                    )}
                     href={href}
                     {...(external
                       ? { target: '_blank', rel: 'noreferrer' }

@@ -41,8 +41,8 @@
     opacity: 0;
     background: linear-gradient(
       to bottom,
-      hsl(var(--glass-tint-hsl) / 0.58),
-      hsl(var(--glass-tint-hsl) / 0.44)
+      hsl(var(--glass-tint-hsl) / 0.88),
+      hsl(var(--glass-tint-hsl) / 0.82)
     );
     border-bottom: 1px solid transparent;
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.65);
@@ -53,14 +53,14 @@
   #site-header.with-background .site-header-bg {
     opacity: 1;
     border-bottom-color: hsl(220 30% 10% / 0.12);
-    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
-    backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    backdrop-filter: blur(28px) saturate(140%);
   }
   html.dark #site-header .site-header-bg {
     background: linear-gradient(
       to bottom,
-      hsl(var(--glass-tint-hsl) / 0.62),
-      hsl(var(--glass-tint-hsl) / 0.48)
+      hsl(var(--glass-tint-hsl) / 0.88),
+      hsl(var(--glass-tint-hsl) / 0.82)
     );
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.2);
   }
@@ -91,8 +91,8 @@
 
   @media (max-width: 768px) {
     #site-header.with-background .site-header-bg {
-      -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
-      backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
     }
   }
 }

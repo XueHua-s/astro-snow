@@ -71,7 +71,7 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
                 'after:border-r-gradient-shoka-button-end',
               )}
             >
-              <a class="hover:animate-shake block text-base text-white" href={categoryLink}>
+              <a class="hover:underline block text-base text-white" href={categoryLink}>
                 {categoryInfo?.name}
               </a>
             </div>
@@ -105,8 +105,9 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
             {/* FIXED: Use the same border offset and outer radius as post tabs. */}
             <a href={categoryLink} aria-label="more info" class="absolute -right-px -bottom-px">
               <Button
+                variant="ghost"
                 className={cn(
-                  'bg-gradient-shoka-button rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none transition-[filter] hover:brightness-110 md:h-7 md:px-2 md:py-1 md:text-xs',
+                  'material-action rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none md:h-7 md:px-2 md:py-1 md:text-xs',
                 )}
               >
                 more...

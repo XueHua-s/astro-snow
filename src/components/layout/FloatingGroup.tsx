@@ -1,32 +1,57 @@
 import { useStore } from '@nanostores/react';
-import { drawerOpen } from '@store/ui';
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import { drawerOpen, searchOpen } from '@store/ui';
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from 'react';
+
+const subscribeToHydration = () => () => {};
 
 export default function FloatingGroup() {
   const isDrawerOpen = useStore(drawerOpen);
+  const isSearchOpen = useStore(searchOpen);
   const [isExpanded, setIsExpanded] = useState(true);
+  // FIXED: Live stores may change before this idle island loads. React's server
+  // snapshot matches SSR first, then its client snapshot applies live state.
+  const hasHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
+  const isHidden = hasHydrated && (isDrawerOpen || isSearchOpen);
 
   const handleToggle = useCallback(() => {
     setIsExpanded((prev) => !prev);
   }, []);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({
+      top: 0, // FIXED: Explicit smooth scrolling must respect reduced motion too.
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    });
   }, []);
 
   const scrollToBottom = useCallback(() => {
     window.scrollTo({
       top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
+      // FIXED: Explicit smooth scrolling must respect reduced motion too.
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
     });
   }, []);
 
   const floatingStyle = useMemo<CSSProperties>(
     () =>
-      isDrawerOpen
+      isHidden
         ? { transform: 'translateX(200%)', opacity: 0, pointerEvents: 'none' }
         : {},
-    [isDrawerOpen],
+    [isHidden],
   );
 
   return (
@@ -34,6 +59,9 @@ export default function FloatingGroup() {
       id="floating-nav"
       className="text-primary fixed right-4 bottom-4 z-50"
       data-expanded={String(isExpanded)}
+      data-hydrated={String(hasHydrated)}
+      aria-hidden={isHidden || undefined}
+      inert={isHidden}
       style={floatingStyle}>
       <div className="glass glass-control flex flex-col gap-1 rounded-full p-1">
         <div
