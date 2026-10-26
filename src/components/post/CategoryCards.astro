@@ -102,10 +102,11 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
                 {category.posts?.length} 篇文章
               </Fragment>
             </p>
-            <a href={categoryLink} aria-label="more info" class="absolute right-0 bottom-0">
+            {/* FIXED: Use the same border offset and outer radius as post tabs. */}
+            <a href={categoryLink} aria-label="more info" class="absolute -right-px -bottom-px">
               <Button
                 className={cn(
-                  'bg-gradient-shoka-button rounded-2xl rounded-se-none rounded-es-none transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 md:h-7 md:px-2 md:py-1 md:text-xs',
+                  'bg-gradient-shoka-button rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none transition-[filter] hover:brightness-110 md:h-7 md:px-2 md:py-1 md:text-xs',
                 )}
               >
                 more...

@@ -1,6 +1,80 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { BLOG_ROUTES } from './helpers/blog-routes';
 import { setupRuntimeErrorCollector } from './helpers/runtime-errors';
+
+async function expectMoreTabFlush(card: Locator, corner: 'left' | 'right') {
+  await expect
+    .poll(
+      () =>
+        card.evaluate((element, side) => {
+          const button = element.querySelector<HTMLElement>(
+            'a[aria-label="more info"] button',
+          );
+          if (!button) throw new Error('More tab is missing');
+          const cardRect = element.getBoundingClientRect();
+          const buttonRect = button.getBoundingClientRect();
+          const cardStyle = getComputedStyle(element);
+          const buttonStyle = getComputedStyle(button);
+          const radiusProperty =
+            side === 'right'
+              ? 'borderBottomRightRadius'
+              : 'borderBottomLeftRadius';
+          return Math.max(
+            Math.abs(buttonRect[side] - cardRect[side]),
+            Math.abs(buttonRect.bottom - cardRect.bottom),
+            Math.abs(
+              parseFloat(buttonStyle[radiusProperty]) -
+                parseFloat(cardStyle[radiusProperty]),
+            ),
+          );
+        }, corner),
+      {
+        message: `More tab must match the card's bottom-${corner} edge and radius`,
+      },
+    )
+    .toBeLessThan(0.5);
+  await expectMoreTabsClear(card);
+}
+
+async function expectMoreTabsClear(cards: Locator) {
+  await expect
+    .poll(
+      () =>
+        cards.evaluateAll((elements) =>
+          elements.flatMap((card, index) => {
+            const button = card.querySelector<HTMLElement>(
+              'a[aria-label="more info"] button',
+            );
+            if (!button) throw new Error('More tab is missing');
+            const buttonRect = button.getBoundingClientRect();
+            return Array.from(
+              card.querySelectorAll<HTMLElement>(
+                'p, h1, [data-post-tags] > div',
+              ),
+            ).flatMap((content) => {
+              const rect = content.getBoundingClientRect();
+              const overlapX =
+                Math.min(rect.right, buttonRect.right) -
+                Math.max(rect.left, buttonRect.left);
+              const overlapY =
+                Math.min(rect.bottom, buttonRect.bottom) -
+                Math.max(rect.top, buttonRect.top);
+              return rect.width > 0 &&
+                rect.height > 0 &&
+                overlapX > 0.5 &&
+                overlapY > 0.5
+                ? [{ card: index, text: content.textContent?.trim() }]
+                : [];
+            });
+          }),
+        ),
+      {
+        message:
+          'More tabs must not cover visible tags, titles or descriptions',
+      },
+    )
+    .toEqual([]);
+}
 
 test.describe('Blog e2e regression suite', () => {
   test('home blog page should render and expose post links', async ({
@@ -428,6 +502,181 @@ test.describe('Blog e2e regression suite', () => {
     expect(collapsedBox.height).toBeLessThan(70);
     expect(expandedBox.height).toBeGreaterThanOrEqual(collapsedBox.height + 30);
 
+    runtime.assertClean();
+  });
+
+  for (const { name, route, hasCover } of [
+    { name: 'post', route: '/blog', hasCover: true },
+    { name: 'no-cover post', route: '/blog/weekly', hasCover: false },
+  ]) {
+    test(`${name} card more tabs should stay flush in all interaction states`, async ({
+      page,
+    }) => {
+      const runtime = setupRuntimeErrorCollector(page);
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      const cards = page.locator('.glass-card.glass-interactive');
+      await expect(cards.nth(1)).toBeVisible();
+
+      for (const width of [1440, 768, 390]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const dark of [false, true]) {
+          await page.evaluate((enabled) => {
+            document.documentElement.classList.toggle('dark', enabled);
+          }, dark);
+          for (const index of hasCover ? [0, 1, 3] : [0, 1]) {
+            const card = cards.nth(index);
+            const button = card.locator('a[aria-label="more info"] button');
+            const corner =
+              hasCover && index % 2 === 1 && width > 768 ? 'left' : 'right';
+            await page.mouse.move(0, 0);
+            await button.evaluate((element) =>
+              element.scrollIntoView({ block: 'center', behavior: 'instant' }),
+            );
+            await expectMoreTabFlush(card, corner);
+
+            await button.hover();
+            await button.evaluate(async (element) => {
+              await Promise.all(
+                element.getAnimations().map((animation) => animation.finished),
+              );
+            });
+            await expectMoreTabFlush(card, corner);
+
+            await page.mouse.move(0, 0);
+            await button.focus();
+            await expect(button).toBeFocused();
+            await expectMoreTabFlush(card, corner);
+          }
+        }
+      }
+      runtime.assertClean();
+    });
+  }
+
+  test('post card more tabs should not cover tags or text at any breakpoint', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const cards = page.locator('.glass-card.glass-interactive');
+    await expect(cards.nth(3)).toBeAttached();
+    for (const width of [
+      1440, 1380, 1280, 1024, 993, 992, 769, 768, 390, 320,
+    ]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const dark of [false, true]) {
+        await page.evaluate((enabled) => {
+          document.documentElement.classList.toggle('dark', enabled);
+        }, dark);
+        await expectMoreTabsClear(cards);
+      }
+    }
+    runtime.assertClean();
+  });
+
+  test('post footer should handle many, long and empty tags without clipping controls', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const cards = page.locator('.glass-card.glass-interactive');
+    const labels = [
+      Array.from({ length: 12 }, (_, index) => `标签-${index + 1}`),
+      ['LongUnbrokenTag'.repeat(12), '中文长标签'.repeat(20)],
+      [],
+    ];
+    for (const tags of labels) {
+      for (const index of [0, 1]) {
+        await cards
+          .nth(index)
+          .locator('[data-post-tags]')
+          .evaluate((group, texts) => {
+            const template = group.firstElementChild;
+            if (!template)
+              throw new Error('Tag fixture requires an existing badge');
+            group.replaceChildren(
+              ...texts.map((text) => {
+                const badge = template.cloneNode(true) as HTMLElement;
+                const label = badge.querySelector('span');
+                if (!label) throw new Error('Tag label is missing');
+                label.textContent = text;
+                return badge;
+              }),
+            );
+          }, tags);
+      }
+      for (const width of [1440, 1280, 1024, 769, 768, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const index of [0, 1]) {
+          const card = cards.nth(index);
+          const badges = card.locator('[data-post-tags] > div');
+          await expect(badges).toHaveCount(tags.length);
+          await expectMoreTabsClear(card);
+          const overflowing = await badges.evaluateAll((elements) =>
+            elements
+              .filter((badge) => {
+                const parent = badge.parentElement;
+                if (!parent) throw new Error('Tag group is missing');
+                const group = parent.getBoundingClientRect();
+                const rect = badge.getBoundingClientRect();
+                return (
+                  rect.width === 0 ||
+                  rect.height === 0 ||
+                  rect.left < group.left - 0.5 ||
+                  rect.right > group.right + 0.5
+                );
+              })
+              .map((badge) => badge.textContent?.trim()),
+          );
+          expect(overflowing).toEqual([]);
+          const corner = index === 1 && width > 768 ? 'left' : 'right';
+          await expectMoreTabFlush(card, corner);
+        }
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth),
+        ).toBeLessThanOrEqual(width);
+      }
+    }
+    runtime.assertClean();
+  });
+
+  test('category card more tab should stay flush after flipping', async ({
+    page,
+  }) => {
+    const runtime = setupRuntimeErrorCollector(page);
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    const flip = page.locator('.flip-card').first();
+    const card = flip.locator('.flip-card-back .glass-card');
+    const button = card.locator('a[aria-label="more info"] button');
+
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const dark of [false, true]) {
+        await page.evaluate((enabled) => {
+          document.documentElement.classList.toggle('dark', enabled);
+        }, dark);
+        await flip.evaluate((element) =>
+          element.scrollIntoView({ block: 'center', behavior: 'instant' }),
+        );
+        await flip.hover();
+        await flip.locator('.flip-card-inner').evaluate(async (element) => {
+          await Promise.all(
+            element.getAnimations().map((animation) => animation.finished),
+          );
+        });
+        await expectMoreTabFlush(card, 'right');
+        await button.hover();
+        await button.evaluate(async (element) => {
+          await Promise.all(
+            element.getAnimations().map((animation) => animation.finished),
+          );
+        });
+        await expectMoreTabFlush(card, 'right');
+        await button.focus();
+        await expect(button).toBeFocused();
+        await expectMoreTabFlush(card, 'right');
+      }
+    }
     runtime.assertClean();
   });
 
