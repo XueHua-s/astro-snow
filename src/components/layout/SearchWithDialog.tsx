@@ -1,124 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { openSearch, searchOpen } from '@store/ui';
 import '@pagefind/default-ui/css/ui.css';
 
-type PagefindUiOptions = {
-  showImages?: boolean;
-  resetStyles?: boolean;
-  translations?: Record<string, string>;
-};
-
-type PagefindUiModule = {
-  PagefindUI: new (
-    options: PagefindUiOptions & { element: HTMLElement; bundlePath: string },
-  ) => unknown;
-};
-
-const getBundlePath = () => {
-  const baseUrl = import.meta.env.BASE_URL ?? '/';
-  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-  return `${normalizedBase}pagefind/`;
-};
-
 export default function SearchWithDialog() {
-  const searchRootRef = useRef<HTMLDivElement | null>(null);
-  const initializedRef = useRef(false);
-
-  const uiOptions = useMemo(
-    () => ({
-      showImages: false,
-      resetStyles: false,
-      translations: {
-        placeholder: '请输入关键词搜索',
-        clear_search: '清空',
-        load_more: '加载更多结果',
-        search_label: '搜索本站',
-        filters_label: '过滤项',
-        zero_results: '没有找到结果',
-        many_results: '[COUNT] 个结果',
-        one_result: '[COUNT] 个结果',
-        alt_search: '没有找到结果。显示 [DIFFERENT_TERM] 的结果',
-        search_suggestion: '没有找到结果。尝试以下搜索：',
-        searching: '搜索 [SEARCH_TERM]...',
-      },
-    }),
-    [],
-  );
-
-  const initPagefind = useCallback(async () => {
-    if (initializedRef.current || !searchRootRef.current) return;
-
-    if (searchRootRef.current.querySelector('.pagefind-ui__search-input')) {
-      initializedRef.current = true;
-      return;
-    }
-
-    const module =
-      (await import('@pagefind/default-ui')) as unknown as PagefindUiModule;
-    // FIXED: Closing/reopening while the import is pending must not initialize
-    // a detached root or create a second Pagefind instance.
-    if (initializedRef.current || !searchRootRef.current) return;
-    const { PagefindUI } = module;
-    new PagefindUI({
-      element: searchRootRef.current,
-      bundlePath: getBundlePath(),
-      ...uiOptions,
-    });
-    initializedRef.current = true;
-  }, [uiOptions]);
-
-  const moveSearchToDialog = useCallback(() => {
-    const dialogContainer = document.getElementById('search-dialog-container');
-    const searchComponent = searchRootRef.current;
-    if (!dialogContainer || !searchComponent) return;
-    if (dialogContainer.contains(searchComponent)) return;
-    dialogContainer.appendChild(searchComponent);
-  }, []);
-
-  const moveSearchBack = useCallback(() => {
-    const searchPortal = document.getElementById('search-component-portal');
-    const searchComponent = searchRootRef.current;
-    if (!searchPortal || !searchComponent) return;
-    if (!searchPortal.contains(searchComponent)) {
-      searchPortal.appendChild(searchComponent);
-    }
-  }, []);
-
-  // FIXED: Subscribe to store directly instead of relying on custom events
   const isSearchOpen = useStore(searchOpen);
 
-  useEffect(() => {
-    let cancelled = false;
-    let frame: number | null = null;
-    if (isSearchOpen) {
-      void initPagefind().then(() => {
-        if (cancelled || !searchOpen.get()) return;
-        frame = requestAnimationFrame(() => {
-          if (!cancelled && searchOpen.get()) moveSearchToDialog();
-        });
-      });
-    } else {
-      moveSearchBack();
-    }
-    return () => {
-      cancelled = true;
-      if (frame !== null) cancelAnimationFrame(frame);
-    };
-  }, [isSearchOpen, initPagefind, moveSearchToDialog, moveSearchBack]);
-
-  useEffect(() => {
-    const handleAstroPageLoad = () => {
-      if (!initializedRef.current) return;
-      void initPagefind();
-    };
-
-    document.addEventListener('astro:page-load', handleAstroPageLoad);
-    return () => {
-      document.removeEventListener('astro:page-load', handleAstroPageLoad);
-    };
-  }, [initPagefind]);
-
+  // FIXED: The hydrated dialog owns search content; the header never mutates
+  // another island's server-rendered DOM while it is waiting to hydrate.
   return (
     <>
       <button
@@ -136,23 +24,6 @@ export default function SearchWithDialog() {
           className="fa-solid fa-magnifying-glass text-xl"
           aria-hidden="true"></i>
       </button>
-
-      <div
-        id="search-component-portal"
-        style={{
-          display: 'none',
-          position: 'absolute',
-          pointerEvents: 'none',
-          visibility: 'hidden',
-        }}>
-        <div
-          id="search-for-dialog"
-          ref={searchRootRef}
-          className="pagefind-ui"
-          data-pagefind-ui
-        />
-      </div>
-
       <style>{`
         .scroll-feather-mask.scroll-feather-active {
           mask-image: linear-gradient(

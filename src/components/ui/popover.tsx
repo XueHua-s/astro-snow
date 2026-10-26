@@ -68,13 +68,14 @@ function Popover({
     delay: { open: 0, close: animation.duration.fast },
   });
   const click = useClick(context, {
-    enabled: trigger === 'click',
+    // FIXED: Hover menus still need native Enter/Space and touch activation.
+    ignoreMouse: trigger === 'hover',
   });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([
     hover,
     click,
-    useDismiss(context),
+    useDismiss(context, { ancestorScroll: true }),
     useRole(context),
   ]);
 
@@ -100,7 +101,10 @@ function Popover({
       <AnimatePresence>
         {isOpen && (
           <FloatingPortal>
-            <FloatingFocusManager context={context} modal={false}>
+            <FloatingFocusManager
+              context={context}
+              modal={false}
+              initialFocus={trigger === 'hover' ? -1 : 0}>
               <motion.div
                 className={cn('glass glass-control z-10', className)}
                 initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}

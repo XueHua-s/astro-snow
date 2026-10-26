@@ -3,6 +3,33 @@ import { setupRuntimeErrorCollector } from './helpers/runtime-errors';
 
 type MaterialMode = 'normal' | 'transparency' | 'contrast' | 'forced';
 
+async function fixtureMusicPlayer(page: Page) {
+  // FIXED: Isolate only the unrelated external player document. App/Pagefind
+  // requests and the runtime collector must retain their real behavior.
+  await page.route(
+    (url) =>
+      url.hostname === 'music.163.com' && url.pathname === '/outchain/player',
+    async (route) => {
+      const request = route.request();
+      if (
+        request.resourceType() === 'document' &&
+        request.frame().parentFrame() !== null
+      ) {
+        await route.fulfill({
+          contentType: 'text/html',
+          body: '<!doctype html><html><body data-theme-music-fixture></body></html>',
+        });
+      } else {
+        await route.fallback();
+      }
+    },
+  );
+}
+
+test.beforeEach(async ({ page }) => {
+  await fixtureMusicPlayer(page);
+});
+
 async function emulateMaterial(page: Page, mode: MaterialMode) {
   // Playwright does not expose reduced-transparency; CDP applies the real MQ.
   const session = await page.context().newCDPSession(page);
@@ -27,6 +54,7 @@ async function setTheme(page: Page, dark: boolean) {
     document.documentElement.dataset.theme = enabled ? 'dark' : 'light';
     localStorage.setItem('theme', enabled ? 'dark' : 'light');
   }, dark);
+  await finishAnimations(page.locator('html'));
 }
 
 async function openBlog(page: Page) {
@@ -44,11 +72,44 @@ async function openBlog(page: Page) {
 
 async function finishAnimations(locator: Locator) {
   await locator.evaluate(async (element) => {
-    // Direction changes legitimately cancel an in-flight CSS transition.
+    // FIXED: Flush theme styles before discovering descendant transitions.
+    // Infinite decorative animations are not part of a settled-color contract;
+    // direction changes may legitimately cancel finite CSS transitions.
+    element.getBoundingClientRect();
     await Promise.allSettled(
-      element.getAnimations().map((animation) => animation.finished),
+      element
+        .getAnimations({ subtree: true })
+        .filter((animation) =>
+          Number.isFinite(animation.effect?.getComputedTiming().endTime),
+        )
+        .map((animation) => animation.finished),
     );
   });
+}
+
+async function expectHeroLinkColors(link: Locator) {
+  const colors = await link.evaluate((element) => {
+    const expected = document.createElement('span');
+    const action = element.classList.contains('material-action');
+    expected.style.color = action
+      ? 'hsl(var(--foreground, var(--glass-surface-hsl)))'
+      : 'hsl(var(--glass-primary-ink))';
+    expected.style.backgroundColor = action
+      ? 'hsl(var(--glass-action-hsl))'
+      : 'hsl(var(--glass-primary-hsl))';
+    element.appendChild(expected);
+    const target = getComputedStyle(expected);
+    const actual = getComputedStyle(element);
+    const colors = {
+      actual: { ink: actual.color, surface: actual.backgroundColor },
+      expected: { ink: target.color, surface: target.backgroundColor },
+    };
+    expected.remove();
+    return colors;
+  });
+  // An old-theme sample can already pass contrast. Check the new endpoint pair
+  // directly, never poll until the contrast happens to cross the threshold.
+  expect(colors.actual).toEqual(colors.expected);
 }
 
 async function scrollHeader(page: Page) {
@@ -266,6 +327,7 @@ for (const width of [1440, 390]) {
           mode === 'normal' ? /blur\(|url\(/ : 'none',
         );
         for (const link of await hero.locator('a').all()) {
+          if (mode !== 'forced') await expectHeroLinkColors(link);
           expect(await minimumContrast(link)).toBeGreaterThanOrEqual(4.5);
         }
       }
@@ -804,3 +866,305 @@ for (const initiallyOpen of ['search', 'drawer'] as const) {
     runtime.assertClean();
   });
 }
+
+for (const width of [1440, 390]) {
+  for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+    test(`landing theme endpoints settle in both directions at ${width}px ${reducedMotion}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ reducedMotion });
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      await page.mouse.move(0, 0);
+      const hero = page.locator('[data-glass-hero]');
+      if (reducedMotion === 'no-preference') {
+        // Settling finite color transitions must not await decorative loops.
+        await hero.locator('.glass-specular').evaluate((element) =>
+          element.animate([{ opacity: 0.9 }, { opacity: 0.9 }], {
+            duration: 1000,
+            iterations: Infinity,
+          }),
+        );
+      }
+      // Repeat both directions: the previous valid palette must not satisfy the
+      // next theme's endpoint assertion while link colors interpolate.
+      for (const dark of [true, false, true, false]) {
+        await setTheme(page, dark);
+        for (const link of await hero.locator('a').all()) {
+          await expectHeroLinkColors(link);
+          expect(await minimumContrast(link)).toBeGreaterThanOrEqual(4.5);
+          if (reducedMotion === 'reduce')
+            await expect(link).toHaveCSS('transition-duration', '0s');
+        }
+      }
+    });
+  }
+}
+
+for (const mode of ['normal', 'transparency', 'contrast', 'forced'] as const) {
+  test(`Markdown image actions retain contrast over black and white in ${mode}`, async ({
+    page,
+  }) => {
+    await emulateMaterial(page, mode);
+    await page.goto('/blog/about', { waitUntil: 'domcontentloaded' });
+    const image = page.locator('.prose .markdown-image').first();
+    // Use the real enhancement path, but make the image pixels deterministic.
+    // A load event also recovers the fixture from a failed remote image fetch.
+    await image.evaluate(async (element) => {
+      const image = element as HTMLImageElement;
+      image.src = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><path fill="white" d="M0 0h800v450H0z"/></svg>')}`;
+      await image.decode();
+      image.dispatchEvent(new Event('load'));
+    });
+    const wrapper = image.locator('..');
+    const control = wrapper.locator('.markdown-image-fullscreen');
+    await expect(control).toHaveCount(1);
+    for (const dark of [false, true]) {
+      await setTheme(page, dark);
+      for (const fill of ['white', 'black']) {
+        await image.evaluate(async (element, fill) => {
+          const image = element as HTMLImageElement;
+          image.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><path fill="${fill}" d="M0 0h800v450H0z"/></svg>`)}`;
+          await image.decode();
+        }, fill);
+        // Reveal via the parent only. Hovering the button would hide the
+        // originally reported low-contrast default ink/surface pair.
+        await wrapper.hover({ position: { x: 8, y: 8 } });
+        await finishAnimations(wrapper);
+        await expect(control).toHaveCSS('opacity', '1');
+        expect(
+          await control.evaluate((element) => element.matches(':hover')),
+        ).toBe(false);
+        await expect(control).toHaveCSS('backdrop-filter', 'none');
+        expect(await minimumContrast(control)).toBeGreaterThanOrEqual(3);
+        const alpha = await control.evaluate((element) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1;
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('Color resolver unavailable');
+          context.fillStyle = getComputedStyle(element).backgroundColor;
+          context.fillRect(0, 0, 1, 1);
+          return context.getImageData(0, 0, 1, 1).data[3];
+        });
+        expect(
+          alpha,
+          'Shared action surface must stay opaque over arbitrary images',
+        ).toBe(255);
+        const restingBackground = await control.evaluate(
+          (element) => getComputedStyle(element).backgroundColor,
+        );
+        await control.hover();
+        await finishAnimations(wrapper);
+        expect(await minimumContrast(control)).toBeGreaterThanOrEqual(3);
+        if (mode !== 'normal')
+          await expect(control).toHaveCSS(
+            'background-color',
+            restingBackground,
+          );
+      }
+    }
+  });
+}
+
+test('hero stops and resets its highlight when reduced motion changes live', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const hero = page.locator('[data-glass-hero]');
+  const sheen = hero.locator('.glass-specular');
+  await hero.hover({ position: { x: 20, y: 20 } });
+  await expect
+    .poll(() =>
+      sheen.evaluate((element) =>
+        (element as HTMLElement).style.getPropertyValue('--sheen-x'),
+      ),
+    )
+    .not.toBe('');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(sheen).toBeHidden();
+  await expect
+    .poll(() => sheen.getAttribute('style'))
+    .not.toContain('--sheen-');
+  await hero.hover({ position: { x: 80, y: 80 } });
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+  );
+  expect(await sheen.getAttribute('style')).not.toContain('--sheen-');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(sheen).toBeVisible();
+  await hero.hover({ position: { x: 40, y: 40 } });
+  await expect
+    .poll(() =>
+      sheen.evaluate((element) =>
+        (element as HTMLElement).style.getPropertyValue('--sheen-x'),
+      ),
+    )
+    .not.toBe('');
+});
+
+test('theme music fixture matches only the player child document and preserves app/index requests', async ({
+  context,
+}) => {
+  // Put a sentinel below the actual fixture, only on synthetic external probes.
+  // First-party application and Pagefind traffic always reaches the real server.
+  const page = await context.newPage();
+  const forwarded: { url: string; type: string; child: boolean }[] = [];
+  try {
+    await page.route(
+      (url) =>
+        ['music.163.com', 'music-fixture.invalid'].includes(url.hostname),
+      async (route) => {
+        const request = route.request();
+        forwarded.push({
+          url: request.url(),
+          type: request.resourceType(),
+          child: request.frame().parentFrame() !== null,
+        });
+        await route.fulfill({
+          contentType: 'text/html',
+          headers: { 'access-control-allow-origin': '*' },
+          body: '<!doctype html><html><body>Unchanged music probe</body></html>',
+        });
+      },
+    );
+    await fixtureMusicPlayer(page);
+    const response = await page.goto('/', { waitUntil: 'domcontentloaded' });
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('[data-glass-hero]')).toBeVisible();
+    await expect(
+      page
+        .frameLocator('iframe[src*="music.163.com/outchain/player"]')
+        .locator('body'),
+    ).toHaveAttribute('data-theme-music-fixture', '');
+    const index = await page.evaluate(async () => {
+      const response = await fetch('/pagefind/pagefind.js');
+      return { status: response.status, source: await response.text() };
+    });
+    expect(index.status).toBe(200);
+    expect(index.source).toContain('export');
+    expect(index.source).not.toContain('data-theme-music-fixture');
+
+    const fetchURL = 'http://music.163.com/outchain/player?probe=fetch';
+    expect(
+      await page.evaluate(async (url) => (await fetch(url)).text(), fetchURL),
+    ).toContain('Unchanged music probe');
+    for (const url of [
+      'http://music.163.com/outchain/other',
+      'http://music-fixture.invalid/outchain/player',
+    ]) {
+      await page.evaluate((url) => {
+        const frame = document.createElement('iframe');
+        frame.src = url;
+        frame.dataset.fixtureProbe = '';
+        document.body.appendChild(frame);
+      }, url);
+      await expect(
+        page
+          .locator('iframe[data-fixture-probe]')
+          .last()
+          .contentFrame()
+          .locator('body'),
+      ).toHaveText('Unchanged music probe');
+    }
+    const mainURL = 'http://music.163.com/outchain/player?probe=main';
+    await page.goto(mainURL);
+    await expect(page.locator('body')).toHaveText('Unchanged music probe');
+    expect(forwarded).toEqual(
+      expect.arrayContaining([
+        { url: fetchURL, type: 'fetch', child: false },
+        {
+          url: 'http://music.163.com/outchain/other',
+          type: 'document',
+          child: true,
+        },
+        {
+          url: 'http://music-fixture.invalid/outchain/player',
+          type: 'document',
+          child: true,
+        },
+        { url: mainURL, type: 'document', child: false },
+      ]),
+    );
+    expect(
+      forwarded.some(
+        ({ url, type, child }) =>
+          new URL(url).hostname === 'music.163.com' &&
+          new URL(url).pathname === '/outchain/player' &&
+          type === 'document' &&
+          child,
+      ),
+    ).toBe(false);
+  } finally {
+    await page.close();
+  }
+});
+
+test('theme music fixture leaves first-party console errors visible to the runtime collector', async ({
+  page,
+}) => {
+  const runtime = setupRuntimeErrorCollector(page);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(
+    page
+      .frameLocator('iframe[src*="music.163.com/outchain/player"]')
+      .locator('body'),
+  ).toHaveAttribute('data-theme-music-fixture', '');
+  runtime.assertClean();
+  const message = 'theme fixture regression: first-party console failure';
+  const consoleError = page.waitForEvent('console', {
+    predicate: (event) => event.type() === 'error' && event.text() === message,
+  });
+  await page.evaluate((message) => console.error(message), message);
+  await consoleError;
+  expect(() => runtime.assertClean()).toThrow(message);
+});
+
+test('landing endpoint assertion rejects wrong high-contrast action ink without foreground token', async ({
+  page,
+}) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.mouse.move(0, 0);
+  const hero = page.locator('[data-glass-hero]');
+  // Dev may include a broader stylesheet than the standalone production route.
+  // Exercise the real missing-token contract explicitly in either environment.
+  await hero.evaluate((element) =>
+    (element as HTMLElement).style.setProperty('--foreground', 'initial'),
+  );
+  const link = hero.locator('a.material-action').first();
+  for (const dark of [false, true]) {
+    await setTheme(page, dark);
+    expect(
+      await link.evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--foreground').trim(),
+      ),
+    ).toBe('');
+    const expectedInk = await hero.evaluate((element) => {
+      const probe = document.createElement('span');
+      probe.style.color = 'hsl(var(--glass-surface-hsl))';
+      element.appendChild(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    });
+    await expect(link).toHaveCSS('color', expectedInk);
+    await expectHeroLinkColors(link);
+    const wrongInk = dark ? 'rgb(230, 230, 230)' : 'rgb(0, 0, 0)';
+    expect(wrongInk).not.toBe(expectedInk);
+    await link.evaluate(
+      (element, ink) =>
+        (element as HTMLElement).style.setProperty('color', ink),
+      wrongInk,
+    );
+    await finishAnimations(hero);
+    await expect(link).toHaveCSS('color', wrongInk);
+    expect(await minimumContrast(link)).toBeGreaterThanOrEqual(4.5);
+    await expect(expectHeroLinkColors(link)).rejects.toThrow(/toEqual/);
+    await link.evaluate((element) =>
+      (element as HTMLElement).style.removeProperty('color'),
+    );
+    await finishAnimations(hero);
+    await expectHeroLinkColors(link);
+  }
+});

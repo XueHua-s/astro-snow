@@ -189,14 +189,17 @@
     backdrop-filter: blur(4px);
   }
 
-  /* FIXED: Opaque neutral controls keep small labels readable over any cover. */
-  .material-action {
+  /* FIXED: One owner for action ink, surface and accessibility fallbacks,
+   * including image controls revealed by hovering an arbitrary photo. */
+  .material-action,
+  .prose .markdown-image-fullscreen {
     color: hsl(var(--foreground, var(--glass-surface-hsl)));
     background: hsl(var(--glass-action-hsl));
     box-shadow: none;
   }
 
-  .material-action:hover {
+  .material-action:hover,
+  .prose .markdown-image-fullscreen:hover {
     background: hsl(var(--glass-action-hsl) / 0.9);
   }
 
@@ -410,6 +413,11 @@ html.theme-transition #site-header .site-header-bg {
     background: hsl(var(--glass-tint-hsl) / 0.98) !important;
   }
 
+  .material-action,
+  .prose .markdown-image-fullscreen {
+    background: hsl(var(--glass-action-hsl)) !important;
+  }
+
   .glass-tint {
     background: hsl(var(--glass-surface-hsl) / 0.12);
   }
@@ -481,6 +489,7 @@ html.theme-transition #site-header .site-header-bg {
   .glass-input,
   .glass-tint,
   .material-action,
+  .prose .markdown-image-fullscreen,
   .material-row {
     color: CanvasText;
     background: Canvas !important;
@@ -524,6 +533,11 @@ html.theme-transition #site-header .site-header-bg {
   #site-header .site-header-bg {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* FIXED: CSS also suppresses the JS-driven sheen on live preference changes. */
+  .glass-specular {
+    display: none;
   }
 
   .glass-interactive img,

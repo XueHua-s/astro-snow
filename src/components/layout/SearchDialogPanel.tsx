@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { useEventListener, useLatest } from '@reactuses/core';
 import { closeSearch, openSearch, searchOpen } from '@store/ui';
-import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
+import { lockBodyScroll } from '@lib/body-scroll-lock';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchSelection } from './search-dialog/use-search-selection';
 import { SearchDialogPanelView } from './search-dialog/panel-view';
@@ -19,7 +19,7 @@ export default function SearchDialogPanel() {
   const frameRef = useRef<number | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const focusPendingRef = useRef(false);
-  const scrollLockedRef = useRef(false);
+  const scrollReleaseRef = useRef<(() => void) | null>(null);
   const documentTarget = useCallback(() => document, []);
   const {
     selectedIndex,
@@ -45,9 +45,8 @@ export default function SearchDialogPanel() {
   }, []);
 
   const releaseScrollLock = useCallback(() => {
-    if (!scrollLockedRef.current) return;
-    scrollLockedRef.current = false;
-    unlockBodyScroll();
+    scrollReleaseRef.current?.();
+    scrollReleaseRef.current = null;
   }, []);
 
   const setupResultsObserver = useCallback(() => {
@@ -149,9 +148,8 @@ export default function SearchDialogPanel() {
             ? focused
             : document.getElementById('search-trigger');
       }
-      if (!scrollLockedRef.current) {
-        lockBodyScroll();
-        scrollLockedRef.current = true;
+      if (!scrollReleaseRef.current) {
+        scrollReleaseRef.current = lockBodyScroll();
       }
       focusPendingRef.current = true;
       frameRef.current = requestAnimationFrame(() => {
@@ -172,7 +170,7 @@ export default function SearchDialogPanel() {
     clearSelectionDomRef.current();
     observerRef.current?.disconnect();
     observerRef.current = null;
-    if (!scrollLockedRef.current) return cancelPending;
+    if (!scrollReleaseRef.current) return cancelPending;
 
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
@@ -248,6 +246,7 @@ export default function SearchDialogPanel() {
   return (
     <SearchDialogPanelView
       state={state}
+      isOpen={isOpen}
       overlayClassName={overlayClassName}
       dialogClassName={dialogClassName}
       contentClassName={contentClassName}

@@ -66,6 +66,9 @@ export default function FloatingGroup() {
       <div className="glass glass-control flex flex-col gap-1 rounded-full p-1">
         <div
           id="nav-content"
+          // FIXED: Collapsed controls must leave both pointer and keyboard navigation.
+          inert={!isExpanded}
+          aria-hidden={!isExpanded || undefined}
           className="flex scale-y-100 flex-col gap-1 opacity-100">
           <button
             id="scroll-to-top"

@@ -5,7 +5,7 @@ import {
   type MermaidFullscreenData,
 } from '@store/ui';
 import { copyToClipboard } from '@lib/code-block-enhancer';
-import { lockBodyScroll, unlockBodyScroll } from '@lib/body-scroll-lock';
+import { lockBodyScroll } from '@lib/body-scroll-lock';
 
 interface Elements {
   overlay: HTMLElement;
@@ -49,6 +49,18 @@ export function initMermaidFullscreenController() {
 
   let currentData: MermaidFullscreenData | null = null;
   let copyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let frameId: number | null = null;
+  let releaseScroll: (() => void) | null = null;
+  const listeners = new AbortController();
+  const { signal } = listeners;
+
+  const cancelAnimation = () => {
+    if (closeTimeoutId !== null) clearTimeout(closeTimeoutId);
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    closeTimeoutId = null;
+    frameId = null;
+  };
   let scale = 1;
   let translateX = 0;
   let translateY = 0;
@@ -66,18 +78,26 @@ export function initMermaidFullscreenController() {
   };
 
   const close = () => {
+    currentData = null;
+    // Initial null subscriptions never acquired a lock or opened the overlay.
+    if (!releaseScroll) return;
+    cancelAnimation();
     elements.overlay.classList.replace('opacity-100', 'opacity-0');
     elements.content.classList.replace('opacity-100', 'opacity-0');
-    setTimeout(() => {
+    closeTimeoutId = setTimeout(() => {
+      closeTimeoutId = null;
       elements.overlay.dataset.state = 'closed';
       elements.dialog.dataset.state = 'closed';
-      unlockBodyScroll();
+      releaseScroll?.();
+      releaseScroll = null;
       elements.svgContainer.innerHTML = '';
     }, 200);
-    currentData = null;
   };
 
   const open = (data: MermaidFullscreenData) => {
+    // FIXED: Reopening cancels stale close work and keeps one lock per owner.
+    cancelAnimation();
+    releaseScroll ??= lockBodyScroll();
     scale = 1;
     translateX = 0;
     translateY = 0;
@@ -85,8 +105,8 @@ export function initMermaidFullscreenController() {
     elements.svgContainer.innerHTML = data.svg;
     elements.overlay.dataset.state = 'open';
     elements.dialog.dataset.state = 'open';
-    lockBodyScroll();
-    requestAnimationFrame(() => {
+    frameId = requestAnimationFrame(() => {
+      frameId = null;
       elements.overlay.classList.replace('opacity-0', 'opacity-100');
       elements.content.classList.replace('opacity-0', 'opacity-100');
     });
@@ -103,8 +123,9 @@ export function initMermaidFullscreenController() {
 
   const onCopy = async () => {
     if (!currentData) return;
-    const success = await copyToClipboard(currentData.source);
-    if (!success) return;
+    const data = currentData;
+    const success = await copyToClipboard(data.source);
+    if (!success || signal.aborted || currentData !== data) return;
 
     if (copyTimeoutId) clearTimeout(copyTimeoutId);
     elements.copyIcon.classList.add('hidden');
@@ -149,32 +170,51 @@ export function initMermaidFullscreenController() {
       e.key === 'Escape' &&
       mermaidFullscreenData.get() &&
       closeMermaidFullscreen(),
+    { signal },
   );
-  elements.closeBtn.addEventListener('click', () => closeMermaidFullscreen());
+  elements.closeBtn.addEventListener('click', () => closeMermaidFullscreen(), {
+    signal,
+  });
   elements.dialog.addEventListener(
     'click',
     (e) => e.target === elements.dialog && closeMermaidFullscreen(),
+    { signal },
   );
-  elements.copyBtn.addEventListener('click', () => void onCopy());
-  elements.resetBtn.addEventListener('click', () => {
-    scale = 1;
-    translateX = 0;
-    translateY = 0;
-    applyTransform();
+  elements.copyBtn.addEventListener('click', () => void onCopy(), { signal });
+  elements.resetBtn.addEventListener(
+    'click',
+    () => {
+      scale = 1;
+      translateX = 0;
+      translateY = 0;
+      applyTransform();
+    },
+    { signal },
+  );
+  elements.viewport.addEventListener('wheel', onWheel, {
+    passive: false,
+    signal,
   });
-  elements.viewport.addEventListener('wheel', onWheel, { passive: false });
-  elements.viewport.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    isDragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    lastTranslateX = translateX;
-    lastTranslateY = translateY;
-  });
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-  });
+  elements.viewport.addEventListener(
+    'mousedown',
+    (e) => {
+      if (e.button !== 0) return;
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      lastTranslateX = translateX;
+      lastTranslateY = translateY;
+    },
+    { signal },
+  );
+  document.addEventListener('mousemove', onMouseMove, { signal });
+  document.addEventListener(
+    'mouseup',
+    () => {
+      isDragging = false;
+    },
+    { signal },
+  );
   elements.viewport.addEventListener(
     'touchstart',
     (e) => {
@@ -186,7 +226,7 @@ export function initMermaidFullscreenController() {
         initialPinchScale = scale;
       }
     },
-    { passive: false },
+    { passive: false, signal },
   );
   elements.viewport.addEventListener(
     'touchmove',
@@ -202,17 +242,23 @@ export function initMermaidFullscreenController() {
       );
       applyTransform();
     },
-    { passive: false },
+    { passive: false, signal },
   );
 
   const customEventListener = ((e: CustomEvent<MermaidFullscreenData>) => {
     openMermaidFullscreen(e.detail);
   }) as EventListener;
-  window.addEventListener('open-mermaid-fullscreen', customEventListener);
+  window.addEventListener('open-mermaid-fullscreen', customEventListener, {
+    signal,
+  });
 
   return () => {
     if (copyTimeoutId) clearTimeout(copyTimeoutId);
+    cancelAnimation();
+    currentData = null;
+    releaseScroll?.();
+    releaseScroll = null;
+    listeners.abort();
     unsubscribe();
-    window.removeEventListener('open-mermaid-fullscreen', customEventListener);
   };
 }

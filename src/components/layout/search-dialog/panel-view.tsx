@@ -1,7 +1,9 @@
 import { useEffect, useRef, type MouseEvent } from 'react';
+import { SearchContent } from './search-content';
 
 interface SearchDialogPanelViewProps {
   state: 'open' | 'closed';
+  isOpen: boolean;
   overlayClassName: string;
   dialogClassName: string;
   contentClassName: string;
@@ -11,6 +13,7 @@ interface SearchDialogPanelViewProps {
 
 export function SearchDialogPanelView({
   state,
+  isOpen,
   overlayClassName,
   dialogClassName,
   contentClassName,
@@ -108,7 +111,9 @@ export function SearchDialogPanelView({
               <div
                 ref={scrollRef}
                 className="vertical-scrollbar scroll-feather-mask -mx-6 h-[calc(80dvh-140px)] overflow-auto scroll-smooth px-6 pb-10 md:-mx-3 md:h-[calc(80dvh-120px)] md:px-3">
-                <div id="search-dialog-container" />
+                <div id="search-dialog-container">
+                  <SearchContent isOpen={isOpen} />
+                </div>
               </div>
             </div>
             <div className="bg-background/2 absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-4 px-4 pt-2 pb-4 text-xs text-black/50 dark:border-white/10 dark:text-white/50">
