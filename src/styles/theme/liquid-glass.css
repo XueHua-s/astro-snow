@@ -307,7 +307,7 @@ html.theme-transition .glass,
 html.theme-transition .glass-control,
 html.theme-transition .glass-overlay,
 html.theme-transition .glass-hero,
-html.theme-transition #site-header.with-background .site-header-bg {
+html.theme-transition #site-header .site-header-bg {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
@@ -339,7 +339,7 @@ html.theme-transition #site-header.with-background .site-header-bg {
     backdrop-filter: none;
   }
 
-  #site-header.with-background .site-header-bg {
+  #site-header .site-header-bg {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: hsl(var(--glass-tint-hsl) / 0.96);
@@ -383,7 +383,7 @@ html.theme-transition #site-header.with-background .site-header-bg {
     backdrop-filter: none;
   }
 
-  #site-header.with-background .site-header-bg {
+  #site-header .site-header-bg {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: hsl(var(--glass-tint-hsl) / 0.94);
@@ -412,7 +412,7 @@ html.theme-transition #site-header.with-background .site-header-bg {
     backdrop-filter: none;
   }
 
-  #site-header.with-background .site-header-bg {
+  #site-header .site-header-bg {
     background: Canvas;
     border-bottom-color: CanvasText;
     -webkit-backdrop-filter: none;

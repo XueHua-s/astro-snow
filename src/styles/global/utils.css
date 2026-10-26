@@ -34,23 +34,38 @@
 }
 
 @layer components {
+  /* Transparent over the cover; a macOS-Golden-Gate-style liquid glass bar
+     fades in once the page is scrolled (.with-background): gradient tint,
+     strong diffusion blur, top specular highlight and darkened bottom edge. */
   #site-header .site-header-bg {
-    --glass-tint-alpha: 0.45;
     opacity: 0;
-    background:
-      var(--glass-sheen), var(--glass-glow),
-      hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--glass-tint-hsl) / 0.58),
+      hsl(var(--glass-tint-hsl) / 0.44)
+    );
     border-bottom: 1px solid transparent;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.65);
     transition: opacity 0.4s ease;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
   #site-header.with-background .site-header-bg {
     opacity: 1;
-    --glass-tint-alpha: 0.7;
-    border-bottom-color: var(--glass-border);
-    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+    border-bottom-color: hsl(220 30% 10% / 0.12);
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+  }
+  html.dark #site-header .site-header-bg {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--glass-tint-hsl) / 0.62),
+      hsl(var(--glass-tint-hsl) / 0.48)
+    );
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.2);
+  }
+  html.dark #site-header.with-background .site-header-bg {
+    border-bottom-color: hsl(0 0% 0% / 0.45);
   }
   #site-header.with-background {
     @apply text-foreground;
@@ -65,14 +80,6 @@
     @apply bg-foreground;
   }
 
-  @supports not (
-    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-  ) {
-    #site-header.with-background .site-header-bg {
-      background: hsl(var(--glass-tint-hsl) / 0.94);
-    }
-  }
-
   @supports (padding: max(0px)) {
     #site-header {
       transition:
@@ -84,8 +91,8 @@
 
   @media (max-width: 768px) {
     #site-header.with-background .site-header-bg {
-      -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05);
-      backdrop-filter: blur(16px) saturate(180%) brightness(1.05);
+      -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+      backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
     }
   }
 }

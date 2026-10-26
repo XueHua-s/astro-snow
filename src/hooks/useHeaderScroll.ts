@@ -147,7 +147,8 @@ const useHeaderScroll = () => {
     mobileMenuRef.current = document.getElementById('mobile-menu-container');
 
     if (siteHeaderRef.current) {
-      siteHeaderRef.current.style.transition = 'transform 0.3s ease';
+      siteHeaderRef.current.style.transition =
+        'transform 0.3s ease, color 0.6s ease-in-out';
       siteHeaderRef.current.style.willChange = 'transform';
     }
 
