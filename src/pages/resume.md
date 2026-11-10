@@ -6,7 +6,9 @@ description: 'snow 的公开简历：React / TypeScript 前端、全栈开发、
 
 # snow
 
-**前端 / 全栈工程师 · React / TypeScript**
+**React / TypeScript 前端工程师 · 文档应用 / Electron 跨端 / AI 工具链**
+
+简历更新：2026 年 11 月
 
 工作经验：4 年以上（2022.03 起）  
 意向城市：苏州 / 上海 / 武汉  
@@ -16,14 +18,14 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 
 ## 职业概述 / Professional Summary
 
-4 年以上开发经验，以 React / TypeScript 为主栈，参与 Doc2X 文档解析、AI 翻译、国际站与 Electron 桌面端研发。关注复杂文档渲染、异步任务状态一致性和跨端资源管理，具备服务端、数据库、权限控制与部署实践。向 office-open-xml-viewer、Naive UI 等开源项目贡献已合并代码，并持续建设 CLI、MCP 与 Agent Skills 工具链。
+4 年以上开发经验，以 React / TypeScript 为主栈，负责 Doc2X 文档解析、AI 翻译、国际站与 Electron 桌面端研发。专注文档渲染、异步任务状态一致性、跨端资源管理和 AI 开发者工具，具备服务端、数据库、权限控制与部署实践。向 Cherry Studio、office-open-xml-viewer、Naive UI、moe-copy-ai、node-unzipper 等开源项目贡献已合并代码，并持续建设 CLI、MCP 与 Agent Skills 工具链。
 
 ## 核心技能 / Skills
 
-- **前端与交互**：React、TypeScript、JavaScript、Vue、Zustand、Pinia、Canvas、IndexedDB、i18next、ECharts、Cesium；具备文档预览、图层编辑、多语言与复杂业务系统开发经验。
+- **前端与交互**：React、TypeScript、JavaScript、Vue、Zustand、Pinia、Canvas、IndexedDB；具备文档预览、图层编辑、多语言与复杂 B 端系统开发经验。
 - **桌面与文档处理**：Electron、Rust、WASM、NAPI-RS、Web Worker / Worker Pool、OOXML、PDFium；涉及 Markdown / 公式渲染、Office 预览与 PDF / PPTX 导出。
-- **服务端与数据**：Node.js / Bun、Hono、NestJS、Elysia、Actix-Web、PostgreSQL / MySQL、Drizzle / SQLx、Redis / BullMQ、pgvector；具备数据建模、权限设计、任务队列与向量检索实践。
-- **工程化与交付**：Vite、Tsup、pnpm、Nx、Turbo、Changesets、monorepo、Vitest、Playwright、CI/CD、Docker、Nginx、Linux；维护共享 SDK、npm 包与跨端构建发布流程。
+- **服务端与数据**：Node.js / Bun、Hono、NestJS、Actix-Web、PostgreSQL / MySQL、Drizzle / SQLx、Redis / BullMQ、pgvector；具备数据建模、权限设计、任务队列与向量检索实践。
+- **工程化与交付**：Vite、Tsup、pnpm、Nx、Turbo、monorepo、Vitest、Playwright、CI/CD、Docker、Nginx、Linux；维护共享 SDK、npm 包与跨端构建发布流程。
 - **AI 工具与编排**：MCP、OAuth / PKCE、Agent Skills；使用 Superset、Codex、ChatGPT、Claude / Claude Code 辅助开发，具备 Agent Harness 外围设计、上下文管理与 n8n 工作流设计经验。
 
 ## 工作经历 / Work Experience
@@ -32,10 +34,11 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 
 2024.04 - 2026.10
 
-- 负责 Doc2X / DocCopilot 的文档解析、AI 翻译、对话、画板与导出模块，参与国际站、Electron 桌面端、SDK 及共享库建设。
-- 维护异步任务、跨端通信、构建发布与回归测试，处理任务取消、历史恢复、账户隔离和导出状态等问题。
-- 参与文档渲染与 Rust 跨端处理能力建设，维护 MCP、CLI、Agent Skills 与 Zotero 插件等工具生态。
-- 与产品、后端及算法团队协作，完成需求拆解、接口联调与持续交付。
+- 负责 Doc2X / DocCopilot 的文档解析、AI 翻译、对话、画板与导出模块，落地国际站、Electron 桌面端、SDK 及共享库能力。
+- 设计并维护异步任务、跨端通信、构建发布与回归测试，解决任务取消、历史恢复、账户隔离和导出状态一致性问题。
+- 负责文档渲染与 Rust 跨端处理能力建设，维护 MCP、CLI、Agent Skills 与 Zotero 插件等工具生态。
+- 负责内部 monorepo 的 Nx 多构建项目架构，组织多应用构建与依赖关系；使用 Turbo 组织内部工具包，开发 npm 包工具并沉淀跨项目复用的构建、发布与开发流程。
+- 与产品、后端及算法团队协作，完成方案拆解、接口设计、联调与持续交付。
 
 ### 苏州奔雷云信息科技有限公司（外包派遣公司） | 前端开发工程师
 
@@ -79,11 +82,14 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 - **Rust 处理引擎**：以同一核心适配浏览器 WASM 与 Node.js / Electron N-API，完成原始图像提取、区域回退渲染和导出资源替换。
 - **资源治理**：将计算密集任务移出主线程，对归档、像素与输出设置上限，通过并发互斥和背压限制资源占用，并补充跨端回归测试。
 - **Markdown 渲染**：基于 unified 组织解析与 AST 插件，支持 MathJax / Temml 公式渲染，处理表格、特殊字符及 HTML 导出兼容问题，通过 Worker Pool 分担解析与公式计算。
-- **桌面与复用**：维护 Electron IPC / 文件系统桥接、批量任务暂停恢复及发布流程，通过共享 SDK 与 monorepo 复用 Web、国际站和桌面端能力。
+- **桌面与复用**：维护 Electron IPC / 文件系统桥接、批量任务暂停恢复及发布流程，通过 Nx 组织多构建项目，使用 Turbo 管理内部工具包，共享 SDK 并复用 Web、国际站和桌面端能力。
 
 ### Doc2X | MCP 与开发者工具
 
-项目类型：商业项目 · MCP / CLI / Agent Skills  
+项目类型：商业项目 · MCP / CLI / Agent Skills
+
+项目仓库：[NoEdgeAI/doc2x-mcp](https://github.com/NoEdgeAI/doc2x-mcp) · [NoEdgeAI/doc2x-cli-skills](https://github.com/NoEdgeAI/doc2x-cli-skills)
+任职期间公开协作：[CLI Skills PR #1](https://github.com/NoEdgeAI/doc2x-cli-skills/pull/1) · [#7](https://github.com/NoEdgeAI/doc2x-cli-skills/pull/7) · [#8](https://github.com/NoEdgeAI/doc2x-cli-skills/pull/8)
 技术栈：TypeScript、Node.js、MCP、Streamable HTTP、OAuth / PKCE、Doc2X SDK、Vitest、Docker  
 进展：远端 MCP / OAuth 接入迭代中
 
@@ -92,9 +98,9 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 - **CLI 工具链**：维护 `@noedgeai/doc2x-cli`，支持解析、翻译、批量处理、术语表、JSON 输出与标准退出码；处理 client session 复用、OAuth 登录、串行批处理和失败报告。
 - **Agent Skills**：组织命令参考、任务限制、错误处理与安装说明，约束 Agent 的批量执行方式，避免触发服务端并发任务限制；维护插件发布与 Docker 部署文档。
 
-### Agent Harness / n8n | 编排方案设计
+### Agent Harness / n8n | 编排技术预研
 
-项目性质：方案设计与探索
+项目性质：技术预研与架构方案，未作为独立生产项目交付
 
 - **Harness 外围设计**：围绕中心 Agent 组织工具、Skills 与子 Agent，设计动态任务拆分与调用、上下文压缩及历史信息检索。
 - **n8n 工作流设计**：规划多模型分工与并行 Agent 协作，将 n8n 封装为内部编排层，统一承接用户任务。
@@ -117,6 +123,14 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 
 ## 开源贡献与个人作品 / Open Source
 
+> GitHub 贡献记录核验于 2026-11-10。以下列出已合并的代表性 PR；个人仓库中的持续维护与发布也一并列出。
+
+### Cherry Studio
+
+已合并上游 PR：[\#23831](https://github.com/CherryHQ/cherry-studio/pull/23831)
+
+- 升级 Doc2X 文件处理器至 v3-2026，接入结构化版式支持，改善文档处理链路。
+
 ### office-open-xml-viewer
 
 已合并 PR：[#1425](https://github.com/yukiyokotani/office-open-xml-viewer/pull/1425) · [#1437](https://github.com/yukiyokotani/office-open-xml-viewer/pull/1437)
@@ -129,12 +143,6 @@ GitHub：[XueHua-s](https://github.com/XueHua-s)
 
 - 为 NSplit 增加受控尺寸能力，支持通过 props 控制分割区域大小。
 - 为 NFormItem 增加校验反馈位置配置，支持反馈文案的上下位置与水平对齐。
-
-### vue-markdown-next
-
-已合并 PR：[#10](https://github.com/UnboundedWeb/vue-markdown-next/pull/10) · [#12](https://github.com/UnboundedWeb/vue-markdown-next/pull/12)
-
-- 修复 Vite Worker 路径与兼容接口，实现流式 Markdown、不完整内容修复和未变化块复用。
 
 ### moe-copy-ai
 
