@@ -29,9 +29,9 @@ const layoutFooterData = await getLayoutFooterData();
     <LayoutFooter slot="footer" {...layoutFooterData} />
     <div
       class={`glass glass-panel mx-0 flex w-full flex-col gap-8 ${CONTENT_PADDING.standard}`}
-      data-glass-panel
-    >
-      <div class="prose md:prose-sm dark:prose-invert custom-content">
+      data-glass-panel>
+      <div
+        class="about-content prose md:prose-sm dark:prose-invert custom-content">
         <slot />
       </div>
       <CustomContentEnhancer client:idle config={defaultContentConfig} />
@@ -39,3 +39,34 @@ const layoutFooterData = await getLayoutFooterData();
     </div>
   </TwoColumnLayout>
 </Layout>
+
+<style is="global">
+  .about-content table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .about-content table td {
+    width: 50%;
+    padding: 0.5rem;
+    vertical-align: top;
+  }
+
+  .about-content table .markdown-image-wrapper {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .about-content table,
+    .about-content table tbody,
+    .about-content table tr,
+    .about-content table td {
+      display: block;
+      width: 100%;
+    }
+
+    .about-content table td {
+      padding: 0.5rem 0;
+    }
+  }
+</style>

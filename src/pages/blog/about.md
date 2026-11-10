@@ -5,26 +5,28 @@ date: 2025-12-28 13:41:46
 description: '关于我？'
 ---
 
-## 👋 你好，这里是萌新前端老登 LittleSnow
+## 👋 你好，这里是 LittleSnow
 
 [![github badge](https://img.shields.io/badge/dynamic/json?color=blue&label=Github&query=%24.data.totalSubs&url=https%3A%2F%2Fapi.spencerwoo.com%2Fsubstats%2F%3Fsource%3Dgithub%26queryKey%3DXueHua-s)](https://github.com/XueHua-s)
 
-一个**喜欢折腾、写小工具、偶尔写点没用但开心的代码**的前端。
+一个专注 **React / TypeScript、文档工作流、Electron 与 AI 开发者工具**的前端 / 全栈工程师。
 
-🧑‍💻 **2022 年 3 月**正式开始前端打工人生。
+🧑‍💻 **2022 年 3 月**正式开始前端打工人生，目前处于职业过渡期，开放前端、全栈与 Electron 方向机会。
+
+📍 工作首选地点：**上海 / 苏州**
 
 ---
 
 ## 🧠 技术取向 & 偏好
 
 - **偏爱的语言**：  
-  TypeScript / Rust / ReScript（_后者纯属自嗨，生产环境暂不敢_）
+  TypeScript / Rust / JavaScript / ReScript（_后者纯属自嗨，生产环境暂不敢_）
 
 - **框架倾向**：
   - Vue（但现在主要在写 React  
     V3 Template 语法记不太清，也不太爱用  
     👉 **JSX 一把梭，前端非主流就是我 😎**）
-  - Tauri（想用，但现实在写 Electron……悲 😭）
+  - Electron / Tauri（目前主要在写 Electron，也持续关注跨端开发）
 
 ---
 
@@ -34,10 +36,10 @@ description: '关于我？'
   React / Electron / Tauri / Zustand
 
 - **后端 / 工具链**  
-  NestJS / Actix-Web / SQLite / mupdf
+  Node.js / Bun / NestJS / Actix-Web / PostgreSQL / Redis / SQLite / mupdf / MCP
 
 - **构建 & 打包**  
-  Vite / Tsup
+  Vite / Tsup / Docker
 
 - **文本 & Markdown 相关**  
   非常熟悉 **unified 工具链**  
@@ -84,15 +86,16 @@ description: '关于我？'
 
 ## 📊 GitHub Stats
 
-![GitHub Stats](https://github-readme.xhblog.top/api?username=XueHua-s&show_icons=true&theme=calm&include_all_commits=true&count_private=true&include_orgs=true)
+![GitHub Stats](https://github-readme.xhblog.top/api?username=XueHua-s&show_icons=true&theme=calm&count_private=true&include_orgs=true)
 
 ## 🧠 Top Languages
 
 ![Top Languages](https://github-readme.xhblog.top/api/top-langs?username=XueHua-s&layout=compact&langs_count=8&theme=calm)
 
-## 📌 Participation in projects
+## 📌 Featured Repositories
 
-![Repo Card](https://github-readme.xhblog.top/api/pin?username=yusixian&repo=moe-copy-ai&theme=calm)
-![Repo Card](https://github-readme.xhblog.top/api/pin?username=tusen-ai&repo=naive-ui&theme=calm)
-![Repo Card](https://github-readme.xhblog.top/api/pin?username=XueHua-s&repo=fast-md5-web&theme=calm)
-![Repo Card](https://github-readme.xhblog.top/api/pin?username=UnboundedWeb&repo=vue-markdown-next&theme=calm)
+|                                                                                                                                                            |                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ![Cherry Studio](https://github-readme.xhblog.top/api/pin?username=CherryHQ&repo=cherry-studio&theme=calm&description_lines_count=3)                       | ![Naive UI](https://github-readme.xhblog.top/api/pin?username=tusen-ai&repo=naive-ui&theme=calm&description_lines_count=3)           |
+| ![office-open-xml-viewer](https://github-readme.xhblog.top/api/pin?username=yukiyokotani&repo=office-open-xml-viewer&theme=calm&description_lines_count=3) | ![node-unzipper](https://github-readme.xhblog.top/api/pin?username=ZJONSSON&repo=node-unzipper&theme=calm&description_lines_count=3) |
+| ![moe-copy-ai](https://github-readme.xhblog.top/api/pin?username=yusixian&repo=moe-copy-ai&theme=calm&description_lines_count=3)                           | ![fast-md5-web](https://github-readme.xhblog.top/api/pin?username=XueHua-s&repo=fast-md5-web&theme=calm&description_lines_count=3)   |

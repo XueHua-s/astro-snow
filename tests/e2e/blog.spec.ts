@@ -192,8 +192,12 @@ test.describe('Blog e2e regression suite', () => {
 
     await expect(page.getByRole('heading', { name: 'Skills' })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: '📌 Participation in projects' }),
+      page.getByRole('heading', { name: '📌 Featured Repositories' }),
     ).toBeVisible();
+
+    const repoRows = page.locator('.about-content table tbody tr');
+    await expect(repoRows).toHaveCount(3);
+    await expect(repoRows.nth(0).locator('td')).toHaveCount(2);
 
     await expect
       .poll(

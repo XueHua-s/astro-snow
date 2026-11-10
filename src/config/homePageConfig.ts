@@ -1,11 +1,11 @@
 // Home / BlogIndex Config
 export const homePageProfile = {
-  name: 'Snow',
+  name: 'LittleSnow',
   tagline: '“爬起仅仅只是因为不想输。”',
   avatarUrl: '/img/724d7fb480c8ac0db472ca5c7e36d239.jpg',
   avatarAlt: 'SnowAvatar',
   backgroundUrl: '/img/site_header_1920.webp',
-  footerText: '© Snowの小窝 - 2022-2025',
+  footerText: '© Snowの小窝 - 2022-2026',
 };
 
 export const homePageLinks = {

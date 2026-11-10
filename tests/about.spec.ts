@@ -14,10 +14,10 @@ describe('about markdown content', () => {
     expect(html).toContain('<h2>Skills</h2>');
     expect(html).toContain('<h2>📊 GitHub Stats</h2>');
     expect(html).toContain('<h2>🧠 Top Languages</h2>');
-    expect(html).toContain('<h2>📌 Participation in projects</h2>');
+    expect(html).toContain('<h2>📌 Featured Repositories</h2>');
 
     const repoCardMatches =
       html.match(/https:\/\/github-readme\.xhblog\.top\/api\/pin\?/g) ?? [];
-    expect(repoCardMatches).toHaveLength(4);
+    expect(repoCardMatches).toHaveLength(6);
   });
 });
