@@ -11,7 +11,7 @@ description: 'snow 的公开简历：React / TypeScript 前端、全栈开发、
 简历更新：2026 年 11 月
 
 工作经验：4 年以上（2022.03 起）  
-意向城市：苏州 / 上海 / 武汉  
+意向城市：上海 / 苏州  
 求职方向：React Web 前端 / 全栈开发 / Electron 桌面端开发  
 邮箱：[xuehualjx@gmail.com](mailto:xuehualjx@gmail.com)  
 GitHub：[XueHua-s](https://github.com/XueHua-s)
