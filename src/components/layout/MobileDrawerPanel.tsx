@@ -56,7 +56,10 @@ export function MobileDrawerPanel({ children }: MobileDrawerPanelProps) {
     <>
       <div
         id="drawer-overlay"
-        className={cn('fixed inset-0 z-[60] bg-black/50', !isOpen && 'hidden')}
+        className={cn(
+          'glass-scrim fixed inset-0 z-[60] bg-black/50',
+          !isOpen && 'hidden',
+        )}
         role="presentation"
         aria-hidden={!isOpen}
         onClick={closeDrawer}

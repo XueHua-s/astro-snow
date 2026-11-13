@@ -91,7 +91,7 @@ export default function FriendCard({ friend, index }: FriendCardProps) {
           rotateY,
         }}>
         {/* Inner Card Container */}
-        <div className="relative h-full w-full overflow-hidden rounded-xl bg-white/30 dark:bg-black/20">
+        <div className="glass-tint relative h-full w-full overflow-hidden rounded-xl">
           {/* Background Image / Color */}
           <div
             className="absolute inset-0 h-16 w-full"
@@ -102,7 +102,7 @@ export default function FriendCard({ friend, index }: FriendCardProps) {
 
           {/* Avatar */}
           <div className="absolute top-8 left-1/2 -translate-x-1/2">
-            <div className="relative h-14 w-14 overflow-hidden rounded-full border-4 border-white/70 bg-white/50 shadow-lg dark:border-black/40 dark:bg-black/30">
+            <div className="relative h-14 w-14 overflow-hidden rounded-full border-4 border-[var(--glass-border)] bg-[hsl(var(--glass-tint-hsl)/0.5)]">
               <img
                 src={avatarImage}
                 alt={friend.owner}

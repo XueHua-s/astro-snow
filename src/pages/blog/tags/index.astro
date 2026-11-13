@@ -44,7 +44,7 @@ const sortedTags = getSortedTagsWithCount(posts);
               {/* 防止闪烁 */}
               <a
                 href={`${Routes.Tags}/${toTagParam(name)}`}
-                class={`group relative flex items-center rounded-lg bg-gradient-to-r px-3 py-1.5 text-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg ${
+                class={`group relative flex items-center rounded-lg bg-gradient-to-r px-3 py-1.5 text-sm transition-all duration-300 group-hover:-translate-y-0.5 ${
                   TAG_COLORS[index % TAG_COLORS.length]
                 }`}
               >

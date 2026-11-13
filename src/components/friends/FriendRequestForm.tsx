@@ -171,7 +171,7 @@ export default function FriendRequestForm() {
             </div>
           </div>
 
-          <div className="relative flex flex-col justify-center rounded-xl bg-white/30 p-5 md:p-3 dark:bg-black/20">
+          <div className="glass-tint relative flex flex-col justify-center rounded-xl p-5 md:p-3">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold tracking-wider uppercase">
                 配置预览

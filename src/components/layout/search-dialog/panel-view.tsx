@@ -87,7 +87,7 @@ export function SearchDialogPanelView({
                 </h2>
                 <button
                   id="search-dialog-close"
-                  className="flex size-8 items-center justify-center rounded-full bg-[hsl(var(--glass-surface-hsl)/0.08)] transition-colors duration-300 hover:bg-[hsl(var(--glass-surface-hsl)/0.14)] md:size-7"
+                  className="glass-tint flex size-8 items-center justify-center rounded-full transition-colors duration-300 hover:bg-[hsl(var(--glass-surface-hsl)/0.14)] md:size-7"
                   aria-label="关闭搜索"
                   onClick={onDialogClose}>
                   <i
@@ -102,7 +102,7 @@ export function SearchDialogPanelView({
                 <p>输入关键词搜索博客文章</p>
                 <p className="mt-1 text-xs">
                   按{' '}
-                  <kbd className="rounded bg-[hsl(var(--glass-surface-hsl)/0.08)] px-1.5 py-0.5 font-mono">
+                  <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono">
                     ESC
                   </kbd>{' '}
                   关闭
@@ -116,15 +116,24 @@ export function SearchDialogPanelView({
                 </div>
               </div>
             </div>
-            <div className="bg-background/2 absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-4 px-4 pt-2 pb-4 text-xs text-black/50 dark:border-white/10 dark:text-white/50">
+            <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-4 px-4 pt-2 pb-4 text-xs text-muted-foreground/70">
               <span>
-                <kbd className="kbd">↑↓</kbd> 选择
+                <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono text-[0.7rem]">
+                  ↑↓
+                </kbd>{' '}
+                选择
               </span>
               <span>
-                <kbd className="kbd">Enter</kbd> 打开
+                <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono text-[0.7rem]">
+                  Enter
+                </kbd>{' '}
+                打开
               </span>
               <span>
-                <kbd className="kbd">ESC</kbd> 关闭
+                <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono text-[0.7rem]">
+                  ESC
+                </kbd>{' '}
+                关闭
               </span>
             </div>
           </div>

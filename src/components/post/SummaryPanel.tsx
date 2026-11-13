@@ -91,9 +91,9 @@ export function SummaryPanel({
         <button
           onClick={handleToggle}
           className={cn(
-            'flex w-full cursor-pointer items-center justify-between px-4 py-3 transition-colors duration-250',
-            'bg-[hsl(var(--glass-surface-hsl)/0.06)] hover:bg-[hsl(var(--glass-surface-hsl)/0.1)]',
-            isExpanded && 'bg-[hsl(var(--glass-surface-hsl)/0.08)]',
+            'glass-tint flex w-full cursor-pointer items-center justify-between px-4 py-3 transition-colors duration-250',
+            'hover:bg-[hsl(var(--glass-surface-hsl)/0.12)]',
+            isExpanded && 'bg-[hsl(var(--glass-surface-hsl)/0.12)]',
           )}
           aria-expanded={isExpanded}
           aria-controls="summary-panel-content">

@@ -31,7 +31,7 @@ export default function RelatedPostList({
               <a
                 key={post.id}
                 href={getPostHref(post, postIndexMap)}
-                className="group hover:text-primary hover:bg-foreground/5 flex gap-3 rounded-md p-2 text-sm transition-colors duration-300">
+                className="material-row group flex gap-3 rounded-md p-2 text-sm hover:text-primary">
                 <span className="text-foreground/30 shrink-0 font-mono">
                   {index + (hasRelatedPosts ? 1 : 6)}
                 </span>
