@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
 import type { Router } from '@constants/router';
 import { Routes, isRoutePathActive } from '@constants/router';
 import { cn } from '@lib/utils';
@@ -35,12 +35,12 @@ export function HomeInfoPanel({
   const lqipGradient = useMemo(() => getLqipGradient(avatar), [avatar]);
   const currentPathname = useCurrentPathname(currentPath);
 
-  const toggleExpanded = (id: string) => {
+  const toggleExpanded = useCallback((id: string) => {
     setExpandedIds((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
-  };
+  }, []);
 
   return (
     <div className={cn('flex flex-col items-center', className)}>

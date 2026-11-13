@@ -17,16 +17,16 @@ const DropdownNavComponent = ({
   currentPath,
 }: DropdownNavProps) => {
   const { isOpen, setIsOpen } = useToggle({ defaultOpen: false });
-  const { name, icon, children } = item;
-  const hasActiveChild = children?.some((child) =>
+  const { name, icon } = item;
+  const hasActiveChild = item.children?.some((child) =>
     isRoutePathActive(child.path, currentPath),
   );
 
   const renderDropdownContent = useCallback(
     () => (
       <div className="nav-dropdown flex flex-col items-stretch p-1">
-        {children?.length
-          ? children.map((child: Router) => {
+        {item.children?.length
+          ? item.children.map((child: Router) => {
               const isActive = isRoutePathActive(child.path, currentPath);
 
               return (
@@ -51,7 +51,9 @@ const DropdownNavComponent = ({
           : null}
       </div>
     ),
-    [children, currentPath],
+    // item is a stable reference from the static `routers` constant; use it
+    // as the dep instead of item.children to avoid an always-new array dep.
+    [item, currentPath],
   );
 
   return (

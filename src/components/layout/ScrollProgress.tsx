@@ -29,7 +29,7 @@ export function ScrollProgress({ className }: ScrollProgressProps) {
 
     updateProgress();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onScroll, { passive: true });
 
     return () => {
       if (frameId !== null) {

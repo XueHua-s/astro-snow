@@ -68,37 +68,34 @@ export function useHeadingClickHandler({
 
       if (parentIds.length === 0) return;
 
+      // Pre-compute the tree walks BEFORE the setState updater so the
+      // reconciliation phase stays synchronous and free of O(n) traversals.
+      const parentsByLevel: { [level: number]: string[] } = {};
+      const siblingsByParent: { parentId: string; siblingIds: string[] }[] = [];
+
+      parentIds.forEach((parentId) => {
+        const parentHeading = findHeadingById(headings, parentId);
+        if (!parentHeading) return;
+        if (!parentsByLevel[parentHeading.level]) {
+          parentsByLevel[parentHeading.level] = [];
+        }
+        parentsByLevel[parentHeading.level].push(parentId);
+        siblingsByParent.push({
+          parentId,
+          siblingIds: getSiblingIds(parentHeading, headings),
+        });
+      });
+
       setExpandedIds((prev) => {
         const newSet = new Set(prev);
 
-        // 按层级分组父节点，实现手风琴效果
-        const parentsByLevel: { [level: number]: string[] } = {};
-
-        parentIds.forEach((parentId) => {
-          const parentHeading = findHeadingById(headings, parentId);
-          if (parentHeading) {
-            if (!parentsByLevel[parentHeading.level]) {
-              parentsByLevel[parentHeading.level] = [];
-            }
-            parentsByLevel[parentHeading.level].push(parentId);
-          }
-        });
-
         // 对每个层级，关闭同级兄弟节点，展开当前路径上的节点
-        Object.keys(parentsByLevel).forEach((levelStr) => {
-          const level = parseInt(levelStr, 10);
-          const parentsAtLevel = parentsByLevel[level];
-
+        Object.values(parentsByLevel).forEach((parentsAtLevel) => {
           parentsAtLevel.forEach((parentId) => {
-            const parentHeading = findHeadingById(headings, parentId);
-            if (parentHeading) {
-              // 关闭同级兄弟节点
-              const siblingIds = getSiblingIds(parentHeading, headings);
-              siblingIds.forEach((siblingId) => newSet.delete(siblingId));
-
-              // 展开当前节点
-              newSet.add(parentId);
-            }
+            const entry = siblingsByParent.find((s) => s.parentId === parentId);
+            if (!entry) return;
+            entry.siblingIds.forEach((siblingId) => newSet.delete(siblingId));
+            newSet.add(parentId);
           });
         });
 

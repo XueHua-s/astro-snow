@@ -42,6 +42,9 @@ function createActiveHeadingStore(offsetTop: number) {
   const listeners = new Set<() => void>();
   let observer: IntersectionObserver | null = null;
   const visibleHeadings = new Map<string, number>(); // id -> top position when intersecting
+  // Pending rAF ids scheduled by setupObserver; cancelled on teardown so
+  // they cannot write to activeId after all subscribers are gone.
+  const pendingRafs = new Set<number>();
 
   const notifyListeners = () => {
     listeners.forEach((listener) => listener());
@@ -114,7 +117,11 @@ function createActiveHeadingStore(offsetTop: number) {
     if (headings.length > 0 && visibleHeadings.size === 0) {
       // If no heading is intersecting, find the last heading above the viewport
       // Use requestAnimationFrame to batch read operations
-      requestAnimationFrame(() => {
+      const rafId = requestAnimationFrame(() => {
+        // Guard against teardown between scheduling and firing: if the
+        // observer was disconnected while we were waiting for the frame,
+        // skip the stale write to avoid notifying unmounted subscribers.
+        if (!observer) return;
         const headingArray = Array.from(headings);
         for (let i = headingArray.length - 1; i >= 0; i--) {
           const heading = headingArray[i];
@@ -128,6 +135,8 @@ function createActiveHeadingStore(offsetTop: number) {
           }
         }
       });
+      // Ensure the RAF does not fire after the observer is torn down.
+      pendingRafs.add(rafId);
     }
   };
 
@@ -165,6 +174,10 @@ function createActiveHeadingStore(offsetTop: number) {
             observer.disconnect();
             observer = null;
           }
+          // Cancel any pending rAFs so they cannot write to activeId
+          // after the store has been torn down.
+          pendingRafs.forEach((id) => cancelAnimationFrame(id));
+          pendingRafs.clear();
           document.removeEventListener('astro:page-load', handlePageLoad);
           visibleHeadings.clear();
         }

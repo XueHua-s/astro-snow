@@ -2,7 +2,8 @@ import { useStore } from '@nanostores/react';
 import { useEventListener, useLatest } from '@reactuses/core';
 import { closeSearch, openSearch, searchOpen } from '@store/ui';
 import { lockBodyScroll } from '@lib/body-scroll-lock';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { cn } from '@lib/utils';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchSelection } from './search-dialog/use-search-selection';
 import { SearchDialogPanelView } from './search-dialog/panel-view';
 
@@ -148,8 +149,18 @@ export default function SearchDialogPanel() {
             ? focused
             : document.getElementById('search-trigger');
       }
+      // Acquire scroll lock atomically: swap in a sentinel first so a
+      // second concurrent render path cannot also call lockBodyScroll().
       if (!scrollReleaseRef.current) {
-        scrollReleaseRef.current = lockBodyScroll();
+        const sentinel = () => {};
+        scrollReleaseRef.current = sentinel;
+        const release = lockBodyScroll();
+        // Only store the real release if we're still the owner
+        if (scrollReleaseRef.current === sentinel) {
+          scrollReleaseRef.current = release;
+        } else {
+          release();
+        }
       }
       focusPendingRef.current = true;
       frameRef.current = requestAnimationFrame(() => {
@@ -219,28 +230,20 @@ export default function SearchDialogPanel() {
     };
   }, [releaseScrollLock]);
 
-  const overlayClassName = useMemo(
-    () =>
-      `fixed inset-0 z-40 bg-black/50 glass-scrim transition-opacity duration-200 ${
-        active ? 'opacity-100' : 'opacity-0'
-      } ${state === 'closed' ? 'hidden' : ''}`,
-    [active, state],
+  const overlayClassName = cn(
+    'fixed inset-0 z-40 bg-black/50 glass-scrim transition-opacity duration-200',
+    active ? 'opacity-100' : 'opacity-0',
+    state === 'closed' && 'hidden',
   );
 
-  const dialogClassName = useMemo(
-    () =>
-      `fixed inset-0 z-50 grid place-items-center px-4 ${
-        state === 'closed' ? 'hidden' : ''
-      }`,
-    [state],
+  const dialogClassName = cn(
+    'fixed inset-0 z-50 grid place-items-center px-4',
+    state === 'closed' && 'hidden',
   );
 
-  const contentClassName = useMemo(
-    () =>
-      `glass glass-overlay w-full max-w-3xl overflow-auto transition-[opacity,transform] duration-200 ${
-        active ? 'opacity-100' : 'opacity-0'
-      }`,
-    [active],
+  const contentClassName = cn(
+    'glass glass-overlay w-full max-w-3xl overflow-auto transition-[opacity,transform] duration-200',
+    active ? 'opacity-100' : 'opacity-0',
   );
 
   return (

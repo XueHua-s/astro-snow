@@ -10,5 +10,13 @@ export const getSanitizeHtml = (html: string) => {
         '',
       ),
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      // Restrict img src to safe protocols only \u2014 prevents javascript: URI injection
+      img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
+    },
+    allowedSchemesByTag: {
+      img: ['http', 'https', 'data'],
+    },
   });
 };

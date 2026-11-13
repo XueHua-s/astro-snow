@@ -14,12 +14,12 @@ export function useCurrentPathname(initialPath?: string) {
   );
 
   const syncPathname = useCallback(() => {
-    const nextPathname =
-      getBrowserPathname() || normalizeRoutePath(initialPath) || '/';
+    // Re-use the already-normalised initial path instead of re-computing it.
+    const nextPathname = getBrowserPathname() || normalizedInitialPath || '/';
     setPathname((currentPathname) =>
       currentPathname === nextPathname ? currentPathname : nextPathname,
     );
-  }, [initialPath]);
+  }, [normalizedInitialPath]);
 
   const documentTarget = useCallback(
     () => (typeof document === 'undefined' ? null : document),

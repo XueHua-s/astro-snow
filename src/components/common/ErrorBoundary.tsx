@@ -1,5 +1,3 @@
-'use client';
-
 import type { ComponentProps, FC, PropsWithChildren } from 'react';
 import {
   ErrorBoundary as ErrorBoundaryLib,
@@ -32,7 +30,9 @@ export const ErrorBoundary: FC<ErrorBoundaryProps> = ({
   resetKeys,
 }) => {
   const handleError = (error: Error, info: React.ErrorInfo) => {
-    console.error('[ErrorBoundary]', error, info);
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary]', error, info);
+    }
     onError?.(error, info);
   };
 

@@ -24,7 +24,7 @@
  * ```
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface UseToggleOptions {
   /** Controlled open state */
@@ -66,6 +66,13 @@ export function useToggle(options: UseToggleOptions = {}): UseToggleReturn {
   // Use controlled state if provided, otherwise use internal state
   const isOpen = isControlled ? controlledOpen : internalOpen;
 
+  // Keep a ref in sync (via effect, not during render) so toggle() can read
+  // the latest value without closing over a stale snapshot.
+  const isOpenRef = useRef(isOpen);
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  });
+
   /**
    * Set open state (works for both controlled and uncontrolled)
    */
@@ -83,11 +90,14 @@ export function useToggle(options: UseToggleOptions = {}): UseToggleReturn {
   );
 
   /**
-   * Toggle between open and closed
+   * Toggle between open and closed.
+   * Reads from `isOpenRef` so two rapid calls do not both see the same stale
+   * snapshot — the ref is updated every render, keeping `setIsOpen` as the
+   * only stable dependency.
    */
   const toggle = useCallback(() => {
-    setIsOpen(!isOpen);
-  }, [isOpen, setIsOpen]);
+    setIsOpen(!isOpenRef.current);
+  }, [setIsOpen]);
 
   /**
    * Set to open state

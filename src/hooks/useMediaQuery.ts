@@ -1,10 +1,15 @@
 import { useMediaQuery as useCoreMediaQuery } from '@reactuses/core';
 
 /**
- * Hook for media query matching
+ * Thin project-scoped wrapper around `@reactuses/core`'s `useMediaQuery`.
+ * Returns `false` as the SSR/server snapshot, which prevents hydration
+ * mismatches on queries that cannot be evaluated server-side.
  *
- * @param query - Media query string (e.g., "(max-width: 768px)")
- * @returns Whether the media query matches
+ * Prefer the named variants below (`useIsMobile`, `useIsTablet`, etc.) for
+ * the breakpoints already defined in the design system.
+ *
+ * @param query - A valid CSS media query string, e.g. "(max-width: 768px)"
+ * @returns `true` while the query matches; `false` otherwise (including SSR)
  */
 export function useMediaQuery(query: string): boolean {
   return useCoreMediaQuery(query, false);
