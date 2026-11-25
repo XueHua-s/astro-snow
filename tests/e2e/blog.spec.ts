@@ -91,6 +91,8 @@ test.describe('Blog e2e regression suite', () => {
     await expect(
       page.locator('a[aria-label="post-link"]').first(),
     ).toBeVisible();
+    const category = page.locator('.glass-card a:has(.fa-flag)').first();
+    await expect(category).toHaveCSS('column-gap', '6px');
     await page.waitForTimeout(1200);
 
     runtime.assertClean();

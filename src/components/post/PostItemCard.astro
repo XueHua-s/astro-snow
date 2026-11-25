@@ -92,9 +92,9 @@ const lqipProps = getLqipProps(finalCover);
     <div class={cn('flex w-full flex-wrap justify-between gap-2', { 'order-2 justify-start gap-4': isSimple })}>
       {
         catalog === false ? null : (
-          <a href={categoryLink} class="flex-center hover:text-blue text-muted-foreground text-xs transition duration-300">
+          <a href={categoryLink} class="flex-center gap-1.5 hover:text-blue text-muted-foreground text-xs transition duration-300">
             <i class="fa-solid fa-flag text-xs" aria-hidden="true"></i>
-            {categoryStr}
+            <span>{categoryStr}</span>
           </a>
         )
       }
