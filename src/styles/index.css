@@ -1,6 +1,4 @@
 @import '@fortawesome/fontawesome-free/css/all.min.css';
-@import '@fontsource/poppins/400.css';
-@import '@fontsource/poppins/600.css';
 @import './theme/shadcn.css';
 @import './theme/index.css';
 @import './theme/theme-transition.css';

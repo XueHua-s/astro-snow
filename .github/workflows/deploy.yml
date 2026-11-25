@@ -36,6 +36,8 @@ jobs:
 
       - name: Install dependencies (pnpm lockfile)
         run: pnpm install --frozen-lockfile
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: 'skip'
 
       - name: Generate cache files
         run: |

@@ -1,5 +1,5 @@
 ---
-import { Button } from '@components/ui/button';
+import { Button, buttonVariants } from '@components/ui/button';
 import type { Page } from 'astro';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import type { BlogPost } from '@/types/blog';
@@ -12,6 +12,7 @@ interface Props {
 }
 
 const { page, baseUrl = Routes.Posts, isHomePage = false } = Astro.props;
+const linkClass = buttonVariants({ variant: 'ghost' });
 
 // 生成页面链接的辅助函数
 const getPageUrl = (pageNum: number) => {
@@ -27,10 +28,8 @@ const getPageUrl = (pageNum: number) => {
 <div class="flex-center gap-1 font-bold">
   {
     page.url.prev ? (
-      <a href={page.url.prev} aria-label="上一页">
-        <Button variant="ghost">
-          <FaChevronLeft />
-        </Button>
+      <a href={page.url.prev} class={linkClass} aria-label="上一页">
+        <FaChevronLeft aria-hidden="true" />
       </a>
     ) : (
       <Button variant="ghost" disabled aria-label="上一页">
@@ -41,16 +40,19 @@ const getPageUrl = (pageNum: number) => {
 
   {
     page.currentPage !== 1 && page.currentPage - 1 !== 1 && (
-      <a href={getPageUrl(1)} aria-label="第 1 页">
-        <Button variant="ghost">1</Button>
+      <a href={getPageUrl(1)} class={linkClass} aria-label="第 1 页">
+        1
       </a>
     )
   }
   {page.currentPage > 2 && <span class="mx-1">...</span>}
   {
     page.currentPage !== 1 && (
-      <a href={getPageUrl(page.currentPage - 1)} aria-label={`第 ${page.currentPage - 1} 页`}>
-        <Button variant="ghost">{page.currentPage - 1}</Button>
+      <a
+        href={getPageUrl(page.currentPage - 1)}
+        class={linkClass}
+        aria-label={`第 ${page.currentPage - 1} 页`}>
+        {page.currentPage - 1}
       </a>
     )
   }
@@ -60,32 +62,36 @@ const getPageUrl = (pageNum: number) => {
     disabled
     aria-current="page"
     aria-label={`第 ${page.currentPage} 页，当前页`}
-    className="text-primary disabled:opacity-100"
-  >
+    className="text-primary disabled:opacity-100">
     {page.currentPage}
   </Button>
 
   {
     page.currentPage !== page.lastPage && (
-      <a href={getPageUrl(page.currentPage + 1)} aria-label={`第 ${page.currentPage + 1} 页`}>
-        <Button variant="ghost">{page.currentPage + 1}</Button>
+      <a
+        href={getPageUrl(page.currentPage + 1)}
+        class={linkClass}
+        aria-label={`第 ${page.currentPage + 1} 页`}>
+        {page.currentPage + 1}
       </a>
     )
   }
   {page.currentPage < page.lastPage - 2 && <span class="mx-1">...</span>}
   {
-    page.currentPage !== page.lastPage && page.currentPage + 1 !== page.lastPage && (
-      <a href={getPageUrl(page.lastPage)} aria-label={`第 ${page.lastPage} 页`}>
-        <Button variant="ghost">{page.lastPage}</Button>
-      </a>
-    )
+    page.currentPage !== page.lastPage &&
+      page.currentPage + 1 !== page.lastPage && (
+        <a
+          href={getPageUrl(page.lastPage)}
+          class={linkClass}
+          aria-label={`第 ${page.lastPage} 页`}>
+          {page.lastPage}
+        </a>
+      )
   }
   {
     page.url.next ? (
-      <a href={page.url.next}>
-        <Button variant="ghost">
-          <FaChevronRight aria-label="下一页" />
-        </Button>
+      <a href={page.url.next} class={linkClass} aria-label="下一页">
+        <FaChevronRight aria-hidden="true" />
       </a>
     ) : (
       <Button variant="ghost" disabled aria-label="下一页">

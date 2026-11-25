@@ -2,13 +2,10 @@
  * SeriesPostList - 显示系列文章列表
  */
 import { cn } from '@lib/utils';
-import type { BlogPost } from '@/types/blog';
+import type { PostLinkItem } from '@lib/content/posts/types';
 
 interface SeriesPostListProps {
-  posts: Array<{
-    post: BlogPost;
-    href: string;
-  }>;
+  posts: PostLinkItem[];
   currentPostSlug?: string;
   className?: string;
 }
@@ -28,14 +25,14 @@ export function SeriesPostList({
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      {posts.map(({ post, href }) => {
-        const postKey = post.data.link ?? post.id;
-        const isActive = postKey === currentPostSlug;
+      {posts.map(({ key, title, href }) => {
+        const isActive = key === currentPostSlug;
 
         return (
           <a
-            key={postKey}
+            key={key}
             href={href}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
               'group relative flex items-start gap-3 rounded-md px-1 py-2 transition-colors',
               'hover:bg-accent/50',
@@ -59,7 +56,7 @@ export function SeriesPostList({
                   ? 'text-primary'
                   : 'text-foreground group-hover:text-primary',
               )}>
-              {post.data.title}
+              {title}
             </span>
           </a>
         );

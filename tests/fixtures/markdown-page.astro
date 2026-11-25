@@ -1,0 +1,21 @@
+---
+import CustomContent from '@components/common/CustomContent.astro';
+import Layout from '@layouts/Layout.astro';
+import { Content as MarkdownContent } from './markdown-content.md';
+import { Content as TweetContent } from './markdown-tweet.md';
+
+export function getStaticPaths() {
+  return [{ params: { variant: undefined } }, { params: { variant: 'tweet' } }];
+}
+
+const Content =
+  Astro.params.variant === 'tweet' ? TweetContent : MarkdownContent;
+---
+
+<Layout title="Markdown fixture" pagefindIgnore noIndex>
+  <article class="prose mx-auto w-full max-w-3xl px-6">
+    <a id="fixture-back" href="/blog/about">Back to about</a>
+    <CustomContent Content={Content} />
+  </article>
+  <div id="outside-tweet" data-tweet-embed data-tweet-id="20"></div>
+</Layout>

@@ -10,7 +10,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      '@config': '/src/config',
       '@constants': '/src/constants',
+      '@lib': '/src/lib',
+      '@scripts': '/src/scripts',
     },
   },
 });

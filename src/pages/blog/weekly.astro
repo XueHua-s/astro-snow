@@ -16,7 +16,7 @@ const [posts, layoutFooterData] = await Promise.all([getWeeklyPosts(), getLayout
 const pageTitle = weeklyConfig.title || weeklyConfig.categoryName;
 ---
 
-<Layout title={`${pageTitle} | ${blogSeoConfig.title}`} description={weeklyConfig.description}>
+<Layout title={`${pageTitle} | ${blogSeoConfig.title}`} description={weeklyConfig.description} shareImage={weeklyConfig.cover}>
   <TwoColumnLayout>
     <Cover slot="cover" title={pageTitle} />
     <HomeSider slot="sider" />

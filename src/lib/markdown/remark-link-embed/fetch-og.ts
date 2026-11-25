@@ -4,8 +4,27 @@ import metascraperImage from 'metascraper-image';
 import metascraperLogo from 'metascraper-logo';
 import metascraperTitle from 'metascraper-title';
 import metascraperUrl from 'metascraper-url';
-import metascraperLogoFavicon from 'metascraper-logo-favicon';
 import type { OGData } from './types';
+
+const iconLinks = [
+  'link[rel~="icon" i][href]',
+  'link[rel~="apple-touch-icon" i][href]',
+  'link[rel~="apple-touch-icon-precomposed" i][href]',
+  'link[rel~="mask-icon" i][href]',
+].join(', ');
+
+// FIXED: Extract declared icons from the page without probing image URLs.
+const localFavicon: metascraper.Rules = {
+  favicon: ({ htmlDom, url }) => {
+    for (const link of htmlDom(iconLinks).toArray()) {
+      const href = htmlDom(link).attr('href')?.trim();
+      if (!href || !URL.canParse(href, url)) continue;
+      const icon = new URL(href, url);
+      if (icon.protocol === 'http:' || icon.protocol === 'https:')
+        return icon.href;
+    }
+  },
+};
 
 const scraper = metascraper([
   metascraperDescription(),
@@ -13,16 +32,15 @@ const scraper = metascraper([
   metascraperLogo(),
   metascraperTitle(),
   metascraperUrl(),
-  metascraperLogoFavicon(),
+  localFavicon,
 ]);
+const TIMEOUT_MS = 5000;
 
 export async function fetchOGData(url: string): Promise<OGData> {
-  const TIMEOUT_MS = 5000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
     const response = await fetch(url, {
       headers: {
         'User-Agent':
@@ -37,9 +55,8 @@ export async function fetchOGData(url: string): Promise<OGData> {
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
+      controller.abort();
       console.warn(`[Link Embed] Failed to fetch ${url}: ${response.status}`);
       return {
         originUrl: url,
@@ -48,8 +65,10 @@ export async function fetchOGData(url: string): Promise<OGData> {
       };
     }
 
+    // FIXED: Keep the abort signal active while the response body is downloading.
     const html = await response.text();
-    const metadata = await scraper({ html, url });
+    clearTimeout(timeoutId);
+    const metadata = await scraper({ html, url: response.url || url });
 
     return {
       originUrl: url,
@@ -75,5 +94,7 @@ export async function fetchOGData(url: string): Promise<OGData> {
       url,
       error: error instanceof Error ? error.message : 'Failed to fetch',
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

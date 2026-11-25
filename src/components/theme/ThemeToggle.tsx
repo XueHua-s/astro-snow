@@ -1,34 +1,15 @@
-import { useCallback, useRef, useState } from 'react';
-import { useLocalStorage } from '@reactuses/core';
+import { useCallback, useRef } from 'react';
+import { useIsDarkTheme } from '@hooks/useIsDarkTheme';
+
+function setTheme(isDark: boolean) {
+  document.dispatchEvent(
+    new CustomEvent('site:theme-change', { detail: isDark ? 'dark' : 'light' }),
+  );
+}
 
 export default function ThemeToggle() {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const [, setThemeStorage] = useLocalStorage<'dark' | 'light'>(
-    'theme',
-    'light',
-  );
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof document === 'undefined') return false;
-    return document.documentElement.classList.contains('dark');
-  });
-
-  const applyTheme = useCallback(
-    (isDark: boolean) => {
-      const rootElement = document.documentElement;
-      if (isDark) {
-        rootElement.classList.add('dark');
-        rootElement.classList.remove('light');
-        rootElement.dataset.theme = 'dark';
-        setThemeStorage('dark');
-      } else {
-        rootElement.classList.remove('dark');
-        rootElement.classList.add('light');
-        rootElement.dataset.theme = 'light';
-        setThemeStorage('light');
-      }
-    },
-    [setThemeStorage],
-  );
+  const isDarkMode = useIsDarkTheme();
 
   const toggleTheme = useCallback(() => {
     const rootElement = document.documentElement;
@@ -55,8 +36,7 @@ export default function ThemeToggle() {
     ).startViewTransition;
 
     if (!startViewTransition) {
-      applyTheme(willBeDark);
-      setIsDarkMode(willBeDark);
+      setTheme(willBeDark);
       setTimeout(() => {
         rootElement.classList.remove('theme-transition');
       }, 100);
@@ -68,13 +48,11 @@ export default function ThemeToggle() {
       | undefined;
     try {
       transition = startViewTransition.call(document, () => {
-        applyTheme(willBeDark);
-        setIsDarkMode(willBeDark);
+        setTheme(willBeDark);
       });
     } catch (error) {
       console.error('Theme transition error:', error);
-      applyTheme(willBeDark);
-      setIsDarkMode(willBeDark);
+      setTheme(willBeDark);
       rootElement.classList.remove('theme-transition');
       return;
     }
@@ -95,7 +73,7 @@ export default function ThemeToggle() {
       .catch(() => {
         rootElement.classList.remove('theme-transition');
       });
-  }, [applyTheme]);
+  }, []);
 
   return (
     <>

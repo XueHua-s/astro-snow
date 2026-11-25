@@ -6,10 +6,10 @@ import {
   getAllTags,
   getCategoryList,
   getCategoryNodeCount,
-  getPostCount,
   getSortedPosts,
 } from '@lib/content';
 import { getPostSeriesViewModel } from '@lib/content/posts';
+import { getLqipGradient } from '@lib/lqip';
 import { routers } from '@constants/router';
 import HomeSiderPanel from './HomeSiderPanel';
 import type { BlogPost } from '@/types/blog';
@@ -38,29 +38,26 @@ const defaultSegmentType =
 const transitionName =
   !isDrawer && type !== HomeSiderType.POST ? 'page-home-sider' : undefined;
 
-const [postCount, { categories }, posts] = await Promise.all([
-  getPostCount(),
+const [{ categories }, posts, postSeriesData] = await Promise.all([
   getCategoryList(),
   getSortedPosts(),
+  post && type === HomeSiderType.POST ? getPostSeriesViewModel(post) : null,
 ]);
-const tags = getAllTags(posts);
-const allTags = Object.entries(tags).map(([tag, count]) => ({ tag, count }));
 
+const avatar = blogLayoutConfig.avatar ?? '/img/avatar.webp';
 const homeInfo = {
-  avatar: blogLayoutConfig.avatar ?? '/img/avatar.webp',
+  avatar,
+  avatarGradient: getLqipGradient(avatar),
+  idPrefix: isDrawer ? 'drawer-sidebar' : 'desktop-sidebar',
   name: blogLayoutConfig?.name,
   description: blogLayoutConfig?.description,
-  postCount,
+  postCount: posts.length,
   categoryCount: getCategoryNodeCount(categories),
-  tagCount: allTags.length,
+  tagCount: Object.keys(getAllTags(posts)).length,
   routes: routers,
   currentPath: Astro.url.pathname,
 };
 
-const postSeriesData =
-  post && type === HomeSiderType.POST
-    ? await getPostSeriesViewModel(post)
-    : null;
 const seriesPostItems = postSeriesData?.seriesPostItems ?? [];
 const prevPostItem = postSeriesData?.prevPostItem ?? null;
 const nextPostItem = postSeriesData?.nextPostItem ?? null;
@@ -70,12 +67,14 @@ const currentPostSlug = postSeriesData?.currentPostSlug ?? undefined;
 <div
   class={cn(
     'page-home-sider flex min-h-0 min-w-64 max-w-64 flex-col items-center overflow-hidden px-2 tablet:hidden',
-    isDrawer ? 'flex-1' : 'glass glass-sidebar desktop-sidebar sticky self-start',
+    isDrawer
+      ? 'flex-1'
+      : 'glass glass-sidebar desktop-sidebar sticky self-start',
     className,
   )}
   {...transitionName ? { 'transition:name': transitionName } : {}}>
   <HomeSiderPanel
-    client:media="(min-width: 993px)"
+    client:media={isDrawer ? '(max-width: 992px)' : '(min-width: 993px)'}
     type={type}
     defaultSegmentType={defaultSegmentType}
     homeInfo={homeInfo}

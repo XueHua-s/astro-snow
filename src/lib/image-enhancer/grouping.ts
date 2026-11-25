@@ -10,12 +10,13 @@ function isConsecutiveSibling(el1: Element, el2: Element): boolean {
   return false;
 }
 
-export function groupPortraitImages(container: Element): void {
+export function groupPortraitImages(container: Element): () => void {
   const allWrappers = Array.from(
     container.querySelectorAll('.markdown-image-wrapper'),
   );
 
   let currentGroup: Element[] = [];
+  const rows: HTMLDivElement[] = [];
 
   const flushGroup = () => {
     if (currentGroup.length >= 2) {
@@ -28,6 +29,7 @@ export function groupPortraitImages(container: Element): void {
         fragment.appendChild(wrapper);
       });
       row.appendChild(fragment);
+      rows.push(row);
     }
     currentGroup = [];
   };
@@ -57,4 +59,8 @@ export function groupPortraitImages(container: Element): void {
   });
 
   flushGroup();
+
+  return () => {
+    for (const row of rows) row.replaceWith(...row.childNodes);
+  };
 }

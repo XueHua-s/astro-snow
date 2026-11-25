@@ -8,12 +8,12 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { animation } from '@constants/design-tokens';
 import {
-  useMediaQuery,
   useHeadingTree,
   useActiveHeading,
   useExpandedState,
   useHeadingClickHandler,
 } from '@hooks/index';
+import { useIsTablet } from '@hooks/useMediaQuery';
 import { useCurrentHeading } from '@hooks/useCurrentHeading';
 import { HeadingTitle } from './HeadingTitle';
 import { ProgressCircle } from './ProgressCircle';
@@ -27,6 +27,7 @@ import { cn } from '@lib/utils.ts';
 interface MobilePostHeaderProps {
   /** Whether the current page is a post page */
   isPostPage: boolean;
+  hasMobileDrawer: boolean;
   /** Type of logo element to display */
   logoElement: 'svg' | 'text';
   /** Text to display when logoElement is 'text' */
@@ -70,6 +71,7 @@ function Logo({ logoElement, logoText, logoSrc, className }: LogoProps) {
 
 export function MobilePostHeader({
   isPostPage,
+  hasMobileDrawer,
   logoElement,
   logoText,
   logoSrc,
@@ -78,17 +80,26 @@ export function MobilePostHeader({
 }: MobilePostHeaderProps) {
   const shouldReduceMotion = useReducedMotion();
 
-  // Check if we're on mobile (tablet breakpoint: max-width 992px)
-  const isMobile = useMediaQuery('(max-width: 992px)');
+  const isMobile = useIsTablet();
+  const observeHeadings = isPostPage && isMobile;
 
   // Get current H2/H3 heading for title display
-  const currentHeading = useCurrentHeading({ offsetTop: SCROLL_OFFSET_TOP });
+  const currentHeading = useCurrentHeading({
+    offsetTop: SCROLL_OFFSET_TOP,
+    enabled: observeHeadings,
+  });
 
   // Get full heading tree for TOC dropdown
-  const headings = useHeadingTree(sourceHeadings);
+  const headings = useHeadingTree(
+    observeHeadings ? sourceHeadings : undefined,
+    observeHeadings,
+  );
 
   // Get active heading ID for TOC highlighting
-  const activeId = useActiveHeading({ offsetTop: SCROLL_OFFSET_TOP + 40 });
+  const activeId = useActiveHeading({
+    offsetTop: SCROLL_OFFSET_TOP + 40,
+    enabled: observeHeadings,
+  });
 
   // Get expanded state for TOC accordion
   const { expandedIds, setExpandedIds } = useExpandedState({
@@ -98,8 +109,7 @@ export function MobilePostHeader({
   });
 
   // Determine if we should show heading mode
-  const showHeadingMode =
-    isPostPage && isMobile && headings.length > 0 && currentHeading !== null;
+  const showHeadingMode = headings.length > 0 && currentHeading !== null;
 
   // Handle heading click in TOC dropdown
   const handleHeadingClick = useHeadingClickHandler({
@@ -117,10 +127,12 @@ export function MobilePostHeader({
   return (
     <div className="flex w-full h-full items-center gap-2">
       {/*Mobile Menu controller*/}
-      <OpenMenuButton
-        className="tablet:flex tablet:items-center tablet:justify-center z-[70] hidden h-14 transition-transform"
-        id="mobile-menu-container"
-      />
+      {hasMobileDrawer && (
+        <OpenMenuButton
+          className="tablet:flex tablet:items-center tablet:justify-center z-[70] hidden h-14 transition-transform"
+          id="mobile-menu-container"
+        />
+      )}
       <AnimatePresence mode="wait">
         {/*directoryOfArticleTitles / logo*/}
         {showHeadingMode ? (

@@ -1,0 +1,41 @@
+---
+import { Image } from 'astro:assets';
+import type { HTMLAttributes } from 'astro/types';
+import { getLocalImageLoader } from '@lib/site-images';
+
+type Props = Omit<
+  HTMLAttributes<'img'>,
+  'src' | 'width' | 'height' | 'srcset' | 'sizes'
+> & {
+  src: string;
+  alt: string;
+  widths: number[];
+  sizes: string;
+  fallback?: string;
+};
+
+const { src, widths, sizes, fallback, ...attributes } = Astro.props;
+const load = getLocalImageLoader(src);
+const missingCover =
+  !load && /^\/img\/(backgrounds|cover)\/[^?#]+\.webp$/i.test(src);
+const resolvedSrc = missingCover && fallback ? fallback : src;
+const loadImage = load ?? getLocalImageLoader(resolvedSrc);
+const image = loadImage ? (await loadImage()).default : undefined;
+const smallestWidth = widths[0];
+---
+
+{
+  image ? (
+    <Image
+      {...attributes}
+      src={image}
+      width={Math.min(smallestWidth, image.width)}
+      widths={[...widths]}
+      sizes={sizes}
+      format="webp"
+      quality={76}
+    />
+  ) : (
+    <img {...attributes} src={resolvedSrc} />
+  )
+}

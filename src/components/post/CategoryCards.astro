@@ -1,5 +1,6 @@
 ---
-import { Button } from '@components/ui/button';
+import ResponsiveImage from '@components/common/ResponsiveImage.astro';
+import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 import {
   buildCategoryPath,
   getCategoryList,
@@ -10,8 +11,9 @@ import {
 } from '@lib/content';
 import { cn } from '@lib/utils';
 import { getLqipStyle } from '@lib/lqip';
-import { getBackgroundImages } from '@lib/backgrounds';
+import { backgroundImages } from '@lib/site-images';
 import type { CollectionEntry } from 'astro:content';
+import CardMoreLink from './CardMoreLink.astro';
 import FlippedCard from './FlippedCard.astro';
 
 interface CategoryWithPosts {
@@ -20,15 +22,14 @@ interface CategoryWithPosts {
   category: Category;
 }
 
-const [{ categories }, backgroundImages, postIndexMap] = await Promise.all([
+const [{ categories }, postIndexMap] = await Promise.all([
   getCategoryList(),
-  getBackgroundImages(),
   getPostIndexMap(),
 ]);
 const pickRandomBackground = () =>
   backgroundImages.length
     ? backgroundImages[Math.floor(Math.random() * backgroundImages.length)]
-    : '/img/site_header_1920.webp';
+    : blogLayoutConfig.banner.src;
 
 const categoryPosts: CategoryWithPosts[] = await Promise.all(
   categories.map(async (category) => {
@@ -52,10 +53,13 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
       return (
         <FlippedCard>
           <div slot="front" class="flex-center relative h-full rounded-[var(--glass-radius-card)] px-2 py-4">
-            <img
+            <ResponsiveImage
               style={getLqipStyle(category.image)}
               src={category.image}
-              alt={categoryInfo?.name}
+              fallback={blogLayoutConfig.banner.src}
+              alt=""
+              widths={[320, 480, 640, 800, 960]}
+              sizes="(max-width: 768px) calc(100vw - 3rem), (max-width: 992px) 42vw, 400px"
               loading="lazy"
               decoding="async"
               class="absolute inset-0 -z-10 h-full w-full rounded-[var(--glass-radius-card)] object-cover"
@@ -102,17 +106,11 @@ const categoryPosts: CategoryWithPosts[] = await Promise.all(
                 {category.posts?.length} 篇文章
               </Fragment>
             </p>
-            {/* FIXED: Use the same border offset and outer radius as post tabs. */}
-            <a href={categoryLink} aria-label="more info" class="absolute -right-px -bottom-px">
-              <Button
-                variant="ghost"
-                className={cn(
-                  'material-action rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none md:h-7 md:px-2 md:py-1 md:text-xs',
-                )}
-              >
-                more...
-              </Button>
-            </a>
+            <CardMoreLink
+              href={categoryLink}
+              subject={categoryInfo?.name}
+              placement="absolute-right"
+            />
           </div>
         </FlippedCard>
       );

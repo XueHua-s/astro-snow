@@ -3,6 +3,7 @@
  */
 
 import readingTime from 'reading-time';
+import { memoizeBuild } from './build-cache';
 import { getVisibleBlogPosts } from './content/repository';
 
 function formatWordCount(count: number): string {
@@ -18,10 +19,7 @@ function formatReadingTime(minutes: number): string {
   return `${hours}:${mins.toString().padStart(2, '0')}`;
 }
 
-/**
- * 统计全站字数与阅读时长（生产环境自动排除草稿）
- */
-export async function getSiteStats() {
+async function calculateSiteStats() {
   const posts = await getVisibleBlogPosts();
 
   let totalWords = 0;
@@ -42,4 +40,11 @@ export async function getSiteStats() {
     formattedTime: formatReadingTime(totalMinutes),
     postCount: posts.length,
   };
+}
+
+const readSiteStats = memoizeBuild(calculateSiteStats);
+
+/** 生产构建的各页面共享同一份统计，开发环境始终读取当前内容。 */
+export async function getSiteStats() {
+  return { ...(await readSiteStats()) };
 }

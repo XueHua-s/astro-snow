@@ -1,5 +1,3 @@
-import type { BlogPost } from '@/types/blog';
-
 export type PostSummarySource = 'description' | 'ai' | 'auto';
 
 export interface PostSummaryData {
@@ -8,6 +6,7 @@ export interface PostSummaryData {
 }
 
 export interface PostLinkItem {
-  post: BlogPost;
+  key: string;
+  title: string;
   href: string;
 }

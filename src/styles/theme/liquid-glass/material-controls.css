@@ -1,0 +1,75 @@
+@layer components {
+  /* FIXED: One owner for action ink, surface and accessibility fallbacks,
+   * including image controls revealed by hovering an arbitrary photo. */
+  .material-action,
+  .prose .markdown-image-fullscreen {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    background: hsl(var(--glass-action-hsl));
+    box-shadow: none;
+  }
+
+  .material-action:hover,
+  .prose .markdown-image-fullscreen:hover {
+    background: hsl(var(--glass-action-hsl) / 0.9);
+  }
+
+  .material-row {
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+    transition: background-color 160ms ease;
+  }
+
+  .material-row:hover,
+  .material-row:focus-visible {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .material-row[aria-current='page'],
+  .material-row[data-route-active='true'] {
+    background: hsl(var(--glass-surface-hsl) / 0.12);
+    font-weight: 600;
+  }
+
+  .material-row[aria-current='page'] i,
+  .material-row[data-route-active='true'] i {
+    color: hsl(var(--glass-primary-hsl));
+  }
+
+  .material-row:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+
+  .material-segment {
+    color: hsl(var(--glass-surface-hsl) / 0.8);
+  }
+
+  .material-segment:hover {
+    color: hsl(var(--glass-surface-hsl));
+  }
+
+  .material-segment[aria-pressed='true'] {
+    color: hsl(var(--glass-primary-hsl));
+  }
+
+  .material-segment:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+
+  .material-segment-indicator {
+    background: hsl(var(--glass-tint-hsl));
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 1px 3px var(--glass-edge),
+      inset 0 1px 0 var(--glass-highlight);
+  }
+
+  .header-icon-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+  }
+}

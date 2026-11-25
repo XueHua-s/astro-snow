@@ -9,9 +9,10 @@ import LayoutFooter from '@components/layout/LayoutFooter';
 import { CONTENT_PADDING } from '@constants/layout';
 import Layout from '@layouts/Layout.astro';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
+import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 
-const title = '友情链接 | snowの博客';
-const description = '我的小伙伴们,欢迎加友链~';
+const title = `友情链接 | ${blogLayoutConfig.title}`;
+const description = '浏览 LittleSnow 收藏的个人博客和独立站点，也可以在这里申请与雪花の博客交换友链。';
 
 const layoutFooterData = await getLayoutFooterData();
 ---

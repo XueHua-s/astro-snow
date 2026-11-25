@@ -21,8 +21,10 @@ export function useIsMobile(): boolean {
 }
 
 /** Tablet (max-width: 992px) */
+export const TABLET_MEDIA_QUERY = '(max-width: 992px)';
+
 export function useIsTablet(): boolean {
-  return useMediaQuery('(max-width: 992px)');
+  return useMediaQuery(TABLET_MEDIA_QUERY);
 }
 
 /** User prefers dark color scheme */

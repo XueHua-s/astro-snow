@@ -1,141 +1,137 @@
 import { buildHeadingTree, EMPTY_HEADINGS } from './tree-utils';
+import type { Heading } from '../useHeadingTree';
 
-export const headingCache = {
-  key: '',
-  headings: EMPTY_HEADINGS,
-};
-
-function buildHeadingKey(headings: typeof EMPTY_HEADINGS): string {
-  return headings
-    .map(
-      (heading) =>
-        `${heading.id}:${heading.level}:${heading.text}:${buildHeadingKey(heading.children)}`,
-    )
-    .join('|');
+interface ArticleHeading {
+  id: string;
+  text: string;
+  level: number;
+  element: HTMLElement;
 }
 
-function getHeadingSnapshot() {
-  if (typeof document === 'undefined') return [];
+const EMPTY_ARTICLE_HEADINGS: ArticleHeading[] = [];
+const listeners = new Set<() => void>();
+let article: Element | null = null;
+let observer: MutationObserver | null = null;
+let frame: number | null = null;
+let articleHeadings = EMPTY_ARTICLE_HEADINGS;
+let headingTree = EMPTY_HEADINGS;
 
-  const articleContent =
-    document.querySelector('.custom-content') ??
-    document.querySelector('article');
-  if (!articleContent) return [];
-
-  const headingElements = Array.from(
-    articleContent.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'),
+function readHeadings(article: Element): ArticleHeading[] {
+  const elements = Array.from(
+    article.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'),
   ).filter((heading) => !heading.closest('.link-preview-block'));
+  const usedIds = new Set(elements.map(({ id }) => id));
 
-  if (headingElements.length === 0) return [];
-
-  return buildHeadingTree(
-    headingElements.map((heading, index) => {
-      let id = heading.id;
-      if (!id) {
-        const text = heading.textContent || '';
-        id =
-          text
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .trim() || `heading-${index}`;
-        heading.id = id;
-      }
-
-      return {
-        id,
-        text: heading.textContent || '',
-        level: parseInt(heading.tagName.substring(1), 10),
-      };
-    }),
-  );
-}
-
-function refreshHeadingSnapshot(): boolean {
-  const nextHeadings = getHeadingSnapshot();
-  const nextKey = buildHeadingKey(nextHeadings);
-  if (nextKey === headingCache.key) return false;
-  headingCache.key = nextKey;
-  headingCache.headings = nextHeadings;
-  return true;
-}
-
-export function subscribe(callback: () => void) {
-  if (typeof document === 'undefined') return () => {};
-
-  let observer: MutationObserver | null = null;
-  let rafId: number | null = null;
-  let updateRafId: number | null = null;
-
-  const scheduleUpdate = () => {
-    if (updateRafId !== null) return;
-    updateRafId = requestAnimationFrame(() => {
-      updateRafId = null;
-      if (refreshHeadingSnapshot()) callback();
-    });
-  };
-
-  const setupObserver = () => {
-    observer?.disconnect();
-
-    const observerTarget =
-      document.querySelector('.custom-content') ??
-      document.querySelector('article');
-
-    if (!observerTarget) {
-      rafId = requestAnimationFrame(() => {
-        setupObserver();
-      });
-      return;
+  return elements.map((element, index) => {
+    const text = element.textContent?.trim() ?? '';
+    if (!element.id) {
+      const base =
+        text
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-') || `heading-${index}`;
+      let id = base;
+      for (let suffix = 1; usedIds.has(id); suffix++) id = `${base}-${suffix}`;
+      element.id = id;
+      usedIds.add(id);
     }
+    return { id: element.id, text, level: Number(element.tagName[1]), element };
+  });
+}
 
-    observer = new MutationObserver(() => {
-      scheduleUpdate();
-    });
-    observer.observe(observerTarget, { childList: true, subtree: true });
-    refreshHeadingSnapshot();
-    scheduleUpdate();
-  };
-
-  const articleContent =
-    document.querySelector('.custom-content') ??
-    document.querySelector('article');
-  const hasHeadings = articleContent
-    ? articleContent.querySelector('h1, h2, h3, h4, h5, h6')
-    : null;
-
-  if (articleContent && hasHeadings) {
-    setupObserver();
-  } else {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setupObserver();
-      });
-    });
+function publish(next: ArticleHeading[]) {
+  if (
+    next.length === articleHeadings.length &&
+    next.every(({ id, text, level, element }, index) => {
+      const previous = articleHeadings[index];
+      return (
+        id === previous.id &&
+        text === previous.text &&
+        level === previous.level &&
+        element === previous.element
+      );
+    })
+  ) {
+    return;
   }
 
-  const handlePageLoad = () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setupObserver();
+  articleHeadings = next;
+  headingTree = next.length
+    ? buildHeadingTree(next.map(({ id, text, level }) => ({ id, text, level })))
+    : EMPTY_HEADINGS;
+  listeners.forEach((listener) => listener());
+}
+
+function refresh() {
+  const target =
+    document.querySelector('.custom-content') ??
+    document.querySelector('article');
+  if (target !== article) {
+    observer?.disconnect();
+    observer = null;
+    article = target;
+    if (article && typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver(scheduleRefresh);
+      observer.observe(article, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['id'],
       });
-    });
-  };
+    }
+  }
 
-  document.addEventListener('astro:page-load', handlePageLoad);
-  document.addEventListener('astro:after-swap', handlePageLoad);
+  publish(article ? readHeadings(article) : EMPTY_ARTICLE_HEADINGS);
+}
 
-  const timeoutId = setTimeout(() => {
-    scheduleUpdate();
-  }, 100);
+function scheduleRefresh() {
+  if (listeners.size === 0 || frame !== null) return;
+  frame = requestAnimationFrame(() => {
+    frame = null;
+    refresh();
+  });
+}
+
+function disconnect() {
+  observer?.disconnect();
+  observer = null;
+  article = null;
+  if (frame !== null) cancelAnimationFrame(frame);
+  frame = null;
+  publish(EMPTY_ARTICLE_HEADINGS);
+}
+
+function handleSwap() {
+  // FIXED: Release DOM references and publish the reset before reading the new page.
+  disconnect();
+  scheduleRefresh();
+}
+
+export function subscribeToArticleHeadings(listener: () => void): () => void {
+  if (typeof document === 'undefined') return () => {};
+
+  const subscription = () => listener();
+  listeners.add(subscription);
+  if (listeners.size === 1) {
+    document.addEventListener('astro:after-swap', handleSwap);
+    document.addEventListener('astro:page-load', scheduleRefresh);
+    refresh();
+  }
 
   return () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    if (updateRafId) cancelAnimationFrame(updateRafId);
-    clearTimeout(timeoutId);
-    observer?.disconnect();
-    document.removeEventListener('astro:page-load', handlePageLoad);
-    document.removeEventListener('astro:after-swap', handlePageLoad);
+    if (!listeners.delete(subscription) || listeners.size > 0) return;
+    document.removeEventListener('astro:after-swap', handleSwap);
+    document.removeEventListener('astro:page-load', scheduleRefresh);
+    disconnect();
   };
+}
+
+export function getArticleHeadings(): ArticleHeading[] {
+  return articleHeadings;
+}
+
+export function getHeadingTree(): Heading[] {
+  return headingTree;
 }

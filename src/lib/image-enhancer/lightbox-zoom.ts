@@ -1,204 +1,139 @@
-interface ZoomState {
-  scale: number;
-  translateX: number;
-  translateY: number;
-  lastPinchDistance: number;
-  isPinching: boolean;
-  isPanning: boolean;
-  isMouseDragging: boolean;
-  lastPanPoint: { x: number; y: number };
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface TrackedPointer {
+  point: Point;
+  target: Element;
 }
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
 
-function getInitialZoomState(): ZoomState {
+function getPoint(event: MouseEvent): Point {
+  return { x: event.clientX, y: event.clientY };
+}
+
+function clampOffset(offset: number, size: number, viewport: number): number {
+  const limit = Math.max(0, (size - viewport) / 2 + viewport * 0.3);
+  return Math.max(-limit, Math.min(limit, offset));
+}
+
+function getGesture(pointers: Map<number, TrackedPointer>) {
+  const [first, second] = pointers.values();
+  if (!second) return { center: first.point, distance: 0 };
+
+  const x = second.point.x - first.point.x;
+  const y = second.point.y - first.point.y;
   return {
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
-    lastPinchDistance: 0,
-    isPinching: false,
-    isPanning: false,
-    isMouseDragging: false,
-    lastPanPoint: { x: 0, y: 0 },
+    center: { x: first.point.x + x / 2, y: first.point.y + y / 2 },
+    distance: Math.hypot(x, y),
   };
 }
 
-let zoomState = getInitialZoomState();
-
-function getTouchDistance(touches: TouchList): number {
-  if (touches.length < 2) return 0;
-  const dx = touches[0].clientX - touches[1].clientX;
-  const dy = touches[0].clientY - touches[1].clientY;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-function getTouchCenter(touches: TouchList): { x: number; y: number } {
-  if (touches.length < 2) {
-    return { x: touches[0].clientX, y: touches[0].clientY };
-  }
-  return {
-    x: (touches[0].clientX + touches[1].clientX) / 2,
-    y: (touches[0].clientY + touches[1].clientY) / 2,
-  };
-}
-
-function clampTranslation(img: HTMLImageElement): void {
-  if (zoomState.scale <= 1) return;
-
-  const rect = img.getBoundingClientRect();
-  const containerWidth = window.innerWidth;
-  const containerHeight = window.innerHeight;
-  const maxX = Math.max(
-    0,
-    (rect.width - containerWidth) / 2 + containerWidth * 0.3,
-  );
-  const maxY = Math.max(
-    0,
-    (rect.height - containerHeight) / 2 + containerHeight * 0.3,
-  );
-
-  zoomState.translateX = Math.max(-maxX, Math.min(maxX, zoomState.translateX));
-  zoomState.translateY = Math.max(-maxY, Math.min(maxY, zoomState.translateY));
-}
-
-function applyZoomTransform(img: HTMLImageElement): void {
-  clampTranslation(img);
-  const { scale, translateX, translateY } = zoomState;
-  img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-  img.style.cursor =
-    scale > 1 ? (zoomState.isMouseDragging ? 'grabbing' : 'grab') : 'zoom-in';
-}
-
-export function resetZoom(img: HTMLImageElement | null): void {
-  zoomState = getInitialZoomState();
-  if (img) {
-    img.style.transform = '';
-    img.style.cursor = 'zoom-in';
-  }
-}
-
-export function bindZoomEvents(
+/** Bind the gestures for this image, and return a reset for each new viewing session. */
+export function bindLightboxGestures(
   container: HTMLElement,
   img: HTMLImageElement,
-): void {
-  container.addEventListener(
-    'touchstart',
-    (e) => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        zoomState.isPinching = true;
-        zoomState.lastPinchDistance = getTouchDistance(e.touches);
-      } else if (e.touches.length === 1 && zoomState.scale > 1) {
-        zoomState.isPanning = true;
-        zoomState.lastPanPoint = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-        };
-      }
-    },
-    { passive: false },
-  );
+): () => void {
+  const pointers = new Map<number, TrackedPointer>();
+  let scale = MIN_SCALE;
+  let offset = { x: 0, y: 0 };
 
-  container.addEventListener(
-    'touchmove',
-    (e) => {
-      if (e.touches.length === 2 && zoomState.isPinching) {
-        e.preventDefault();
-        const currentDistance = getTouchDistance(e.touches);
-        const scaleDelta = currentDistance / zoomState.lastPinchDistance;
-        let newScale = zoomState.scale * scaleDelta;
-        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-
-        if (newScale !== zoomState.scale) {
-          const center = getTouchCenter(e.touches);
-          const rect = img.getBoundingClientRect();
-          const imgCenterX = rect.left + rect.width / 2;
-          const imgCenterY = rect.top + rect.height / 2;
-          const scaleRatio = newScale / zoomState.scale;
-
-          zoomState.translateX =
-            center.x -
-            (center.x - imgCenterX - zoomState.translateX) * scaleRatio -
-            imgCenterX;
-          zoomState.translateY =
-            center.y -
-            (center.y - imgCenterY - zoomState.translateY) * scaleRatio -
-            imgCenterY;
-
-          zoomState.scale = newScale;
-          applyZoomTransform(img);
-        }
-
-        zoomState.lastPinchDistance = currentDistance;
-      } else if (
-        e.touches.length === 1 &&
-        zoomState.isPanning &&
-        zoomState.scale > 1
-      ) {
-        e.preventDefault();
-        const deltaX = e.touches[0].clientX - zoomState.lastPanPoint.x;
-        const deltaY = e.touches[0].clientY - zoomState.lastPanPoint.y;
-
-        zoomState.translateX += deltaX;
-        zoomState.translateY += deltaY;
-        zoomState.lastPanPoint = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-        };
-
-        applyZoomTransform(img);
-      }
-    },
-    { passive: false },
-  );
-
-  container.addEventListener('touchend', (e) => {
-    if (e.touches.length < 2) zoomState.isPinching = false;
-    if (e.touches.length === 0) {
-      zoomState.isPanning = false;
-      if (zoomState.scale > 1) {
-        img.style.cursor = 'grab';
-      }
+  const apply = () => {
+    if (scale === MIN_SCALE) {
+      offset = { x: 0, y: 0 };
+      img.style.transform = '';
+      img.style.cursor = 'zoom-in';
+      return;
     }
 
-    if (zoomState.scale < 1.05) {
-      resetZoom(img);
-    }
+    offset.x = clampOffset(
+      offset.x,
+      img.offsetWidth * scale,
+      window.innerWidth,
+    );
+    offset.y = clampOffset(
+      offset.y,
+      img.offsetHeight * scale,
+      window.innerHeight,
+    );
+    img.style.transform = `translate(${offset.x}px, ${offset.y}px) scale(${scale})`;
+    img.style.cursor = pointers.size === 1 ? 'grabbing' : 'grab';
+  };
+
+  // FIXED: Every gesture uses the same transform, anchored to the visible image.
+  const adjust = (oldPoint: Point, newPoint: Point, targetScale: number) => {
+    const nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, targetScale));
+    const ratio = nextScale / scale;
+    const { left, top, width, height } = img.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    offset.x += newPoint.x - centerX - (oldPoint.x - centerX) * ratio;
+    offset.y += newPoint.y - centerY - (oldPoint.y - centerY) * ratio;
+    scale = nextScale;
+    apply();
+  };
+
+  img.addEventListener('dblclick', (event) => {
+    event.preventDefault();
+    const point = getPoint(event);
+    adjust(point, point, scale === MIN_SCALE ? 2 : MIN_SCALE);
   });
 
   container.addEventListener(
     'wheel',
-    (e) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      let newScale = zoomState.scale * delta;
-      newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-
-      if (newScale !== zoomState.scale) {
-        const rect = img.getBoundingClientRect();
-        const imgCenterX = rect.left + rect.width / 2;
-        const imgCenterY = rect.top + rect.height / 2;
-        const scaleRatio = newScale / zoomState.scale;
-        zoomState.translateX =
-          e.clientX -
-          (e.clientX - imgCenterX - zoomState.translateX) * scaleRatio -
-          imgCenterX;
-        zoomState.translateY =
-          e.clientY -
-          (e.clientY - imgCenterY - zoomState.translateY) * scaleRatio -
-          imgCenterY;
-
-        zoomState.scale = newScale;
-        applyZoomTransform(img);
-      }
-
-      if (zoomState.scale < 1.05) {
-        resetZoom(img);
-      }
+    (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      if (event.deltaY === 0) return;
+      const point = getPoint(event);
+      adjust(point, point, scale * (event.deltaY > 0 ? 0.9 : 1.1));
     },
     { passive: false },
   );
+
+  container.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || pointers.size === 2) return;
+    const isTouch = event.pointerType === 'touch';
+    if (!isTouch && (event.target !== img || scale === MIN_SCALE)) return;
+
+    const target = event.target as Element;
+    target.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { point: getPoint(event), target });
+    apply();
+  });
+
+  container.addEventListener('pointermove', (event) => {
+    const pointer = pointers.get(event.pointerId);
+    if (!pointer) return;
+
+    const previous = getGesture(pointers);
+    pointer.point = getPoint(event);
+    const current = getGesture(pointers);
+    const ratio =
+      previous.distance > 0 && current.distance > 0
+        ? current.distance / previous.distance
+        : 1;
+    adjust(previous.center, current.center, scale * ratio);
+  });
+
+  const finish = (event: PointerEvent) => {
+    if (pointers.delete(event.pointerId)) apply();
+  };
+
+  container.addEventListener('pointerup', finish);
+  container.addEventListener('pointercancel', finish);
+  container.addEventListener('lostpointercapture', finish);
+  img.addEventListener('dragstart', (event) => event.preventDefault());
+
+  return () => {
+    for (const [id, { target }] of pointers) {
+      if (target.hasPointerCapture(id)) target.releasePointerCapture(id);
+    }
+    pointers.clear();
+    scale = MIN_SCALE;
+    apply();
+  };
 }

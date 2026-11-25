@@ -10,12 +10,12 @@ function createMermaidToolbar(): string {
         <span class="mermaid-language">mermaid</span>
       </div>
       <div class="mermaid-actions">
-        <button class="mermaid-button mermaid-fullscreen" aria-label="Fullscreen" title="Fullscreen">
+        <button type="button" class="mermaid-button mermaid-fullscreen" aria-label="Fullscreen" title="Fullscreen" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg>
         </button>
-        <button class="mermaid-button mermaid-copy" aria-label="Copy source" title="Copy source">
+        <button type="button" class="mermaid-button mermaid-copy" aria-label="Copy source" title="Copy source">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 448 512" fill="currentColor">
             <path d="M192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-200.6c0-17.4-7.1-34.1-19.7-46.2L370.6 17.8C358.7 6.4 342.8 0 326.3 0L192 0zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-16-64 0 0 16-192 0 0-256 16 0 0-64-16 0z"/>
           </svg>
@@ -40,19 +40,25 @@ function createCheckmarkSvg(): string {
     </svg>`;
 }
 
-export function isAlreadyWrapped(mermaidElement: HTMLElement): boolean {
-  return (
-    mermaidElement.parentElement?.classList.contains('mermaid-wrapper') ?? false
+export function setMermaidFullscreenEnabled(
+  pre: HTMLPreElement,
+  enabled: boolean,
+): void {
+  const wrapper = pre.parentElement;
+  if (!wrapper?.classList.contains('mermaid-wrapper')) return;
+
+  const button = wrapper.querySelector<HTMLButtonElement>(
+    '.mermaid-fullscreen',
   );
+  if (button) button.disabled = !enabled;
 }
 
-export function enhanceMermaidDiagram(mermaidElement: HTMLElement): void {
-  if (
-    mermaidElement.dataset.toolbarEnhanced === 'true' ||
-    isAlreadyWrapped(mermaidElement)
-  ) {
+export function enhanceMermaidDiagram(
+  mermaidElement: HTMLPreElement,
+  source: string,
+): void {
+  if (mermaidElement.parentElement?.classList.contains('mermaid-wrapper'))
     return;
-  }
 
   const wrapper = document.createElement('div');
   wrapper.className = 'mermaid-wrapper';
@@ -60,12 +66,6 @@ export function enhanceMermaidDiagram(mermaidElement: HTMLElement): void {
   mermaidElement.parentNode?.insertBefore(wrapper, mermaidElement);
   wrapper.appendChild(mermaidElement);
   mermaidElement.insertAdjacentHTML('beforebegin', createMermaidToolbar());
-  mermaidElement.dataset.toolbarEnhanced = 'true';
-
-  const source =
-    mermaidElement.getAttribute('data-diagram') ||
-    mermaidElement.textContent ||
-    '';
 
   const copyBtn = wrapper.querySelector('.mermaid-copy');
   if (copyBtn) {
@@ -90,7 +90,8 @@ export function enhanceMermaidDiagram(mermaidElement: HTMLElement): void {
   const fullscreenBtn = wrapper.querySelector('.mermaid-fullscreen');
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', () => {
-      const svg = mermaidElement.innerHTML;
+      const svg = mermaidElement.querySelector('svg')?.outerHTML;
+      if (!svg) return;
       window.dispatchEvent(
         new CustomEvent('open-mermaid-fullscreen', {
           detail: { svg, source },

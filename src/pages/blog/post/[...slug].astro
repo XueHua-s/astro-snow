@@ -14,49 +14,43 @@ import Layout from '@layouts/Layout.astro';
 import {
   getCategoryArr,
   getPostCategoryBreadcrumbs,
-  getPostDescription,
-  getPostIndex,
+  getPostDescriptionWithSummary,
+  getPostHref,
   getPostIndexMap,
-  getPostKeywords,
   getPostSummaryData,
   getSortedPosts,
 } from '@lib/content';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
-import { parseDate } from '@lib/datetime';
+import { RK3528_POST_SLUG } from '@lib/seo';
 import { render } from 'astro:content';
+import type { BlogPost } from '@/types/blog';
+
+interface Props {
+  post: BlogPost;
+  redirectTo?: string;
+}
 
 export async function getStaticPaths() {
   const [postCollections, postIndexMap] = await Promise.all([getSortedPosts(), getPostIndexMap()]);
 
-  return postCollections.map((post) => {
-    const postIndex = getPostIndex(post, postIndexMap);
-    const slug = postIndex ? String(postIndex) : post.data?.link ?? post.id;
-    return {
-      params: { slug },
-      props: { post },
-    };
+  return postCollections.flatMap((post) => {
+    const href = getPostHref(post, postIndexMap);
+    const slug = href.slice(Routes.Post.length + 1);
+    // FIXED: The 2026-02-07 weekly issue links to this stable slug.
+    // Resolve its numeric destination at build time using the same post index as the rest of the blog.
+    const legacyRoute = post.id === RK3528_POST_SLUG && slug !== RK3528_POST_SLUG
+      ? [{ params: { slug: RK3528_POST_SLUG }, props: { post, redirectTo: `${href}/` } }]
+      : [];
+    return [{ params: { slug }, props: { post } }, ...legacyRoute];
   });
 }
-const { post } = Astro.props;
-const [{ Content, headings }, layoutFooterData] = await Promise.all([render(post), getLayoutFooterData(post)]);
-const { title, categories = [], date } = post?.data ?? {};
-// 使用统一的工具函数获取文章描述
-const finalDescription = getPostDescription(post);
-const keywords = getPostKeywords(post);
+const { post, redirectTo } = Astro.props;
+if (redirectTo) return Astro.redirect(redirectTo, 301);
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: title,
-  description: finalDescription,
-  keywords,
-  author: {
-    '@type': 'Person',
-    name: blogLayoutConfig.author ?? blogLayoutConfig.name,
-    url: Astro.site,
-  },
-  datePublished: parseDate(date, 'YYYY-MM-DD'),
-};
+const [{ Content, headings }, layoutFooterData] = await Promise.all([render(post), getLayoutFooterData(post)]);
+const { categories = [] } = post.data;
+// FIXED: Use the article summary when multiple posts share the same opening text.
+const finalDescription = getPostDescriptionWithSummary(post).trim() || `阅读 LittleSnow 的文章《${post.data.title}》。`;
 
 const categoryArr = getCategoryArr(categories);
 const categoryStr = categoryArr?.length ? ` | ${categoryArr.join(' / ')}` : '';
@@ -71,7 +65,6 @@ const summaryData = getPostSummaryData(post);
   post={post}
   tocHeadings={headings}
 >
-  <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <TwoColumnLayout>
     <Cover slot="cover" data={post} />
     <HomeSider slot="sider" type={HomeSiderType.POST} post={post} tocHeadings={headings} />

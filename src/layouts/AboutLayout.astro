@@ -4,7 +4,7 @@ import Cover from '@components/ui/cover/Cover.astro';
 import TwoColumnLayout from '@components/layout/TwoColumnLayout.astro';
 import LayoutFooter from '@components/layout/LayoutFooter';
 import { CONTENT_PADDING } from '@constants/layout';
-import { blogSeoConfig } from '@/config/blogLayoutConfig';
+import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 import Layout from './Layout.astro';
 import GiscusComments from '@/components/common/GiscusComments';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
@@ -22,7 +22,7 @@ const { frontmatter } = Astro.props;
 const layoutFooterData = await getLayoutFooterData();
 ---
 
-<Layout title={`${frontmatter.title} | ${blogSeoConfig.title}`}>
+<Layout title={`${frontmatter.title} | ${blogLayoutConfig.title}`} description={frontmatter.description}>
   <TwoColumnLayout>
     <Cover slot="cover" title="关于我" />
     <HomeSider slot="sider" />
@@ -33,8 +33,8 @@ const layoutFooterData = await getLayoutFooterData();
       <div
         class="about-content prose md:prose-sm dark:prose-invert custom-content">
         <slot />
+        <CustomContentEnhancer client:idle config={defaultContentConfig} />
       </div>
-      <CustomContentEnhancer client:idle config={defaultContentConfig} />
       <GiscusComments client:visible />
     </div>
   </TwoColumnLayout>

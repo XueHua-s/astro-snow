@@ -1,0 +1,61 @@
+<script is:inline>
+  (() => {
+    const darkPreference = window.matchMedia('(prefers-color-scheme: dark)');
+    const normalizeTheme = (theme) =>
+      theme === 'dark' || theme === 'light' ? theme : undefined;
+    let storage;
+    let explicitTheme;
+    try {
+      storage = window.localStorage;
+      explicitTheme = normalizeTheme(storage.getItem('theme'));
+    } catch {
+      // Storage can be blocked. Start with the browser preference.
+    }
+
+    const applyTheme = (root) => {
+      const theme =
+        explicitTheme ?? (darkPreference.matches ? 'dark' : 'light');
+      root.classList.toggle('dark', theme === 'dark');
+      root.classList.toggle('light', theme === 'light');
+      root.dataset.theme = theme;
+    };
+
+    applyTheme(document.documentElement);
+    darkPreference.addEventListener('change', () => {
+      if (!explicitTheme) applyTheme(document.documentElement);
+    });
+
+    window.addEventListener('storage', ({ key, storageArea }) => {
+      if (
+        !storage ||
+        storageArea !== storage ||
+        (key !== 'theme' && key !== null)
+      ) {
+        return;
+      }
+      try {
+        // FIXED: Read the latest value in case a local change followed this event.
+        explicitTheme = normalizeTheme(storage.getItem('theme'));
+      } catch {
+        return;
+      }
+      applyTheme(document.documentElement);
+    });
+
+    // FIXED: Apply the preference before Astro copies the new root attributes.
+    document.addEventListener('astro:before-swap', ({ newDocument }) => {
+      applyTheme(newDocument.documentElement);
+    });
+
+    document.addEventListener('site:theme-change', ({ detail }) => {
+      if (detail !== 'dark' && detail !== 'light') return;
+      explicitTheme = detail;
+      applyTheme(document.documentElement);
+      try {
+        storage?.setItem('theme', detail);
+      } catch {
+        // Keep the explicit choice in this document during client navigation.
+      }
+    });
+  })();
+</script>

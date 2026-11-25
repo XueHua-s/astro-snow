@@ -1,13 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
-
-const page = readFileSync(
-  new URL('../src/pages/index.astro', import.meta.url),
-  'utf8',
-);
-const script = page.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
-if (!script) throw new Error('Hero preference controller is missing');
+import { animateHero } from '../src/components/home/hero-motion';
 
 function createHero({ reduced = false, coarse = false } = {}) {
   const preferences = [
@@ -23,49 +15,54 @@ function createHero({ reduced = false, coarse = false } = {}) {
   let frameId = 0;
   const rect = { left: 0, top: 0, width: 200, height: 100 };
   const cancel = vi.fn((id: number) => frames.delete(id));
-  runInNewContext(script!, {
-    document: {
-      querySelector: () => ({
-        querySelector: () => ({
-          style: {
-            setProperty: (name: string, value: string) =>
-              properties.set(name, value),
-            removeProperty: (name: string) => properties.delete(name),
-          },
-        }),
-        getBoundingClientRect: () => rect,
-        addEventListener: (
-          type: string,
-          listener: (event: { clientX: number; clientY: number }) => void,
-        ) => events.set(type, listener),
-      }),
-    },
-    window: {
-      matchMedia: (query: string) => {
-        const preference = preferences[query.includes('motion') ? 0 : 1];
-        return {
-          get matches() {
-            return preference.matches;
-          },
-          addEventListener: (_type: string, listener: () => void) =>
-            preference.listeners.add(listener),
-        };
-      },
+  const view = {
+    matchMedia: (query: string) => {
+      const preference = preferences[query.includes('motion') ? 0 : 1];
+      return {
+        get matches() {
+          return preference.matches;
+        },
+        addEventListener: (_type: string, listener: () => void) =>
+          preference.listeners.add(listener),
+        removeEventListener: (_type: string, listener: () => void) =>
+          preference.listeners.delete(listener),
+      };
     },
     requestAnimationFrame: (paint: () => void) => {
       frames.set(++frameId, paint);
       return frameId;
     },
     cancelAnimationFrame: cancel,
-  });
+  };
+  const element = {
+    querySelector: () => ({
+      style: {
+        setProperty: (name: string, value: string) =>
+          properties.set(name, value),
+        removeProperty: (name: string) => properties.delete(name),
+      },
+    }),
+    ownerDocument: { defaultView: view },
+    getBoundingClientRect: () => rect,
+    addEventListener: (
+      type: string,
+      listener: (event: { clientX: number; clientY: number }) => void,
+    ) => events.set(type, listener),
+    removeEventListener: (type: string) => events.delete(type),
+  } as unknown as HTMLElement;
+
   return {
     properties,
     frames,
     rect,
     cancel,
+    dispose: animateHero(element),
+    eventCount: () => events.size,
+    preferenceListenerCount: () =>
+      preferences.map(({ listeners }) => listeners.size),
     move: (x = 40, y = 30) =>
-      events.get('pointermove')!({ clientX: x, clientY: y }),
-    leave: () => events.get('pointerleave')!({ clientX: 0, clientY: 0 }),
+      events.get('pointermove')?.({ clientX: x, clientY: y }),
+    leave: () => events.get('pointerleave')?.({ clientX: 0, clientY: 0 }),
     preference: (index: number, matches: boolean, notify = true) => {
       preferences[index].matches = matches;
       if (notify)
@@ -153,12 +150,28 @@ describe('hero live motion preferences', () => {
     hero.rect.width = 0;
     hero.move();
     expect(hero.frames.size).toBe(0);
-    for (const element of [null, { querySelector: () => null }]) {
-      expect(() => {
-        runInNewContext(script, {
-          document: { querySelector: () => element },
-        });
-      }).not.toThrow();
-    }
+    const missingSheen = {
+      querySelector: () => null,
+      ownerDocument: { defaultView: {} },
+    } as unknown as HTMLElement;
+    expect(animateHero(missingSheen)).toBeUndefined();
+  });
+
+  it('cancels queued work and removes listeners when disposed', () => {
+    const hero = createHero();
+    hero.move();
+    hero.flush();
+    hero.move(150, 90);
+    const stalePaint = [...hero.frames.values()][0];
+
+    hero.dispose?.();
+    stalePaint();
+    hero.move();
+    hero.leave();
+
+    expect(hero.frames.size).toBe(0);
+    expect(hero.properties.size).toBe(0);
+    expect(hero.eventCount()).toBe(0);
+    expect(hero.preferenceListenerCount()).toEqual([0, 0]);
   });
 });

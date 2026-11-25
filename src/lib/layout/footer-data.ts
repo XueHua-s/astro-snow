@@ -20,11 +20,18 @@ export interface LayoutFooterData {
 export async function getLayoutFooterData(
   post?: BlogPost,
 ): Promise<LayoutFooterData> {
-  const [stats, postIndexMap, randomPosts] = await Promise.all([
+  const reads = [
     getSiteStats(),
     getPostIndexMap(),
     getRandomPosts(10),
-  ]);
+  ] as const;
+  const [stats, postIndexMap, randomPosts] = await Promise.all(reads).catch(
+    async (error: unknown) => {
+      // FIXED: Let every derived cache release a failed read before a caller retries.
+      await Promise.allSettled(reads);
+      throw error;
+    },
+  );
 
   const similarityAvailable = hasSimilarityData();
   let relatedPosts: BlogPost[] = [];

@@ -1,5 +1,6 @@
 import type { BlogPost } from '@/types/blog';
 import { Routes } from '@constants/router';
+import { PAGE_SIZE } from '@constants/index';
 import type { Page } from 'astro';
 
 import { extractTextFromMarkdown } from '../../sanitize';
@@ -7,7 +8,7 @@ import { buildCategoryPath, getCategoryArr } from '../categories';
 import { getPostStableKey } from '../repository';
 import { getPostHref, getPostIndexMap } from './indexing';
 import { getPostSummary } from './summary';
-import { getAdjacentSeriesPosts, getSeriesPosts } from './series';
+import { getSeriesPosts } from './series';
 import { getSortedPosts } from './listing';
 import type { PostLinkItem, PostSummaryData } from './types';
 
@@ -93,42 +94,31 @@ export async function getPostSeriesViewModel(post: BlogPost): Promise<{
   nextPostItem: PostLinkItem | null;
   currentPostSlug: string;
 }> {
-  const [seriesPosts, postIndexMap, adjacentPosts] = await Promise.all([
+  const [seriesPosts, postIndexMap] = await Promise.all([
     getSeriesPosts(post),
     getPostIndexMap(),
-    getAdjacentSeriesPosts(post),
   ]);
 
-  const seriesPostItems = seriesPosts.map((seriesPost) => ({
-    post: seriesPost,
+  // FIXED: Astro serializes these props into both sidebar islands.
+  const seriesPostItems: PostLinkItem[] = seriesPosts.map((seriesPost) => ({
+    key: getPostStableKey(seriesPost),
+    title: seriesPost.data.title,
     href: getPostHref(seriesPost, postIndexMap),
   }));
-
-  const prevPostItem = adjacentPosts.prevPost
-    ? {
-        post: adjacentPosts.prevPost,
-        href: getPostHref(adjacentPosts.prevPost, postIndexMap),
-      }
-    : null;
-
-  const nextPostItem = adjacentPosts.nextPost
-    ? {
-        post: adjacentPosts.nextPost,
-        href: getPostHref(adjacentPosts.nextPost, postIndexMap),
-      }
-    : null;
+  const currentPostSlug = getPostStableKey(post);
+  const index = seriesPostItems.findIndex(({ key }) => key === currentPostSlug);
 
   return {
     seriesPostItems,
-    prevPostItem,
-    nextPostItem,
-    currentPostSlug: getPostStableKey(post),
+    prevPostItem: seriesPostItems[index - 1] ?? null,
+    nextPostItem: index === -1 ? null : (seriesPostItems[index + 1] ?? null),
+    currentPostSlug,
   };
 }
 
 export function buildHomePageData(
   allPosts: BlogPost[],
-  pageSize: number = 10,
+  pageSize: number = PAGE_SIZE,
 ): {
   posts: BlogPost[];
   page: Page<BlogPost>;

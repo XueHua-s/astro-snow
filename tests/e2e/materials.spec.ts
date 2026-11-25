@@ -79,9 +79,17 @@ async function finishAnimations(locator: Locator) {
     await Promise.allSettled(
       element
         .getAnimations({ subtree: true })
-        .filter((animation) =>
-          Number.isFinite(animation.effect?.getComputedTiming().endTime),
-        )
+        .filter(({ effect }) => {
+          if (!Number.isFinite(effect?.getComputedTiming().endTime)) {
+            return false;
+          }
+          // FIXED: Chromium can leave a finished transition's promise pending
+          // inside a closed disclosure, where the content does not paint.
+          return !(
+            effect instanceof KeyframeEffect &&
+            effect.target?.closest('details:not([open]) > :not(summary)')
+          );
+        })
         .map((animation) => animation.finished),
     );
   });
@@ -230,7 +238,7 @@ for (const width of [1440, 390]) {
           await expect(surface).toHaveCSS('backdrop-filter', 'none');
           await expect(surface).toHaveCSS('background-image', 'none');
         }
-        const tabs = page.locator('a[aria-label="more info"] button');
+        const tabs = page.locator('a[data-card-more]');
         expect(await tabs.count()).toBeGreaterThan(1);
         for (const tab of await tabs.all()) {
           expect(await minimumContrast(tab)).toBeGreaterThanOrEqual(4.5);

@@ -25,6 +25,7 @@ export default defineConfig({
   },
   webServer: {
     command: `pnpm build:ci --outDir ${outDir} && pnpm exec astro ${serverMode} --outDir ${outDir} --host 127.0.0.1 --port 4332`,
+    env: { ASTRO_E2E_FIXTURES: '1' },
     url: `${origin}/blog`,
     reuseExistingServer: false,
     timeout: 300000,

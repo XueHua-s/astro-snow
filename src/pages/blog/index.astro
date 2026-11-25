@@ -16,7 +16,7 @@ const [allPosts, layoutFooterData] = await Promise.all([getNonWeeklyPosts(), get
 const { posts, page } = buildHomePageData(allPosts);
 ---
 
-<Layout title={blogSeoConfig.title}>
+<Layout title={blogSeoConfig.title} next={page.url.next}>
   <TwoColumnLayout>
     <Cover slot="cover" />
     <HomeSider slot="sider" />

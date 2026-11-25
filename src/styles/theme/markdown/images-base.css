@@ -10,30 +10,25 @@
   background-color: hsl(var(--muted));
 }
 
-/* 图片样式 - 16:9 默认占位比例 */
+/* 图片加载前预留空间，加载后使用资源的原始比例。 */
 .prose .markdown-image {
   display: block;
   width: 100%;
   height: auto;
-
-  /* 默认 16:9 比例防止布局抖动 */
-  aspect-ratio: 16 / 9;
+  aspect-ratio: auto 16 / 9;
   object-fit: contain;
-
-  /* 淡入动画 */
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-
-  /* 加载时的背景色 */
   background-color: hsl(var(--muted));
 }
 
-/* 图片加载完成状态 - 使用实际尺寸，限制最大高度 */
+/* FIXED: Only images owned by the active enhancer start the fade hidden. */
+.prose .markdown-image.pending {
+  opacity: 0;
+}
+
 .prose .markdown-image.loaded {
-  opacity: 1;
-  aspect-ratio: auto;
   max-height: 70vh;
-  object-fit: contain;
+  cursor: zoom-in;
+  transition: opacity 0.3s ease-in-out;
 }
 
 /* 全屏按钮样式 */

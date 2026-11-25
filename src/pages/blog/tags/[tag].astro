@@ -16,6 +16,7 @@ import {
   toTagParam,
 } from '@lib/content';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
+import { getTagRouteNames } from '@lib/content/tags';
 import { parseDate } from '@lib/datetime';
 import { hasItems } from '@lib/utils';
 
@@ -23,10 +24,12 @@ export async function getStaticPaths() {
   const posts = await getSortedPosts();
   const tagPostMap = getTagPostMap(posts);
 
-  return Array.from(tagPostMap.entries()).map(([tag, tagPosts]) => ({
-    params: { tag: toTagParam(tag) },
-    props: { posts: tagPosts, tag },
-  }));
+  return [...tagPostMap].flatMap(([tag, tagPosts]) =>
+    getTagRouteNames(tag).map((routeTag) => ({
+      params: { tag: toTagParam(routeTag) },
+      props: { posts: tagPosts, tag },
+    })),
+  );
 }
 
 const { tag, posts } = Astro.props;
@@ -38,8 +41,8 @@ const hasPosts = hasItems(posts);
 ---
 
 <Layout
-  title={`标签:${tag} | ${blogLayoutConfig.title}`}
-  description={`标签 ${tag} 下的所有文章`}>
+  title={`${tag}标签 | ${blogLayoutConfig.title}`}
+  description={`浏览雪花の博客中标有「${tag}」的 ${posts.length} 篇文章。`}>
   <TwoColumnLayout>
     <Cover slot="cover" title={`包含标签"${tag}"的文章`} />
     <HomeSider slot="sider" />

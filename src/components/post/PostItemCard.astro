@@ -1,7 +1,7 @@
 ---
 // 导入所需的库和类型
 import { Badge } from '@components/ui/badge';
-import { Button } from '@components/ui/button';
+import ResponsiveImage from '@components/common/ResponsiveImage.astro';
 import { Routes } from '@constants/router';
 import { defaultCoverList } from '@/config/blogLayoutConfig';
 import { buildCategoryPath, getCategoryArr, getPostDescriptionWithSummary } from '@lib/content';
@@ -11,6 +11,7 @@ import { routeBuilder } from '@lib/route';
 import { cn } from '@lib/utils';
 import readingTime from 'reading-time';
 import type { BlogPost } from '@/types/blog';
+import CardMoreLink from './CardMoreLink.astro';
 
 export interface PostItemCardProps {
   data: BlogPost;
@@ -72,10 +73,14 @@ const lqipProps = getLqipProps(finalCover);
           lqipProps.class,
         )}
       >
-        <img
+        <ResponsiveImage
           src={finalCover}
+          fallback={defaultCoverList[0]}
+          widths={[320, 480, 640, 800, 960]}
+          sizes="(max-width: 768px) calc(100vw - 3rem), (max-width: 992px) 42vw, 400px"
           loading="lazy"
-          alt="post cover"
+          decoding="async"
+          alt=""
           class="absolute inset-0 h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       </a>
@@ -123,10 +128,10 @@ const lqipProps = getLqipProps(finalCover);
     </div>
     <div class="mt-1 flex flex-col space-y-1.5 p-0">
       <div class="flex items-center gap-2">
-        <a href={href} aria-label="post-link" class="min-w-0 flex-1"
-          ><h1 class="text-primary hover:text-blue line-clamp-1 truncate text-xl font-bold transition-colors duration-300">
+        <a href={href} class="min-w-0 flex-1"
+          ><h2 class="text-primary hover:text-blue line-clamp-1 truncate text-xl font-bold transition-colors duration-300">
             {title}
-          </h1>
+          </h2>
         </a>
         {
           isDraft && (
@@ -166,26 +171,11 @@ const lqipProps = getLqipProps(finalCover);
           ))
         }
       </div>
-      <a
+      <CardMoreLink
         href={href}
-        aria-label="more info"
-        class={cn(
-          'shrink-0',
-          hideCover || leftClip ? '-mr-px' : 'order-first -ml-px md:order-last md:ml-0 md:-mr-px',
-        )}
-      >
-        <Button
-          variant="ghost"
-          className={cn(
-            'material-action md:h-7 md:px-2 md:py-1 md:text-xs',
-            hideCover || leftClip
-              ? 'rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none'
-              : 'rounded-ss-none rounded-se-2xl rounded-ee-none rounded-es-[var(--glass-radius-card)] md:rounded-ss-2xl md:rounded-se-none md:rounded-ee-[var(--glass-radius-card)] md:rounded-es-none',
-          )}
-        >
-          more...
-        </Button>
-      </a>
+        subject={title}
+        placement={hideCover || leftClip ? 'inline-right' : 'inline-left'}
+      />
     </div>
   </div>
 </div>

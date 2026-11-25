@@ -1,8 +1,8 @@
 ---
 layout: ../../layouts/AboutLayout.astro
-title: 'About'
+title: '关于 LittleSnow'
 date: 2025-12-28 13:41:46
-description: '关于我？'
+description: '认识 LittleSnow，一名关注 React、TypeScript、文档工作流、Electron 和 AI 开发者工具的前端及全栈工程师。'
 ---
 
 ## 👋 你好，这里是 LittleSnow

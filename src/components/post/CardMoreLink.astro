@@ -1,0 +1,33 @@
+---
+import { buttonVariants } from '@components/ui/button';
+import { cn } from '@lib/utils';
+
+interface Props {
+  href: string;
+  subject?: string;
+  placement?: 'absolute-right' | 'inline-left' | 'inline-right';
+}
+
+const { href, subject, placement = 'inline-right' } = Astro.props;
+// FIXED: The one-pixel offset meets the card border at each placement.
+const placementClasses = {
+  'absolute-right': 'absolute -right-px -bottom-px',
+  'inline-left': 'order-first -ml-px shrink-0 md:order-last md:ml-0 md:-mr-px',
+  'inline-right': '-mr-px shrink-0',
+};
+---
+
+<a
+  href={href}
+  aria-label={subject ? `More about ${subject}` : 'More info'}
+  data-card-more
+  class={cn(
+    buttonVariants({ variant: 'ghost' }),
+    'material-action md:h-7 md:px-2 md:py-1 md:text-xs',
+    placementClasses[placement],
+    placement === 'inline-left'
+      ? 'rounded-ss-none rounded-se-2xl rounded-ee-none rounded-es-[var(--glass-radius-card)] md:rounded-ss-2xl md:rounded-se-none md:rounded-ee-[var(--glass-radius-card)] md:rounded-es-none'
+      : 'rounded-ss-2xl rounded-se-none rounded-ee-[var(--glass-radius-card)] rounded-es-none',
+  )}>
+  more...
+</a>

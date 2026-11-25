@@ -21,7 +21,7 @@ const [posts, layoutFooterData] = await Promise.all([getSortedPosts(), getLayout
 const sortedTags = getSortedTagsWithCount(posts);
 ---
 
-<Layout title={`标签 | ${blogLayoutConfig.title}`} description="所有文章标签">
+<Layout title={`全部标签 | ${blogLayoutConfig.title}`} description={`通过 ${sortedTags.length} 个标签查找雪花の博客里相关主题的文章。`}>
   <TwoColumnLayout>
     <Cover slot="cover" title="全部标签" />
     <HomeSider slot="sider" />

@@ -1,7 +1,10 @@
 ---
 import "../styles/global.css";
 import GlassFilterDefs from "@components/common/GlassFilterDefs.astro";
+import SeoHead from '@components/common/SeoHead.astro';
+import ThemePrepaint from '@components/theme/ThemePrepaint.astro';
 import {baseLayoutConfig} from "@config/indexConfig.ts";
+import { SITE_LANGUAGE } from '@lib/seo';
 
 interface Props {
   title?: string;
@@ -24,9 +27,10 @@ const mainClass = fullScreen
 ---
 
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang={SITE_LANGUAGE} data-theme="light">
   <head>
     <meta charset="utf-8" />
+    <ThemePrepaint />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
@@ -34,24 +38,13 @@ const mainClass = fullScreen
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <script is:inline>
-      // 立即执行主题检查 否则会闪烁
-      if (
-        localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      ) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-        document.documentElement.dataset.theme = 'dark';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-        document.documentElement.dataset.theme = 'light';
-      }
-    </script>
+    <SeoHead title={title} description={description} />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
     <script is:inline>
       // iOS Safari pinch-zoom guard (viewport meta alone is not always respected)
       (() => {

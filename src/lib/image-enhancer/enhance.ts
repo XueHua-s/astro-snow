@@ -1,8 +1,6 @@
 import { groupPortraitImages } from './grouping';
 import { openLightbox } from './lightbox';
 
-const enhancedImages = new WeakSet<HTMLImageElement>();
-
 function createFullscreenButton(): HTMLButtonElement {
   const button = document.createElement('button');
   button.className = 'markdown-image-fullscreen';
@@ -36,40 +34,62 @@ function createErrorPlaceholder(img: HTMLImageElement): HTMLElement {
   return placeholder;
 }
 
-function handleImageLoaded(img: HTMLImageElement): void {
-  img.classList.add('loaded');
+function enhanceImage(
+  img: HTMLImageElement,
+  onSettled: () => void,
+  signal?: AbortSignal,
+): () => void {
+  const wrapper = img.closest('.markdown-image-wrapper');
+  let control: HTMLElement | undefined;
+  const settle = (event?: Event) => {
+    img.removeEventListener('load', settle);
+    img.removeEventListener('error', settle);
+    img.classList.remove('pending');
 
-  const isPortrait = img.naturalHeight > img.naturalWidth * 1.2;
-  if (isPortrait) {
-    img.closest('.markdown-image-wrapper')?.classList.add('portrait');
+    const loaded = event?.type !== 'error' && img.naturalWidth > 0;
+    img.classList.add(loaded ? 'loaded' : 'error');
+
+    if (wrapper) {
+      wrapper.classList.toggle(
+        'portrait',
+        loaded && img.naturalHeight > img.naturalWidth * 1.2,
+      );
+      control = loaded ? createFullscreenButton() : createErrorPlaceholder(img);
+      wrapper.append(control);
+    }
+    onSettled();
+  };
+
+  if (img.complete) {
+    settle();
+  } else {
+    // FIXED: Let a progressively displayed native image stay visible on hydration.
+    if (img.naturalWidth === 0) img.classList.add('pending');
+    img.addEventListener('load', settle, { signal });
+    img.addEventListener('error', settle, { signal });
   }
 
-  const wrapper = img.closest('.markdown-image-wrapper');
-  if (!wrapper || wrapper.querySelector('.markdown-image-fullscreen')) return;
-
-  const fullscreenBtn = createFullscreenButton();
-  wrapper.appendChild(fullscreenBtn);
-  img.style.cursor = 'zoom-in';
-}
-
-function handleImageError(img: HTMLImageElement): void {
-  img.classList.add('error');
-  const wrapper = img.closest('.markdown-image-wrapper');
-  if (wrapper && !wrapper.querySelector('.markdown-image-error')) {
-    const placeholder = createErrorPlaceholder(img);
-    wrapper.appendChild(placeholder);
-  }
+  return () => {
+    img.classList.remove('pending', 'loaded', 'error');
+    wrapper?.classList.remove('portrait');
+    control?.remove();
+  };
 }
 
 function handleImageClick(e: Event): void {
-  const target = e.target as HTMLElement;
+  const { target } = e;
+  if (!(target instanceof Element)) return;
 
-  if (target.classList.contains('markdown-image')) {
-    const img = target as HTMLImageElement;
-    openLightbox(img.src, img.alt || '图片');
+  if (
+    target instanceof HTMLImageElement &&
+    target.matches('.markdown-image.loaded')
+  ) {
+    openLightbox(target.src, target.alt || '图片');
   } else if (target.closest('.markdown-image-fullscreen')) {
     const wrapper = target.closest('.markdown-image-wrapper');
-    const img = wrapper?.querySelector('.markdown-image') as HTMLImageElement;
+    const img = wrapper?.querySelector<HTMLImageElement>(
+      '.markdown-image.loaded',
+    );
     if (img) {
       e.stopPropagation();
       openLightbox(img.src, img.alt || '图片');
@@ -78,59 +98,30 @@ function handleImageClick(e: Event): void {
 }
 
 export function enhanceImages(container: Element, signal?: AbortSignal): void {
+  if (signal?.aborted) return;
   const images =
     container.querySelectorAll<HTMLImageElement>('.markdown-image');
-  let loadedCount = 0;
-  const totalImages = images.length;
+  if (images.length === 0) return;
+
+  let remaining = images.length;
+  let undoGrouping: (() => void) | undefined;
 
   container.addEventListener('click', handleImageClick, { signal });
 
-  const checkAllLoaded = () => {
-    loadedCount++;
-    if (loadedCount >= totalImages) {
-      groupPortraitImages(container);
-    }
+  const onSettled = () => {
+    remaining--;
+    if (remaining === 0) undoGrouping = groupPortraitImages(container);
   };
 
-  images.forEach((img) => {
-    if (enhancedImages.has(img)) {
-      checkAllLoaded();
-      return;
-    }
-    enhancedImages.add(img);
-
-    if (img.complete && img.naturalWidth > 0) {
-      handleImageLoaded(img);
-      checkAllLoaded();
-      return;
-    }
-
-    if (img.complete && img.naturalWidth === 0) {
-      handleImageError(img);
-      checkAllLoaded();
-      return;
-    }
-
-    img.addEventListener(
-      'load',
-      () => {
-        handleImageLoaded(img);
-        checkAllLoaded();
-      },
-      { once: true },
-    );
-
-    img.addEventListener(
-      'error',
-      () => {
-        handleImageError(img);
-        checkAllLoaded();
-      },
-      { once: true },
-    );
-  });
-
-  if (totalImages === 0) {
-    groupPortraitImages(container);
-  }
+  const cleanups = Array.from(images, (img) =>
+    enhanceImage(img, onSettled, signal),
+  );
+  signal?.addEventListener(
+    'abort',
+    () => {
+      undoGrouping?.();
+      for (const cleanup of cleanups) cleanup();
+    },
+    { once: true },
+  );
 }

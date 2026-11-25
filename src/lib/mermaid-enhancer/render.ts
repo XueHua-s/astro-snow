@@ -1,56 +1,88 @@
-import { mermaidModule, setMermaidModule } from './state';
+import { enhanceMermaidDiagram, setMermaidFullscreenEnabled } from './toolbar';
 
-type MermaidTheme = 'default' | 'dark';
+export type MermaidTheme = 'default' | 'dark';
+type Mermaid = typeof import('mermaid').default;
 
-function getCurrentTheme(): MermaidTheme {
-  const dataTheme =
-    document.documentElement.getAttribute('data-theme') ??
-    document.body?.getAttribute('data-theme');
-  return dataTheme === 'dark' ? 'dark' : 'default';
+let nextId = 0;
+
+function showSource(pre: HTMLPreElement, source: string) {
+  const code = document.createElement('code');
+  code.className = 'language-mermaid';
+  code.textContent = source;
+  pre.replaceChildren(code);
+  pre.dataset.mermaidState = 'fallback';
+  pre.removeAttribute('data-processed');
+  setMermaidFullscreenEnabled(pre, false);
 }
 
-export async function renderUnprocessedMermaidDiagrams(): Promise<void> {
-  const diagrams = document.querySelectorAll<HTMLElement>(
-    'pre.mermaid:not([data-processed])',
-  );
+export async function renderMermaidDiagrams(
+  diagrams: NodeListOf<HTMLPreElement>,
+  theme: MermaidTheme,
+  signal: AbortSignal,
+): Promise<void> {
+  if (signal.aborted) return;
 
-  if (diagrams.length === 0) return;
-
-  if (!mermaidModule) {
-    const { default: mermaid } = await import('mermaid');
-    setMermaidModule(mermaid);
-  }
-
-  if (!mermaidModule) return;
-
-  mermaidModule.initialize({
-    startOnLoad: false,
-    theme: getCurrentTheme(),
-    gitGraph: {
-      mainBranchName: 'main',
-      showCommitLabel: true,
-      showBranches: true,
-      rotateCommitLabel: true,
-    },
+  const sources = Array.from(diagrams, (pre) => {
+    const source = pre.dataset.diagram ?? pre.textContent ?? '';
+    pre.dataset.diagram = source;
+    if (!pre.closest('[data-mermaid-toolbar="off"]'))
+      enhanceMermaidDiagram(pre, source);
+    if (pre.dataset.mermaidState !== 'ready')
+      pre.dataset.mermaidState = 'loading';
+    return { pre, source };
   });
 
-  for (const pre of diagrams) {
-    if (!pre.hasAttribute('data-diagram')) {
-      pre.setAttribute('data-diagram', pre.textContent || '');
-    }
-
-    const definition = pre.getAttribute('data-diagram') || '';
-    const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
-
-    try {
-      const { svg } = await mermaidModule.render(id, definition);
-      pre.innerHTML = svg;
-    } catch (error) {
-      console.error('[mermaid-nav-fix] Error:', error);
-    } finally {
-      pre.setAttribute('data-processed', 'true');
-    }
+  let mermaid: Mermaid;
+  try {
+    ({ default: mermaid } = await import('mermaid'));
+    if (signal.aborted) return;
+    mermaid.initialize({
+      startOnLoad: false,
+      suppressErrorRendering: true,
+      theme,
+      gitGraph: {
+        mainBranchName: 'main',
+        showCommitLabel: true,
+        showBranches: true,
+        rotateCommitLabel: true,
+      },
+    });
+  } catch (error) {
+    if (signal.aborted) return;
+    console.error('[Mermaid] Could not initialize renderer:', error);
+    for (const { pre, source } of sources) showSource(pre, source);
+    return;
   }
 
-  window.dispatchEvent(new CustomEvent('mermaid:rendered'));
+  // Mermaid needs layout to measure SVG labels. Its working elements stay outside the content.
+  const scratch = document.createElement('div');
+  scratch.setAttribute('aria-hidden', 'true');
+  scratch.style.cssText =
+    'position:absolute;left:-10000px;top:0;visibility:hidden';
+  document.body.append(scratch);
+
+  try {
+    for (const { pre, source } of sources) {
+      if (signal.aborted) return;
+      try {
+        const { svg, bindFunctions } = await mermaid.render(
+          `mermaid-${++nextId}`,
+          source,
+          scratch,
+        );
+        if (signal.aborted || !pre.isConnected) return;
+        pre.innerHTML = svg;
+        bindFunctions?.(pre);
+        pre.dataset.mermaidState = 'ready';
+        pre.dataset.processed = 'true';
+        setMermaidFullscreenEnabled(pre, true);
+      } catch (error) {
+        if (signal.aborted || !pre.isConnected) return;
+        console.error('[Mermaid] Could not render diagram:', error);
+        showSource(pre, source);
+      }
+    }
+  } finally {
+    scratch.remove();
+  }
 }

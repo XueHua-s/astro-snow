@@ -2,11 +2,12 @@
 import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 import { parseDate } from '@lib/datetime';
 import { getLqipStyle } from '@lib/lqip';
-import { getBackgroundImages } from '@lib/backgrounds';
+import { backgroundImages } from '@lib/site-images';
 import readingTime from 'reading-time';
 import type { BlogPost } from '@/types/blog';
 import { MAX_WIDTH } from '@/constants/layout';
 import CoverParticles from './CoverParticles.astro';
+import ResponsiveImage from '@components/common/ResponsiveImage.astro';
 
 export interface CoverProps {
   data?: BlogPost;
@@ -20,7 +21,6 @@ const { date, title: dataTitle, draft } = data?.data ?? {};
 const readState = readingTime(data?.body ?? '');
 const isDraft = import.meta.env.DEV && draft === true;
 
-const backgroundImages = await getBackgroundImages();
 const bannerSrc = backgroundImages.length
   ? backgroundImages[Math.floor(Math.random() * backgroundImages.length)]
   : blogLayoutConfig.banner.src;
@@ -34,11 +34,16 @@ const bannerLqipStyle = getLqipStyle(bannerSrc);
     id="banner-box"
     style={bannerLqipStyle}
   >
-    <img
+    <ResponsiveImage
       src={bannerSrc}
-      alt={blogLayoutConfig.banner.alt ?? 'cover'}
+      fallback={blogLayoutConfig.banner.src}
+      alt=""
       class="h-full w-full object-cover"
-      sizes="100vw"
+      widths={[480, 768, 1200, 1600, 1920]}
+      sizes="(max-width: 768px) max(100vw, 36rem), 100vw"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
     />
   </div>
   <CoverParticles />

@@ -1,0 +1,177 @@
+@layer base {
+  :root {
+    --glass-tint-hsl: 0 0% 100%;
+    --glass-tint-alpha: 0.62;
+    --glass-tint-alpha-strong: 0.9;
+    /* Surface ink: contrasts with the glass tint in both themes. */
+    --glass-surface-hsl: 220 20% 30%;
+    --glass-action-hsl: 222 18% 91%;
+    --glass-primary-hsl: 346 65% 35%;
+    --glass-primary-ink: 0 0% 100%;
+
+    --glass-border: hsl(220 24% 26% / 0.16);
+    --glass-highlight: hsl(0 0% 100% / 0.78);
+    --glass-edge: hsl(220 28% 18% / 0.18);
+    --glass-radius-panel: 1.125rem;
+    --glass-radius-card: 0.875rem;
+    --glass-radius-control: 0.75rem;
+    --glass-radius-overlay: 1.25rem;
+
+    --glass-shadow:
+      0 24px 60px -28px hsl(220 40% 20% / 0.35),
+      0 2px 6px hsl(220 40% 20% / 0.05);
+    --glass-inner:
+      inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-edge);
+
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.14),
+      transparent 46%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.18),
+      transparent 62%
+    );
+
+    --glass-blur: 20px;
+    --glass-saturate: 135%;
+    --glass-brightness: 1.02;
+    --site-canvas: #f3f3f7;
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.08);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.65);
+  }
+
+  .dark {
+    --glass-tint-hsl: 222 22% 10%;
+    --glass-tint-alpha: 0.58;
+    --glass-tint-alpha-strong: 0.9;
+    --glass-surface-hsl: 0 0% 100%;
+    --glass-action-hsl: 222 18% 23%;
+    --glass-primary-hsl: 346 65% 80%;
+    --glass-primary-ink: 222 22% 10%;
+
+    --glass-border: hsl(220 26% 84% / 0.21);
+    --glass-highlight: hsl(220 40% 94% / 0.25);
+    --glass-edge: hsl(230 60% 2% / 0.55);
+    --glass-shadow:
+      0 28px 70px -30px hsl(230 60% 2% / 0.8), 0 2px 10px hsl(230 60% 2% / 0.35);
+    --glass-sheen: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.08),
+      transparent 46%
+    );
+    --glass-glow: radial-gradient(
+      120% 90% at 18% -10%,
+      hsl(0 0% 100% / 0.1),
+      transparent 62%
+    );
+
+    --glass-saturate: 125%;
+    --glass-brightness: 0.98;
+    --site-canvas: #141925;
+    --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.06);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.45);
+  }
+
+  body {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+@layer components {
+  .glass {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius, var(--glass-radius-card));
+    background:
+      var(--glass-sheen), var(--glass-glow),
+      hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    box-shadow: var(--glass-shadow), var(--glass-inner);
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+      brightness(var(--glass-brightness));
+  }
+
+  /* FIXED: Reading surfaces are quiet tint, not repeated chrome finishes. */
+  .glass-panel,
+  .glass-card,
+  .glass-flat,
+  .glass-sidebar {
+    background: hsl(var(--glass-tint-hsl) / 0.94);
+    border-color: hsl(var(--glass-surface-hsl) / 0.12);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Large content surface: tint + separator, never a full-page backdrop-filter. */
+  .glass-panel {
+    --glass-radius: var(--glass-radius-panel);
+    box-shadow: 0 4px 16px -12px hsl(220 30% 10% / 0.12);
+  }
+
+  /* Cards sit on a panel; a second blur would only add fog and GPU cost. */
+  .glass-card {
+    --glass-radius: var(--glass-radius-card);
+  }
+
+  .glass-sidebar {
+    --glass-radius: var(--glass-radius-panel);
+    background: hsl(var(--glass-tint-hsl) / 0.72);
+  }
+
+  /* Nested control inside an already-frosted surface: tint only. */
+  .glass-flat {
+    --glass-radius: var(--glass-radius-control);
+    background: hsl(var(--glass-surface-hsl) / 0.04);
+  }
+
+  .glass-input {
+    background: var(--glass-input-bg);
+    border: 1px solid var(--glass-input-border);
+    border-radius: var(--glass-radius-control);
+    box-shadow: inset 0 1px 2px hsl(220 30% 10% / 0.05);
+  }
+
+  .dark .glass-input {
+    box-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.2);
+  }
+
+  /* Lightweight tint for nested groups where a full rim/shadow is too heavy. */
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.08);
+  }
+
+  .glass-control {
+    --glass-radius: var(--glass-radius-control);
+    --glass-tint-alpha: 0.82;
+    --glass-blur: 20px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  .glass-menu {
+    --glass-radius: 1rem;
+    --glass-tint-alpha: 0.94;
+    --glass-blur: 24px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+  }
+
+  .glass-overlay {
+    --glass-radius: var(--glass-radius-overlay);
+    --glass-tint-alpha: var(--glass-tint-alpha-strong);
+    --glass-blur: 32px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  /* These are separate layers from the dialog panels they sit behind. */
+  .glass-scrim {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}

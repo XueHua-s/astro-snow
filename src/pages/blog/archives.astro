@@ -18,7 +18,7 @@ const [{ posts, postsByYear, years }, postIndexMap, layoutFooterData] = await Pr
 ]);
 ---
 
-<Layout title={`归档 | ${blogLayoutConfig.title}`} description="文章归档">
+<Layout title={`文章归档 | ${blogLayoutConfig.title}`} description={`按年份浏览雪花の博客的 ${posts.length} 篇文章。`}>
   <TwoColumnLayout>
     <Cover slot="cover" title="归档" />
     <HomeSider slot="sider" />

@@ -1,7 +1,6 @@
-import { bindPanAndToggleEvents } from './lightbox-pan';
-import { resetZoom } from './lightbox-zoom';
+import { bindLightboxGestures } from './lightbox-zoom';
 
-let lightboxImg: HTMLImageElement | null = null;
+let lightbox: ReturnType<typeof createLightbox> | undefined;
 
 function handleLightboxKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
@@ -9,7 +8,7 @@ function handleLightboxKeydown(e: KeyboardEvent): void {
   }
 }
 
-function createLightbox(): HTMLElement {
+function createLightbox() {
   const overlay = document.createElement('div');
   overlay.className = 'markdown-image-lightbox';
   overlay.setAttribute('role', 'dialog');
@@ -27,7 +26,9 @@ function createLightbox(): HTMLElement {
 
   const img = document.createElement('img');
   img.className = 'markdown-image-lightbox-img';
-  lightboxImg = img;
+  img.addEventListener('load', () => {
+    if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+  });
 
   imgContainer.appendChild(img);
   overlay.appendChild(closeBtn);
@@ -40,49 +41,36 @@ function createLightbox(): HTMLElement {
   });
 
   closeBtn.addEventListener('click', closeLightbox);
-  bindPanAndToggleEvents(imgContainer, img);
-
-  return overlay;
-}
-
-function getLightbox(): HTMLElement {
-  let overlay = document.querySelector('.markdown-image-lightbox');
-  if (!overlay) {
-    overlay = createLightbox();
-    document.body.appendChild(overlay);
-  } else {
-    lightboxImg = overlay.querySelector('.markdown-image-lightbox-img');
-  }
-  return overlay as HTMLElement;
+  const reset = bindLightboxGestures(imgContainer, img);
+  document.body.appendChild(overlay);
+  return { overlay, img, reset };
 }
 
 export function openLightbox(imgSrc: string, imgAlt: string): void {
-  const overlay = getLightbox();
+  if (!lightbox?.overlay.isConnected) lightbox = createLightbox();
+  const { overlay, img, reset } = lightbox;
 
-  resetZoom(lightboxImg);
-  if (!lightboxImg) return;
-
-  lightboxImg.classList.remove('loaded');
-  lightboxImg.src = '';
-
-  lightboxImg.alt = imgAlt;
-  lightboxImg.src = imgSrc;
-
-  lightboxImg.onload = () => {
-    lightboxImg?.classList.add('loaded');
-  };
+  reset();
+  img.classList.remove('loaded');
+  img.alt = imgAlt;
+  img.src = imgSrc;
+  if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
 
   overlay.classList.add('active');
   document.body.classList.add('lightbox-open');
   document.addEventListener('keydown', handleLightboxKeydown);
+  document.addEventListener('astro:before-swap', closeLightbox);
 }
 
 export function closeLightbox(): void {
-  const overlay = document.querySelector('.markdown-image-lightbox');
-  if (overlay) {
-    overlay.classList.remove('active');
-    document.body.classList.remove('lightbox-open');
-    document.removeEventListener('keydown', handleLightboxKeydown);
-    resetZoom(lightboxImg);
-  }
+  if (!lightbox) return;
+
+  const { overlay, img, reset } = lightbox;
+  overlay.classList.remove('active');
+  img.removeAttribute('src');
+  img.classList.remove('loaded');
+  reset();
+  document.body.classList.remove('lightbox-open');
+  document.removeEventListener('keydown', handleLightboxKeydown);
+  document.removeEventListener('astro:before-swap', closeLightbox);
 }

@@ -1,54 +1,62 @@
-/**
- * EmbedHydrator component
- * Finds embed placeholders in the DOM and hydrates them with React components
- * Note: Link previews are now server-rendered, only tweets need client hydration
- */
-
 import { ErrorBoundary, ErrorFallback } from '@components/common';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import TweetEmbed from './TweetEmbed';
 
+const TWEET_SELECTOR = '[data-tweet-embed][data-tweet-id]:not([data-hydrated])';
+
+/** Hydrate the tweet placeholders in this Markdown island only when needed. */
 export function EmbedHydrator() {
+  const marker = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
-    // Store all created roots for cleanup
-    const roots: Root[] = [];
+    const container = marker.current?.closest('.custom-content');
+    const placeholders =
+      container?.querySelectorAll<HTMLElement>(TWEET_SELECTOR);
+    if (!placeholders?.length) return;
 
-    // Find all tweet embed placeholders
-    const tweetEmbeds = document.querySelectorAll('[data-tweet-embed]');
-    tweetEmbeds.forEach((element) => {
-      const tweetId = element.getAttribute('data-tweet-id');
-      if (!tweetId) return;
+    const roots = new Map<HTMLElement, Root>();
+    let disposed = false;
 
-      // Check if already hydrated
-      if (element.getAttribute('data-hydrated') === 'true') return;
+    void import('./TweetEmbed')
+      .then(({ TweetEmbed }) => {
+        if (disposed) return;
+        for (const element of placeholders) {
+          const tweetId = element.dataset.tweetId;
+          if (
+            !tweetId ||
+            !element.isConnected ||
+            element.hasAttribute('data-hydrated')
+          )
+            continue;
 
-      // Create a root and render the TweetEmbed component with error boundary
-      const root = createRoot(element);
-      root.render(
-        <ErrorBoundary
-          fallbackRender={(props) => (
-            <ErrorFallback {...props} title="TweetEmbed Error" />
-          )}>
-          <TweetEmbed tweetId={tweetId} />
-        </ErrorBoundary>,
-      );
-      roots.push(root);
+          const root = createRoot(element);
+          roots.set(element, root);
+          element.dataset.hydrated = 'true';
+          root.render(
+            <ErrorBoundary
+              fallbackRender={(props) => (
+                <ErrorFallback {...props} title="TweetEmbed Error" />
+              )}>
+              <TweetEmbed tweetId={tweetId} />
+            </ErrorBoundary>,
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        if (!disposed) console.error('[Tweet Embed] Failed to load:', error);
+      });
 
-      // Mark as hydrated
-      element.setAttribute('data-hydrated', 'true');
-    });
-
-    // Cleanup function: unmount all roots when component unmounts
     return () => {
-      for (const root of roots) {
-        root.unmount();
+      disposed = true;
+      for (const [element, root] of roots) {
+        delete element.dataset.hydrated;
+        // React runs this cleanup while unmounting the containing island.
+        queueMicrotask(() => root.unmount());
       }
     };
   }, []);
 
-  // This component doesn't render anything visible
-  return null;
+  return <span hidden ref={marker} />;
 }
 
 export default EmbedHydrator;

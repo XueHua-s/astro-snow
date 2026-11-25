@@ -1,5 +1,9 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { headingCache, subscribe } from './useHeadingTree/dom-store';
+import {
+  getHeadingTree,
+  subscribeToArticleHeadings,
+} from './useHeadingTree/dom-store';
+import { subscribeToNoHeadings } from './heading-viewport-store';
 import {
   buildHeadingTree,
   EMPTY_HEADINGS,
@@ -15,11 +19,16 @@ export interface Heading {
   parent?: Heading;
 }
 
-export function useHeadingTree(sourceHeadings?: HeadingInput[]): Heading[] {
+const emptyHeadingTree = () => EMPTY_HEADINGS;
+
+export function useHeadingTree(
+  sourceHeadings?: HeadingInput[],
+  enabled = true,
+): Heading[] {
   const domHeadings = useSyncExternalStore(
-    subscribe,
-    () => headingCache.headings,
-    () => EMPTY_HEADINGS,
+    enabled ? subscribeToArticleHeadings : subscribeToNoHeadings,
+    enabled ? getHeadingTree : emptyHeadingTree,
+    emptyHeadingTree,
   );
 
   return useMemo(() => {

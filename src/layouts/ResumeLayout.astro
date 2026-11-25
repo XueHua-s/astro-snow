@@ -25,10 +25,8 @@ const description = frontmatter.description ?? 'snow 的公开 Markdown 简历';
   title={`${title} | ${blogSeoConfig.title}`}
   description={description}
   hideMobileDrawer
-  pagefindIgnore>
-  <Fragment slot="head">
-    <meta name="robots" content="noindex, nofollow" />
-  </Fragment>
+  pagefindIgnore
+  noIndex>
   <TwoColumnLayout>
     <Cover slot="cover" title="snow Resume" />
     <aside
@@ -56,8 +54,8 @@ const description = frontmatter.description ?? 'snow 的公开 Markdown 简历';
       <article
         class="resume-content prose md:prose-sm dark:prose-invert custom-content">
         <slot />
+        <CustomContentEnhancer client:idle config={defaultContentConfig} />
       </article>
-      <CustomContentEnhancer client:idle config={defaultContentConfig} />
     </div>
   </TwoColumnLayout>
 </Layout>

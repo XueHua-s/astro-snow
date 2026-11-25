@@ -1,4 +1,6 @@
 // Home / BlogIndex Config
+import { backgroundImages } from '@lib/site-images';
+
 export const homePageProfile = {
   name: 'LittleSnow',
   tagline: '“爬起仅仅只是因为不想输。”',
@@ -22,9 +24,7 @@ export const homePageMusic = {
   size: 86,
 };
 
-export async function getHomePageProfile() {
-  const { getBackgroundImages } = await import('@lib/backgrounds');
-  const backgroundImages = await getBackgroundImages();
+export function getHomePageProfile() {
   const backgroundUrl = backgroundImages.length
     ? backgroundImages[Math.floor(Math.random() * backgroundImages.length)]
     : homePageProfile.backgroundUrl;

@@ -45,6 +45,41 @@ async function search(page: Page) {
   await expect(page.locator('.pagefind-ui__result-link').first()).toBeVisible();
 }
 
+test('Enter follows the selected search result through Astro navigation', async ({
+  page,
+}) => {
+  const clean = collectErrors(page);
+  await visit(page);
+  await open(page);
+  await search(page);
+  const target = await page
+    .locator('.pagefind-ui__result-link')
+    .first()
+    .evaluate((element: HTMLAnchorElement) => element.href);
+  await page.evaluate(() => {
+    document.addEventListener(
+      'astro:after-swap',
+      () => {
+        document.documentElement.dataset.searchNavigationSwap = 'true';
+      },
+      { once: true },
+    );
+  });
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('.pagefind-ui__result').first()).toHaveAttribute(
+    'data-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(target);
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-search-navigation-swap',
+    'true',
+  );
+  await expect(page.locator('#search-dialog')).toBeHidden();
+  clean();
+});
+
 function delay(context: BrowserContext, pattern: RegExp) {
   let release = () => {};
   let requested = false;

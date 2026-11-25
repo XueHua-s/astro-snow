@@ -1,0 +1,135 @@
+@layer components {
+  /* Home hero: stronger tint because it floats over a random wallpaper. */
+  .glass-hero {
+    --glass-radius: var(--glass-radius-panel);
+    --glass-tint-alpha: 0.68;
+    --glass-blur: 24px;
+    color: hsl(var(--foreground, var(--glass-surface-hsl)));
+  }
+
+  .dark .glass-hero {
+    --glass-tint-alpha: 0.6;
+  }
+
+  .glass-interactive {
+    transition: border-color 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .glass-interactive:hover {
+      border-color: hsl(var(--glass-surface-hsl) / 0.24);
+    }
+  }
+
+  .glass-interactive:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  /* Pointer-reactive specular layer used by the home hero. */
+  .glass-specular {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.9;
+    mix-blend-mode: soft-light;
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.18),
+      transparent 62%
+    );
+  }
+
+  .dark .glass-specular {
+    background: radial-gradient(
+      420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
+      hsl(0 0% 100% / 0.12),
+      transparent 62%
+    );
+  }
+
+  /* L0: fixed, GPU-cheap gradient mesh. No filter: blur() on huge layers. */
+  .site-ambient {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(345 85% 88% / 0.48),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(202 85% 88% / 0.45),
+        transparent 70%
+      ),
+      var(--site-canvas);
+  }
+
+  .dark .site-ambient {
+    background:
+      radial-gradient(
+        60vmax 50vmax at 12% 8%,
+        hsl(335 48% 30% / 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        55vmax 45vmax at 88% 18%,
+        hsl(202 55% 30% / 0.32),
+        transparent 70%
+      ),
+      var(--site-canvas);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-interactive,
+    .glass-interactive:hover,
+    .glass-interactive:active {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      --glass-blur: 16px;
+    }
+
+    .glass-overlay {
+      --glass-blur: 24px;
+    }
+
+    .glass-hero {
+      --glass-blur: 18px;
+    }
+  }
+}
+
+/*
+ * Refraction: an SVG displacement filter on the backdrop.
+ * Chromium only; Safari/Firefox keep the baseline blur above.
+ * The gate script in GlassFilterDefs.astro adds .glass-refract-supported.
+ */
+html.glass-refract-supported .glass-refract {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: url(#glass-refraction);
+}
+
+/*
+ * The theme toggle snapshots the page with the View Transitions API.
+ * A live backdrop-filter inside that snapshot can flash, so temporarily
+ * fall back to the tint while the circular reveal runs.
+ */
+html.theme-transition .glass,
+html.theme-transition .glass-control,
+html.theme-transition .glass-overlay,
+html.theme-transition .glass-hero,
+html.theme-transition .glass-scrim,
+html.theme-transition #site-header .site-header-bg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}

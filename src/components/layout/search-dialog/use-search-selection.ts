@@ -1,4 +1,3 @@
-import { closeSearch } from '@store/ui';
 import { useCallback, useState } from 'react';
 import { getSelectableItems } from './selectable-items';
 
@@ -64,10 +63,8 @@ export function useSearchSelection() {
     const link = selectedItem.querySelector<HTMLAnchorElement>(
       '.pagefind-ui__result-link',
     );
-    if (link?.href) {
-      closeSearch();
-      window.location.href = link.href;
-    }
+    // Dispatch the same link action as a pointer click so Astro owns navigation.
+    link?.click();
   }, [selectedIndex]);
 
   return {

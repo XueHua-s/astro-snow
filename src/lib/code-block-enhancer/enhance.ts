@@ -66,28 +66,45 @@ export function enhanceAllCodeBlocks(
   container: Element,
   options: EnhanceOptions = {},
 ): void {
-  const { enableCopy = true, enableFullscreen = true } = options;
+  const { enableCopy = true, enableFullscreen = true, signal } = options;
+  if (signal?.aborted) return;
   const codeBlocks = container.querySelectorAll('pre');
 
   codeBlocks.forEach((pre) => {
     const preElement = pre as HTMLElement;
+    const originalLanguage = preElement.dataset.language;
     const info = enhanceCodeBlock(preElement, { enableCopy, enableFullscreen });
     if (!info) return;
 
+    const wrapper = preElement.parentElement;
+    let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(copyTimeout);
+        if (wrapper && preElement.parentElement === wrapper)
+          wrapper.replaceWith(preElement);
+        delete preElement.dataset.enhanced;
+        if (originalLanguage === undefined) delete preElement.dataset.language;
+        else preElement.dataset.language = originalLanguage;
+      },
+      { once: true },
+    );
+
     if (enableCopy) {
-      const copyBtn =
-        preElement.parentElement?.querySelector('.code-block-copy');
+      const copyBtn = wrapper?.querySelector('.code-block-copy');
       if (copyBtn) {
         const originalSvg = copyBtn.innerHTML;
         const checkmarkSvg = createCopyCheckmarkSvg('checkmark-anim');
 
         const handleCopy = async () => {
           const success = await copyToClipboard(info.code);
-          if (success) {
+          if (success && !signal?.aborted) {
             copyBtn.classList.add('copied');
             copyBtn.innerHTML = checkmarkSvg;
             options.onCopy?.(info.code);
-            setTimeout(() => {
+            clearTimeout(copyTimeout);
+            copyTimeout = setTimeout(() => {
               copyBtn.classList.remove('copied');
               copyBtn.innerHTML = originalSvg;
             }, 2000);
@@ -99,22 +116,20 @@ export function enhanceAllCodeBlocks(
           () => {
             void handleCopy();
           },
-          { signal: options.signal },
+          { signal },
         );
       }
     }
 
     if (enableFullscreen) {
-      const fullscreenBtn = preElement.parentElement?.querySelector(
-        '.code-block-fullscreen',
-      );
+      const fullscreenBtn = wrapper?.querySelector('.code-block-fullscreen');
       if (fullscreenBtn) {
         fullscreenBtn.addEventListener(
           'click',
           () => {
             options.onFullscreen?.(info);
           },
-          { signal: options.signal },
+          { signal },
         );
       }
     }

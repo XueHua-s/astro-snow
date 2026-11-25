@@ -11,6 +11,10 @@ interface Props {
   tocHeadings?: MarkdownHeading[];
   hideMobileDrawer?: boolean;
   pagefindIgnore?: boolean;
+  noIndex?: boolean;
+  shareImage?: string;
+  previous?: string;
+  next?: string;
 }
 
 import FloatingGroup from '@components/layout/FloatingGroup.astro';
@@ -18,10 +22,14 @@ import Header from '@components/layout/Header';
 import MobileDrawer from '@components/layout/MobileDrawer.astro';
 import SearchDialog from '@components/layout/SearchDialog.astro';
 import GlassFilterDefs from '@components/common/GlassFilterDefs.astro';
+import SeoHead from '@components/common/SeoHead.astro';
+import ThemePrepaint from '@components/theme/ThemePrepaint.astro';
 import CodeBlockFullscreen from '@components/markdown/CodeBlockFullscreen.astro';
 import MermaidFullscreen from '@components/markdown/MermaidFullscreen.astro';
 import { blogSeoConfig, blogLayoutConfig } from '@/config/blogLayoutConfig';
-import { Routes } from '@constants/router';
+import { isRoutePathActive, routers, Routes } from '@constants/router';
+import { getPostKeywords } from '@lib/content';
+import { SITE_LANGUAGE } from '@lib/seo';
 import LoadingIndicator from 'astro-loading-indicator/component';
 import { Tooltips } from 'astro-tooltips';
 import { ClientRouter } from 'astro:transitions';
@@ -30,27 +38,38 @@ import '@styles/index.css';
 
 const {
   title = blogSeoConfig.title,
-  description = blogSeoConfig.description,
+  description = blogSeoConfig.description ?? blogLayoutConfig.title,
   siderType,
   post,
   tocHeadings,
   hideMobileDrawer = false,
   pagefindIgnore = false,
+  noIndex = false,
+  shareImage,
+  previous,
+  next,
 } = Astro.props;
 // TODO: siderType should be custom in router file, not in layout
 
 // Detect if current page is a post page for mobile header
 const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
+const navRoutes = routers.flatMap((route) => route.children ?? [route]);
+const article = post && {
+  headline: post.data.title,
+  date: post.data.date,
+  keywords: getPostKeywords(post),
+};
 ---
 
 <!doctype html>
 <html
   transition:name="root"
-  lang="zh-CN"
+  lang={SITE_LANGUAGE}
   class="vertical-scrollbar"
   {...pagefindIgnore ? { 'data-pagefind-ignore': true } : {}}>
   <head>
     <meta charset="UTF-8" />
+    <ThemePrepaint />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
@@ -59,17 +78,15 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-
-    <!-- Preconnect to third-party origins for faster resource loading -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-    <link
-      rel="preconnect"
-      href="https://chinese-font.netlify.app"
-      crossorigin
+    <SeoHead
+      title={title}
+      description={description}
+      article={article}
+      image={shareImage ?? post?.data.cover}
+      noIndex={noIndex || post?.data.draft}
+      previous={previous}
+      next={next}
     />
-    <link rel="dns-prefetch" href="https://chinese-font.netlify.app" />
 
     <!-- Async load Chinese fonts to avoid render-blocking -->
     <link
@@ -78,50 +95,9 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
       media="print"
       onload="this.media='all'"
     />
-    <link
-      rel="stylesheet"
-      href="/fonts/ChillRoundFBold/result.css"
-      media="print"
-      onload="this.media='all'"
-    />
-
     <ClientRouter />
     <LoadingIndicator color="#e9536a" />
     <Tooltips />
-    <!-- metadata -->
-    <meta name="description" content={description} />
-    <meta name="author" content={blogLayoutConfig.author} />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={blogLayoutConfig.name} />
-    <meta property="og:url" content={Astro.url} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <!-- <meta property="og:image" content="/opengraph.png?v=1" /> TODO: og image-->
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={Astro.url} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-
-    <slot name="head" />
-
-    <script is:inline>
-      // 立即执行主题检查 否则会闪烁
-      if (
-        localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      ) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-        document.documentElement.dataset.theme = 'dark';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-        document.documentElement.dataset.theme = 'light';
-      }
-    </script>
     <script is:inline>
       // iOS Safari pinch-zoom guard (viewport meta alone is not always respected)
       (() => {
@@ -137,26 +113,6 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
         });
       })();
     </script>
-    <!--主题检查切换对应值-->
-    <script>
-      function checkTheme() {
-        if (
-          localStorage.theme === 'dark' ||
-          (!('theme' in localStorage) &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('light'); // 本来是没有 light 的，这样是为了触发 MutationObserver
-          document.documentElement.dataset.theme = 'dark';
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
-          document.documentElement.dataset.theme = 'light';
-        }
-      }
-      // 在每次页面加载时检查
-      document.addEventListener('astro:page-load', checkTheme);
-    </script>
   </head>
   <body>
     <GlassFilterDefs />
@@ -165,10 +121,31 @@ const isPostPage = Astro.url.pathname.startsWith(`${Routes.Post}/`);
       <Header
         client:idle
         isPostPage={isPostPage}
+        hasMobileDrawer={!hideMobileDrawer}
         currentPath={Astro.url.pathname}
         tocNumbering={post?.data.tocNumbering ?? true}
         tocHeadings={tocHeadings}
       />
+      {/* FIXED: Mobile routes stay reachable without the hydrated drawer. */}
+      <noscript>
+        <nav
+          aria-label="移动站点导航"
+          class="mt-16 hidden flex-wrap justify-center gap-x-4 gap-y-2 px-4 py-3 text-sm tablet:flex">
+          {
+            navRoutes.map(
+              ({ name, path }) =>
+                path && (
+                  <a
+                    class="text-foreground px-1 py-1 underline underline-offset-4"
+                    href={path}
+                    aria-current={isRoutePathActive(path, Astro.url.pathname) ? 'page' : undefined}>
+                    {name}
+                  </a>
+                ),
+            )
+          }
+        </nav>
+      </noscript>
       <main class="relative flex grow flex-col gap-4">
         {(<slot />)}
       </main>

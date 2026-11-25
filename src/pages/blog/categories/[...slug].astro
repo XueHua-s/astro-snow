@@ -4,7 +4,7 @@ import HomeSider from '@components/layout/HomeSider.astro';
 import Cover from '@components/ui/cover/Cover.astro';
 import TwoColumnLayout from '@components/layout/TwoColumnLayout.astro';
 import LayoutFooter from '@components/layout/LayoutFooter';
-import { blogSeoConfig } from '@/config/blogLayoutConfig';
+import { blogLayoutConfig } from '@/config/blogLayoutConfig';
 import Layout from '@layouts/Layout.astro';
 import { getCategoryByLink, getCategoryLinks, getCategoryList } from '@lib/content';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
@@ -30,9 +30,10 @@ const [{ categories: allCategories, countMap }, layoutFooterData] = await Promis
 
 // 如果是子分类，只展示当前分类的内容
 const displayCategories = category ? [category] : allCategories;
+const categoryName = category?.path.join(' / ') ?? '全部分类';
 ---
 
-<Layout title={`分类 - ${category?.name} | ${blogSeoConfig.title}`}>
+<Layout title={`${categoryName}文章分类 | ${blogLayoutConfig.title}`} description={`浏览雪花の博客「${categoryName}」分类下的文章。`}>
   <TwoColumnLayout>
     <Cover slot="cover" title={`分类于"${category?.name}"的文章`} />
     <HomeSider slot="sider" />

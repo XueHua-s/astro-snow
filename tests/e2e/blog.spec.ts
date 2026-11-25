@@ -7,9 +7,8 @@ async function expectMoreTabFlush(card: Locator, corner: 'left' | 'right') {
     .poll(
       () =>
         card.evaluate((element, side) => {
-          const button = element.querySelector<HTMLElement>(
-            'a[aria-label="more info"] button',
-          );
+          const button =
+            element.querySelector<HTMLElement>('a[data-card-more]');
           if (!button) throw new Error('More tab is missing');
           const cardRect = element.getBoundingClientRect();
           const buttonRect = button.getBoundingClientRect();
@@ -42,14 +41,12 @@ async function expectMoreTabsClear(cards: Locator) {
       () =>
         cards.evaluateAll((elements) =>
           elements.flatMap((card, index) => {
-            const button = card.querySelector<HTMLElement>(
-              'a[aria-label="more info"] button',
-            );
+            const button = card.querySelector<HTMLElement>('a[data-card-more]');
             if (!button) throw new Error('More tab is missing');
             const buttonRect = button.getBoundingClientRect();
             return Array.from(
               card.querySelectorAll<HTMLElement>(
-                'p, h1, [data-post-tags] > div',
+                'p, h1, h2, [data-post-tags] > div',
               ),
             ).flatMap((content) => {
               const rect = content.getBoundingClientRect();
@@ -424,9 +421,9 @@ test.describe('Blog e2e regression suite', () => {
 
     const desktopSidebar = page.locator('.page-home-sider').first();
     const homeLink = desktopSidebar.locator('[data-sidebar-route="/blog"]');
-    const articleButton = desktopSidebar.getByRole('button', {
-      name: '文章菜单',
-    });
+    const articleButton = desktopSidebar.locator(
+      'summary[aria-label="文章菜单"]',
+    );
     const headerHomeLink = page.locator(
       '#site-header [data-header-route="/blog"]',
     );
@@ -771,7 +768,7 @@ test.describe('Blog e2e regression suite', () => {
           }, dark);
           for (const index of hasCover ? [0, 1, 3] : [0, 1]) {
             const card = cards.nth(index);
-            const button = card.locator('a[aria-label="more info"] button');
+            const button = card.locator('a[data-card-more]');
             const corner =
               hasCover && index % 2 === 1 && width > 768 ? 'left' : 'right';
             await page.mouse.move(0, 0);
@@ -893,7 +890,7 @@ test.describe('Blog e2e regression suite', () => {
     await page.goto('/blog', { waitUntil: 'domcontentloaded' });
     const flip = page.locator('.flip-card').first();
     const card = flip.locator('.flip-card-back .glass-card');
-    const button = card.locator('a[aria-label="more info"] button');
+    const button = card.locator('a[data-card-more]');
 
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });

@@ -9,6 +9,7 @@ import { useHeaderScroll } from '@hooks/useHeaderScroll.ts';
 
 interface Props {
   isPostPage?: boolean;
+  hasMobileDrawer?: boolean;
   tocNumbering?: boolean;
   tocHeadings?: MarkdownHeading[];
   currentPath?: string;
@@ -16,6 +17,7 @@ interface Props {
 
 export default function Header({
   isPostPage = false,
+  hasMobileDrawer = true,
   tocNumbering = true,
   tocHeadings,
   currentPath,
@@ -57,6 +59,7 @@ export default function Header({
           <div className="tablet:flex w-full h-full tablet:grow hidden items-center justify-center">
             <MobilePostHeader
               isPostPage={isPostPage}
+              hasMobileDrawer={hasMobileDrawer}
               enableNumbering={tocNumbering}
               sourceHeadings={tocHeadings}
               logoElement={showLogo ? 'svg' : 'text'}

@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ContentConfig } from '@constants/content-config';
 import { enhanceAllCodeBlocks } from '@lib/code-block-enhancer';
 import { enhanceImages } from '@lib/image-enhancer';
-import { initMermaidEnhancer } from '@lib/mermaid-enhancer';
 
 interface CustomContentEnhancerProps {
   config: ContentConfig;
@@ -10,12 +9,11 @@ interface CustomContentEnhancerProps {
 
 const DATA_ENHANCED = 'data-enhanced';
 
-function enhanceContent(config: ContentConfig, signal?: AbortSignal) {
-  const contentContainer = document.querySelector('.custom-content');
-  if (!contentContainer) return;
-
-  if (contentContainer.getAttribute(DATA_ENHANCED) === 'true') return;
-
+function enhanceContent(
+  contentContainer: Element,
+  config: ContentConfig,
+  signal: AbortSignal,
+) {
   if (config.addBlankTarget) {
     const links = contentContainer.querySelectorAll('a[href]');
     links.forEach((link: Element) => {
@@ -88,8 +86,6 @@ function enhanceContent(config: ContentConfig, signal?: AbortSignal) {
         );
       },
     });
-
-    initMermaidEnhancer();
   }
 
   enhanceImages(contentContainer, signal);
@@ -97,25 +93,21 @@ function enhanceContent(config: ContentConfig, signal?: AbortSignal) {
 }
 
 export function CustomContentEnhancer({ config }: CustomContentEnhancerProps) {
+  const marker = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
+    const container = marker.current?.closest('.custom-content');
+    if (!container || container.hasAttribute(DATA_ENHANCED)) return;
     const abortController = new AbortController();
 
-    const runEnhancement = () => {
-      const contentContainer = document.querySelector('.custom-content');
-      if (contentContainer) {
-        contentContainer.removeAttribute(DATA_ENHANCED);
-      }
-      enhanceContent(config, abortController.signal);
-    };
-
-    runEnhancement();
-    document.addEventListener('astro:page-load', runEnhancement);
+    // FIXED: The Astro island owns its own content for the lifetime of this mount.
+    enhanceContent(container, config, abortController.signal);
 
     return () => {
       abortController.abort();
-      document.removeEventListener('astro:page-load', runEnhancement);
+      container.removeAttribute(DATA_ENHANCED);
     };
   }, [config]);
 
-  return null;
+  return <span hidden ref={marker} />;
 }

@@ -6,7 +6,9 @@ import Cover from '@components/ui/cover/Cover.astro';
 import TwoColumnLayout from '@components/layout/TwoColumnLayout.astro';
 import LayoutFooter from '@components/layout/LayoutFooter';
 import { CONTENT_PADDING } from '@constants/layout';
-import { blogSeoConfig } from '@/config/blogLayoutConfig';
+import { blogLayoutConfig } from '@/config/blogLayoutConfig';
+import { PAGE_SIZE } from '@constants/index';
+import { Routes } from '@constants/router';
 import Layout from '@layouts/Layout.astro';
 import { getNonWeeklyPosts } from '@lib/content';
 import { getLayoutFooterData } from '@lib/layout/footer-data';
@@ -14,15 +16,18 @@ import type { PaginateFunction } from 'astro';
 
 export async function getStaticPaths({ paginate }: { paginate: PaginateFunction }) {
   const postCollections = await getNonWeeklyPosts();
-  return paginate(postCollections, { pageSize: 10 });
+  return paginate(postCollections, { pageSize: PAGE_SIZE });
 }
 
 const { page } = Astro.props;
+const previous = page.currentPage === 2 ? Routes.Home : page.url.prev;
+const pageTitle = `文章列表第 ${page.currentPage} 页`;
+const description = `浏览雪花の博客文章列表第 ${page.currentPage} 页，共 ${page.lastPage} 页。`;
 
 const layoutFooterData = await getLayoutFooterData();
 ---
 
-<Layout title={blogSeoConfig.title}>
+<Layout title={`${pageTitle} | ${blogLayoutConfig.title}`} description={description} previous={previous} next={page.url.next}>
   <TwoColumnLayout>
     <Cover slot="cover" />
     <HomeSider slot="sider" />
@@ -32,7 +37,7 @@ const layoutFooterData = await getLayoutFooterData();
       data-glass-panel
     >
       <Divider>文章列表</Divider>
-      <PostList posts={page.data} page={page} />
+      <PostList posts={page.data} page={{ ...page, url: { ...page.url, prev: previous } }} isHomePage />
     </div>
   </TwoColumnLayout>
 </Layout>

@@ -5,37 +5,20 @@ import HomeSiderSegmented from '@components/ui/segmented/HomeSiderSegmented';
 import { SeriesPostList } from '@components/post/SeriesPostList';
 import { SeriesNavigation } from '@components/post/SeriesNavigation';
 import { ScrollProgress } from './ScrollProgress';
-import HomeInfoPanel from './HomeInfoPanel';
-import type { Router } from '@constants/router';
-import type { BlogPost } from '@/types/blog';
+import HomeInfoPanel, { type HomeInfoPanelProps } from './HomeInfoPanel';
+import type { PostLinkItem } from '@lib/content/posts/types';
 import type { MarkdownHeading } from '@/types/markdown';
-
-interface SeriesPostItem {
-  post: BlogPost;
-  href: string;
-}
-
-interface HomeInfoData {
-  avatar: string;
-  name?: string;
-  description?: string;
-  postCount: number;
-  categoryCount: number;
-  tagCount: number;
-  routes: Router[];
-  currentPath: string;
-}
 
 interface HomeSiderPanelProps {
   type: HomeSiderType;
   defaultSegmentType: HomeSiderSegmentType;
-  homeInfo: HomeInfoData;
+  homeInfo: HomeInfoPanelProps;
   tocHeadings?: MarkdownHeading[];
   tocNumbering?: boolean;
-  seriesPostItems?: SeriesPostItem[];
+  seriesPostItems?: PostLinkItem[];
   currentPostSlug?: string;
-  prevPostItem?: SeriesPostItem | null;
-  nextPostItem?: SeriesPostItem | null;
+  prevPostItem?: PostLinkItem | null;
+  nextPostItem?: PostLinkItem | null;
 }
 
 export function HomeSiderPanel({
@@ -101,7 +84,7 @@ export function HomeSiderPanel({
           className="my-4 flex w-full justify-between text-sm/6"
           itemClass="grow"
           defaultValue={defaultSegmentValue}
-          id="inner-home-sider"
+          id={`${homeInfo.idPrefix}-segments`}
           value={effectiveSegment}
           onChange={(value) =>
             setPanelState({

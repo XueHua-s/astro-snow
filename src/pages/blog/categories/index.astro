@@ -13,7 +13,7 @@ const [{ categories, countMap }, layoutFooterData] = await Promise.all([getCateg
 const links = getCategoryLinks(categories, '');
 ---
 
-<Layout title={`全部分类 | ${blogLayoutConfig.title}`}>
+<Layout title={`全部分类 | ${blogLayoutConfig.title}`} description={`按主题浏览雪花の博客的文章，共 ${links.length} 个分类。`}>
   <TwoColumnLayout>
     <Cover slot="cover" title="全部分类" />
     <HomeSider slot="sider" />

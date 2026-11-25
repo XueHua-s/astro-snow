@@ -5,6 +5,24 @@
 import type { BlogPost } from '@/types/blog';
 import type { TagWithCount } from '@/types/content';
 
+// FIXED: These authored spelling variants already have public tag URLs.
+const tagAliases = new Map([
+  ['node.js', 'Node.js'],
+  ['Typescript', 'TypeScript'],
+]);
+
+export function getCanonicalTagName(tag: string): string {
+  return tagAliases.get(tag) ?? tag;
+}
+
+export function getTagRouteNames(tag: string): string[] {
+  const canonical = getCanonicalTagName(tag);
+  const aliases = [...tagAliases]
+    .filter(([, name]) => name === canonical)
+    .map(([alias]) => alias);
+  return [canonical, ...aliases];
+}
+
 /**
  * 统一标签输入为数组格式。
  */
@@ -20,7 +38,10 @@ export function getTagPostMap(posts: BlogPost[]): Map<string, BlogPost[]> {
   const map = new Map<string, BlogPost[]>();
 
   for (const post of posts) {
-    for (const tag of normalizePostTags(post.data.tags)) {
+    const tags = new Set(
+      normalizePostTags(post.data.tags).map(getCanonicalTagName),
+    );
+    for (const tag of tags) {
       const tagPosts = map.get(tag);
       if (tagPosts) {
         tagPosts.push(post);
@@ -37,12 +58,12 @@ export function getTagPostMap(posts: BlogPost[]): Map<string, BlogPost[]> {
  * 获取所有标签及其数量。
  */
 export function getAllTags(posts: BlogPost[]): Record<string, number> {
-  return posts.reduce<Record<string, number>>((acc, post) => {
-    for (const tag of normalizePostTags(post.data.tags)) {
-      acc[tag] = (acc[tag] || 0) + 1;
-    }
-    return acc;
-  }, {});
+  return Object.fromEntries(
+    Array.from(getTagPostMap(posts), ([tag, tagPosts]) => [
+      tag,
+      tagPosts.length,
+    ]),
+  );
 }
 
 /**

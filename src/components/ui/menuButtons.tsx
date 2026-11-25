@@ -51,12 +51,15 @@ const OpenMenuButton = ({ className, id, buttonRef }: MenuButtonProps) => {
       id={id}
       style={{ viewTransitionName: 'home-menu-icon' }}>
       <button
+        id="mobile-drawer-trigger"
         className={cn(
           'glass glass-control header-surface flex-center size-10 cursor-pointer rounded-full select-none',
           isOpen && 'hidden',
         )}
         onClick={handleOpen}
         aria-label="打开菜单"
+        aria-controls="mobile-drawer"
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
         type="button"
         ref={buttonRef}
@@ -75,9 +78,12 @@ const OpenMenuButton = ({ className, id, buttonRef }: MenuButtonProps) => {
   );
 };
 
-const CloseMenuButton = ({ className, id, buttonRef }: MenuButtonProps) => {
-  const isOpen = useStore(drawerOpen);
-
+const CloseMenuButton = ({
+  className,
+  id,
+  buttonRef,
+  isOpen,
+}: MenuButtonProps & { isOpen: boolean }) => {
   const handleClose = () => {
     closeDrawer();
   };

@@ -39,7 +39,8 @@ export const blogLayoutConfig: BlogLayoutConfig = {
   alternate: 'snow',
   subtitle: '爬起仅仅只是因为不想输。',
   name: 'snow',
-  description: 'ACG / 养猫人 / 菜逼 / 前端什锦',
+  description:
+    'LittleSnow 的个人博客，分享 React、TypeScript 等前端开发笔记、技术教程，以及周刊和生活随笔。',
   avatar: '/img/724d7fb480c8ac0db472ca5c7e36d239.jpg',
   showLogo: true,
   author: 'snow',

@@ -87,15 +87,15 @@ export const InlineErrorFallback: FC<FallbackProps> = ({
           <RiRefreshLine className="size-4" />
           Try Again
         </Button>
-        <a
-          href="https://github.com/XueHua-s/astro-snow/issues/new"
-          target="_blank"
-          rel="noreferrer">
-          <Button variant="outline" size="sm" className="gap-1.5">
+        <Button asChild variant="outline" size="sm" className="gap-1.5">
+          <a
+            href="https://github.com/XueHua-s/astro-snow/issues/new"
+            target="_blank"
+            rel="noreferrer">
             <HiChat className="size-4" />
             Report Issue
-          </Button>
-        </a>
+          </a>
+        </Button>
       </div>
     </div>
   );

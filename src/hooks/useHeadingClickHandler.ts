@@ -27,6 +27,7 @@ import {
   getSiblingIds,
   type Heading,
 } from './useHeadingTree';
+import { getArticleHeadings } from './useHeadingTree/dom-store';
 
 export interface UseHeadingClickHandlerOptions {
   /** 层级化的标题树 */
@@ -47,7 +48,9 @@ export function useHeadingClickHandler({
 }: UseHeadingClickHandlerOptions): (id: string) => void {
   return useCallback(
     (id: string) => {
-      const element = document.getElementById(id);
+      const element = getArticleHeadings().find(
+        (heading) => heading.id === id,
+      )?.element;
       if (!element) return;
 
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });

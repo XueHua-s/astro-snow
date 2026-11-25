@@ -1,22 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { cn } from '@lib/utils';
-import type {
-  SearchRequest,
-  SearchResponse,
-  SearchResult,
-} from './pagefind-types';
-
-// Retain the installed default-ui stylesheet scopes and public class/ID contract.
-const PAGE_SIZE = 5;
-const SEARCH_TIMEOUT_MS = 15000;
-const QUERY_DEBOUNCE_MS = 300;
-
-type SearchEngine = { worker: Worker; id: number };
-
-function getBundlePath() {
-  const base = import.meta.env.BASE_URL;
-  return new URL(`${base.replace(/\/?$/, '/')}pagefind/`, location.origin).href;
-}
+import { usePagefindSearch } from './use-pagefind-search';
 
 // Pagefind excerpts contain escaped text and <mark> highlights. Keep the
 // highlight contract without injecting index-supplied HTML into the document.
@@ -44,127 +28,35 @@ function Excerpt({ text }: { text: string }) {
 }
 
 export function SearchContent({ isOpen }: { isOpen: boolean }) {
-  const [term, setTerm] = useState('');
-  const [limit, setLimit] = useState(PAGE_SIZE);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [total, setTotal] = useState(0);
-  const [resultQuery, setResultQuery] = useState('');
-  const query = term.trim();
-  const [status, setStatus] = useState<
-    'idle' | 'loading' | 'loading-more' | 'ready' | 'error'
-  >('idle');
-  const [error, setError] = useState<'module' | 'index'>('module');
-  const workerRef = useRef<SearchEngine | null>(null);
-  const requestRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLOListElement>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
   const pendingFocusRef = useRef<number | null>(null);
+  const {
+    term,
+    results,
+    total,
+    status,
+    error,
+    showResults,
+    changeTerm,
+    loadMore,
+  } = usePagefindSearch(isOpen, (firstNewIndex) => {
+    // Continue from the focused pagination button when the final page removes it.
+    if (document.activeElement === moreRef.current) {
+      pendingFocusRef.current = firstNewIndex;
+    }
+  });
 
   useLayoutEffect(() => {
     const index = pendingFocusRef.current;
-    if (index === null) return;
     pendingFocusRef.current = null;
+    if (!isOpen || index === null) return;
     listRef.current
       ?.querySelectorAll<HTMLAnchorElement>('.pagefind-ui__result-link')
       .item(index)
       ?.focus({ preventScroll: true });
-  }, [results]);
-
-  useEffect(() => {
-    return () => {
-      // FIXED: Cancel the old query immediately, before the new debounce fires.
-      // Each query has a fresh engine; pagination alone keeps its cached index.
-      workerRef.current?.worker.terminate();
-      workerRef.current = null;
-      pendingFocusRef.current = null;
-    };
-  }, [isOpen, query]);
-
-  useEffect(() => {
-    if (!isOpen || status === 'error') return;
-    if (!query) {
-      setResults([]);
-      setTotal(0);
-      setResultQuery('');
-      setStatus('idle');
-      return;
-    }
-    let engine: SearchEngine | null = null;
-    let timeout: ReturnType<typeof setTimeout>;
-    let onMessage: ((event: MessageEvent<SearchResponse>) => void) | undefined;
-    let onError: (() => void) | undefined;
-    const incremental = resultQuery === query && results.length > 0;
-    setStatus(incremental ? 'loading-more' : 'loading');
-    const debounce = setTimeout(
-      () => {
-        const fail = (kind: 'module' | 'index') => {
-          if (!engine || workerRef.current !== engine) return;
-          clearTimeout(timeout);
-          setError(kind);
-          setStatus('error');
-          engine.worker.terminate();
-        };
-        try {
-          // Construction/import are debounced too, not just the search message.
-          workerRef.current ??= {
-            worker: new Worker(
-              new URL('./pagefind.worker.ts', import.meta.url),
-              {
-                type: 'module',
-              },
-            ),
-            id: ++requestRef.current,
-          };
-          engine = workerRef.current;
-        } catch {
-          setError('module');
-          setStatus('error');
-          return;
-        }
-        const { worker, id } = engine;
-        onMessage = ({ data }) => {
-          if (data.id !== id || workerRef.current !== engine) return;
-          clearTimeout(timeout);
-          if ('error' in data) return fail(data.error);
-          // When the final page removes its focused button, continue at the first
-          // newly added link without moving the reader's scroll position.
-          if (
-            incremental &&
-            data.results.length >= data.total &&
-            document.activeElement === moreRef.current
-          ) {
-            pendingFocusRef.current = results.length;
-          }
-          setResults(data.results);
-          setTotal(data.total);
-          setResultQuery(query);
-          setStatus('ready');
-        };
-        onError = () => fail('module');
-        worker.addEventListener('message', onMessage);
-        worker.addEventListener('error', onError);
-        const request: SearchRequest = {
-          id,
-          term: query,
-          limit,
-          bundlePath: getBundlePath(),
-          language: document.documentElement.lang || 'en',
-        };
-        worker.postMessage(request);
-        timeout = setTimeout(() => fail('index'), SEARCH_TIMEOUT_MS);
-      },
-      workerRef.current ? 0 : QUERY_DEBOUNCE_MS,
-    );
-    return () => {
-      clearTimeout(debounce);
-      clearTimeout(timeout);
-      if (onMessage) engine?.worker.removeEventListener('message', onMessage);
-      if (onError) engine?.worker.removeEventListener('error', onError);
-    };
-    // Result/status updates are outputs, not reasons to repeat a request.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, query, limit]);
+  }, [isOpen, results]);
 
   return (
     <div
@@ -185,10 +77,7 @@ export function SearchContent({ isOpen }: { isOpen: boolean }) {
           autoCapitalize="none"
           enterKeyHint="search"
           value={term}
-          onChange={(event) => {
-            setTerm(event.target.value);
-            if (event.target.value.trim() !== query) setLimit(PAGE_SIZE);
-          }}
+          onChange={(event) => changeTerm(event.target.value)}
         />
         <button
           type="button"
@@ -197,8 +86,7 @@ export function SearchContent({ isOpen }: { isOpen: boolean }) {
             !term && 'pagefind-ui__suppressed',
           )}
           onClick={() => {
-            setTerm('');
-            setLimit(PAGE_SIZE);
+            changeTerm('');
             inputRef.current?.focus();
           }}>
           清空
@@ -237,47 +125,43 @@ export function SearchContent({ isOpen }: { isOpen: boolean }) {
                 重新加载页面
               </button>
             )}
-            {resultQuery === query &&
-              (status === 'ready' || status === 'loading-more') && (
-                <>
-                  <ol
-                    ref={listRef}
-                    className="pagefind-ui__results svelte-e9gkc3">
-                    {results.map((result) => (
-                      <li
-                        className="pagefind-ui__result svelte-j9e30"
-                        key={result.id}>
-                        <div className="pagefind-ui__result-inner svelte-j9e30">
-                          <p className="pagefind-ui__result-title svelte-j9e30">
-                            <a
-                              className="pagefind-ui__result-link svelte-j9e30"
-                              href={result.url}>
-                              {result.title}
-                            </a>
-                          </p>
-                          <p className="pagefind-ui__result-excerpt svelte-j9e30">
-                            <Excerpt text={result.excerpt} />
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                  {total > results.length && (
-                    <button
-                      ref={moreRef}
-                      type="button"
-                      className="pagefind-ui__button svelte-e9gkc3"
-                      aria-disabled={status === 'loading-more'}
-                      aria-busy={status === 'loading-more'}
-                      onClick={() => {
-                        if (status === 'ready')
-                          setLimit((value) => value + PAGE_SIZE);
-                      }}>
-                      加载更多结果
-                    </button>
-                  )}
-                </>
-              )}
+            {showResults && (
+              <>
+                <ol
+                  ref={listRef}
+                  className="pagefind-ui__results svelte-e9gkc3">
+                  {results.map((result) => (
+                    <li
+                      className="pagefind-ui__result svelte-j9e30"
+                      key={result.id}>
+                      <div className="pagefind-ui__result-inner svelte-j9e30">
+                        <p className="pagefind-ui__result-title svelte-j9e30">
+                          <a
+                            className="pagefind-ui__result-link svelte-j9e30"
+                            href={result.url}>
+                            {result.title}
+                          </a>
+                        </p>
+                        <p className="pagefind-ui__result-excerpt svelte-j9e30">
+                          <Excerpt text={result.excerpt} />
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                {total > results.length && (
+                  <button
+                    ref={moreRef}
+                    type="button"
+                    className="pagefind-ui__button svelte-e9gkc3"
+                    aria-disabled={status === 'loading-more'}
+                    aria-busy={status === 'loading-more'}
+                    onClick={loadMore}>
+                    加载更多结果
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </form>

@@ -26,188 +26,29 @@
  * ```
  */
 
-import { useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
+import {
+  getViewportHeadingStore,
+  subscribeToNoHeadings,
+} from './heading-viewport-store';
 
 export interface UseActiveHeadingOptions {
-  /** Offset from top of viewport for detecting active heading (default: 120px for header) */
+  /** Offset from the top of the viewport, in pixels. */
   offsetTop?: number;
+  enabled?: boolean;
 }
 
-/**
- * Creates a scroll store for tracking active heading ID using Intersection Observer
- * This avoids forced reflows by using async intersection callbacks
- */
-function createActiveHeadingStore(offsetTop: number) {
-  let activeId = '';
-  const listeners = new Set<() => void>();
-  let observer: IntersectionObserver | null = null;
-  const visibleHeadings = new Map<string, number>(); // id -> top position when intersecting
-  // Pending rAF ids scheduled by setupObserver; cancelled on teardown so
-  // they cannot write to activeId after all subscribers are gone.
-  const pendingRafs = new Set<number>();
+const emptyActiveId = () => '';
 
-  const notifyListeners = () => {
-    listeners.forEach((listener) => listener());
-  };
-
-  // Determine active heading from visible headings
-  const updateActiveHeading = () => {
-    if (visibleHeadings.size === 0) return;
-
-    // Find the heading with the smallest top position (closest to top of viewport)
-    let closestId = '';
-    let closestTop = Number.POSITIVE_INFINITY;
-
-    visibleHeadings.forEach((top, id) => {
-      if (top < closestTop) {
-        closestTop = top;
-        closestId = id;
-      }
-    });
-
-    if (activeId !== closestId) {
-      activeId = closestId;
-      notifyListeners();
-    }
-  };
-
-  // Setup Intersection Observer
-  const setupObserver = () => {
-    if (observer) {
-      observer.disconnect();
-    }
-
-    visibleHeadings.clear();
-
-    // Root margin: negative top margin to account for header offset
-    // This creates an intersection zone starting below the header
-    const rootMargin = `-${offsetTop}px 0px -70% 0px`;
-
-    observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const id = entry.target.id;
-          if (!id) continue;
-
-          if (entry.isIntersecting) {
-            // Track this heading as visible with its boundingClientRect.top
-            // Using entry.boundingClientRect avoids forced reflow
-            visibleHeadings.set(id, entry.boundingClientRect.top);
-          } else {
-            visibleHeadings.delete(id);
-          }
-        }
-        updateActiveHeading();
-      },
-      {
-        rootMargin,
-        threshold: 0,
-      },
-    );
-
-    // Observe all headings
-    const headings = document.querySelectorAll(
-      'h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]',
-    );
-    headings.forEach((heading) => {
-      observer?.observe(heading);
-    });
-
-    // Initial check for headings already in view
-    if (headings.length > 0 && visibleHeadings.size === 0) {
-      // If no heading is intersecting, find the last heading above the viewport
-      // Use requestAnimationFrame to batch read operations
-      const rafId = requestAnimationFrame(() => {
-        // Guard against teardown between scheduling and firing: if the
-        // observer was disconnected while we were waiting for the frame,
-        // skip the stale write to avoid notifying unmounted subscribers.
-        if (!observer) return;
-        const headingArray = Array.from(headings);
-        for (let i = headingArray.length - 1; i >= 0; i--) {
-          const heading = headingArray[i];
-          const rect = heading.getBoundingClientRect();
-          if (rect.top < offsetTop && heading.id) {
-            if (activeId !== heading.id) {
-              activeId = heading.id;
-              notifyListeners();
-            }
-            break;
-          }
-        }
-      });
-      // Ensure the RAF does not fire after the observer is torn down.
-      pendingRafs.add(rafId);
-    }
-  };
-
-  // Handle Astro page transitions
-  const handlePageLoad = () => {
-    activeId = '';
-    visibleHeadings.clear();
-    // Delay setup to ensure DOM is ready
-    requestAnimationFrame(() => {
-      setupObserver();
-    });
-  };
-
-  return {
-    subscribe: (listener: () => void) => {
-      // First listener - set up observer
-      if (listeners.size === 0) {
-        // Delay setup to ensure DOM is ready
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setupObserver();
-          });
-        });
-        document.addEventListener('astro:page-load', handlePageLoad);
-      }
-
-      listeners.add(listener);
-
-      return () => {
-        listeners.delete(listener);
-
-        // Last listener - clean up
-        if (listeners.size === 0) {
-          if (observer) {
-            observer.disconnect();
-            observer = null;
-          }
-          // Cancel any pending rAFs so they cannot write to activeId
-          // after the store has been torn down.
-          pendingRafs.forEach((id) => cancelAnimationFrame(id));
-          pendingRafs.clear();
-          document.removeEventListener('astro:page-load', handlePageLoad);
-          visibleHeadings.clear();
-        }
-      };
-    },
-
-    getSnapshot: () => activeId,
-
-    // For SSR - return empty string
-    getServerSnapshot: () => '',
-  };
-}
-
-/**
- * Hook to track the currently active heading based on scroll position
- * Uses Intersection Observer for optimal performance - avoids forced reflows
- * Uses useSyncExternalStore - only re-renders when activeId changes
- *
- * @param options - Active heading options
- * @returns ID of the currently active heading
- */
 export function useActiveHeading({
   offsetTop = 120,
+  enabled = true,
 }: UseActiveHeadingOptions = {}): string {
-  // Memoize store creation to avoid recreating on every render
-  const store = useMemo(() => createActiveHeadingStore(offsetTop), [offsetTop]);
-
+  const store = getViewportHeadingStore(offsetTop, 'toc');
+  const getActiveId = useCallback(() => store.getSnapshot()?.id ?? '', [store]);
   return useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getServerSnapshot,
+    enabled ? store.subscribe : subscribeToNoHeadings,
+    enabled ? getActiveId : emptyActiveId,
+    emptyActiveId,
   );
 }

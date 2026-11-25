@@ -1,14 +1,14 @@
-import { useCallback, useId, useMemo, useState } from 'react';
 import type { Router } from '@constants/router';
 import { Routes, isRoutePathActive } from '@constants/router';
 import { cn } from '@lib/utils';
 import { useCurrentPathname } from '@hooks/useCurrentPathname';
-import { getLqipGradient } from '@lib/lqip';
 import ButtonLink from '@components/control/ButtonLink';
 import Social from './Social';
 
-interface HomeInfoPanelProps {
+export interface HomeInfoPanelProps {
   avatar: string;
+  avatarGradient?: string;
+  idPrefix: string;
   name?: string;
   description?: string;
   postCount: number;
@@ -21,6 +21,8 @@ interface HomeInfoPanelProps {
 
 export function HomeInfoPanel({
   avatar,
+  avatarGradient,
+  idPrefix,
   name,
   description,
   postCount,
@@ -30,29 +32,21 @@ export function HomeInfoPanel({
   currentPath,
   className,
 }: HomeInfoPanelProps) {
-  const uniqueId = useId();
-  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-  const lqipGradient = useMemo(() => getLqipGradient(avatar), [avatar]);
   const currentPathname = useCurrentPathname(currentPath);
-
-  const toggleExpanded = useCallback((id: string) => {
-    setExpandedIds((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  }, []);
 
   return (
     <div className={cn('flex flex-col items-center', className)}>
       <div
         className="h-40 w-40 rounded-full"
-        style={lqipGradient ? { backgroundImage: lqipGradient } : undefined}>
+        style={
+          avatarGradient ? { backgroundImage: avatarGradient } : undefined
+        }>
         <img
           className="shadow-sm h-full w-full rounded-full transition"
           src={avatar}
           alt={`${name ?? ''} avatar`}
-          loading="eager"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
         />
       </div>
 
@@ -87,78 +81,60 @@ export function HomeInfoPanel({
       <div className="mt-6 flex w-full flex-col items-center gap-2.5">
         {routes.map(({ name: routeName, path, icon, children }, index) => {
           if (children?.length) {
-            const collapseId = `${uniqueId}-collapse-${index}`;
+            const collapseId = `${idPrefix}-collapse-${index}`;
             const hasActiveChild = children.some((child) =>
               isRoutePathActive(child.path, currentPathname),
             );
-            const isExpanded =
-              Boolean(expandedIds[collapseId]) || hasActiveChild;
             return (
-              <div
+              // FIXED: Native disclosure remains usable before the sidebar hydrates.
+              <details
                 key={collapseId}
-                className="glass-tint flex w-40 flex-col rounded-xl"
-                data-collapsible>
-                <button
-                  className="material-row flex-center h-12 w-full cursor-pointer rounded-xl"
-                  aria-expanded={isExpanded}
+                className="glass-tint group w-40 rounded-xl"
+                open={hasActiveChild}
+                suppressHydrationWarning>
+                <summary
+                  className="material-row flex-center h-12 w-full cursor-pointer list-none rounded-xl [&::-webkit-details-marker]:hidden"
                   aria-controls={collapseId}
                   aria-label={`${routeName}菜单`}
-                  data-route-active={hasActiveChild || undefined}
-                  type="button"
-                  onClick={() => toggleExpanded(collapseId)}>
+                  data-route-active={hasActiveChild || undefined}>
                   {icon && (
                     <i className={`mr-1.5 ${icon}`} aria-hidden="true" />
                   )}
                   {routeName}
                   <i
-                    className={cn(
-                      'fa-solid fa-caret-down ml-2 text-base transition-transform duration-300',
-                      isExpanded && 'rotate-180',
-                    )}
+                    className="fa-solid fa-caret-down ml-2 text-base transition-transform duration-300 group-open:rotate-180 motion-reduce:transition-none"
                     aria-hidden="true"></i>
-                </button>
-                <div
-                  id={collapseId}
-                  className={cn(
-                    'collapse-content',
-                    !isExpanded && 'collapse-hidden',
-                  )}
-                  data-collapse-content>
-                  <div className="flex flex-col items-center">
-                    {children.map(
-                      ({
-                        name: childName,
-                        path: childPath,
-                        icon: childIcon,
-                      }) => {
-                        const isActive = isRoutePathActive(
-                          childPath,
-                          currentPathname,
-                        );
+                </summary>
+                <div id={collapseId} className="flex flex-col items-center">
+                  {children.map(
+                    ({ name: childName, path: childPath, icon: childIcon }) => {
+                      const isActive = isRoutePathActive(
+                        childPath,
+                        currentPathname,
+                      );
 
-                        return (
-                          <ButtonLink
-                            key={childPath}
-                            url={childPath}
-                            label={childName}
-                            variant="unstyle"
-                            aria-current={isActive ? 'page' : undefined}
-                            data-sidebar-route={childPath}
-                            className="material-row h-12 w-40 rounded-xl text-base tracking-wider">
-                            {childIcon && (
-                              <i
-                                className={`mr-1.5 ${childIcon}`}
-                                aria-hidden="true"
-                              />
-                            )}
-                            {childName}
-                          </ButtonLink>
-                        );
-                      },
-                    )}
-                  </div>
+                      return (
+                        <ButtonLink
+                          key={childPath}
+                          url={childPath}
+                          label={childName}
+                          variant="unstyle"
+                          aria-current={isActive ? 'page' : undefined}
+                          data-sidebar-route={childPath}
+                          className="material-row h-12 w-40 rounded-xl text-base tracking-wider">
+                          {childIcon && (
+                            <i
+                              className={`mr-1.5 ${childIcon}`}
+                              aria-hidden="true"
+                            />
+                          )}
+                          {childName}
+                        </ButtonLink>
+                      );
+                    },
+                  )}
                 </div>
-              </div>
+              </details>
             );
           }
 

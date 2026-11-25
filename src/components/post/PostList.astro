@@ -1,7 +1,7 @@
 ---
 import EmptySvg from '@components/svg/EmptySvg';
 import { defaultCoverList } from '@/config/blogLayoutConfig';
-import { getBackgroundImages } from '@lib/backgrounds';
+import { backgroundImages } from '@lib/site-images';
 import { getPostHref, getPostIndexMap } from '@lib/content';
 import type { Page } from 'astro';
 import { shuffle } from 'es-toolkit';
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const { posts, page, showPaginator = true, baseUrl, isHomePage = false, isSimple = false } = Astro.props;
-const [backgroundImages, postIndexMap] = await Promise.all([getBackgroundImages(), getPostIndexMap()]);
+const postIndexMap = await getPostIndexMap();
 const covers = shuffle(backgroundImages.length ? backgroundImages : defaultCoverList);
 ---
 

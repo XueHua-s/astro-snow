@@ -1,0 +1,174 @@
+/* FIXED: Tailwind v3 flattens layers. Important material overrides are deliberate:
+ * they must beat dark/scrolled/mobile selectors and the opt-in SVG filter. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  .material-action,
+  .prose .markdown-image-fullscreen {
+    background: hsl(var(--glass-action-hsl)) !important;
+  }
+
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.12);
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-tint {
+    background: hsl(var(--glass-surface-hsl) / 0.16);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --glass-border: hsl(0 0% 0% / 0.35);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.75);
+  }
+
+  .dark {
+    --glass-border: hsl(0 0% 100% / 0.45);
+    --glass-input-border: hsl(var(--glass-surface-hsl) / 0.55);
+  }
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  .glass-input {
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: hsl(var(--glass-tint-hsl) / 0.98) !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .glass,
+  .glass-panel,
+  .glass-card,
+  .glass-flat,
+  .glass-sidebar,
+  .glass-control,
+  .glass-overlay,
+  .glass-hero,
+  .glass-input,
+  .glass-tint,
+  .material-action,
+  .prose .markdown-image-fullscreen,
+  .material-row {
+    color: CanvasText;
+    background: Canvas !important;
+    border: 1px solid CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass-scrim {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .material-segment[aria-pressed='true'],
+  .material-segment-indicator {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    box-shadow: none;
+  }
+
+  .material-segment[aria-pressed='true']:focus-visible {
+    outline-color: Highlight;
+  }
+
+  html.glass-refract-supported .glass-refract {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  #site-header .site-header-bg {
+    background: Canvas !important;
+    border-bottom-color: CanvasText;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* FIXED: Reduce descendant motion too, not just the outer card wrapper. */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto !important;
+  }
+
+  .glass-interactive *,
+  .flip-card *,
+  [data-glass-hero] *,
+  .header-icon-button,
+  .header-icon-button *,
+  .header-nav-item,
+  .header-surface,
+  #site-header,
+  #site-header .site-header-bg {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* FIXED: CSS also suppresses the JS-driven sheen on live preference changes. */
+  .glass-specular {
+    display: none;
+  }
+
+  .glass-interactive img,
+  [data-glass-hero] img,
+  [data-glass-hero] a {
+    transform: none !important;
+  }
+
+  html.theme-transition::view-transition-new(root),
+  html.theme-transition::view-transition-old(root) {
+    animation-duration: 0s;
+    animation-delay: 0s;
+  }
+}

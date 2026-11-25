@@ -8,11 +8,11 @@ import {
   RiArrowRightSLine,
   RiArrowUpSLine,
 } from 'react-icons/ri';
-import type { BlogPost } from '@/types/blog';
+import type { PostLinkItem } from '@lib/content/posts/types';
 
 interface SeriesNavigationProps {
-  prevPost: { post: BlogPost; href: string } | null;
-  nextPost: { post: BlogPost; href: string } | null;
+  prevPost: PostLinkItem | null;
+  nextPost: PostLinkItem | null;
   className?: string;
 }
 
@@ -44,10 +44,10 @@ export function SeriesNavigation({
               'hover:bg-accent text-muted-foreground hover:text-primary',
               'max-w-[45%] min-w-0 flex-1',
             )}
-            title={prevPost.post.data.title}
+            title={prevPost.title}
             suppressHydrationWarning>
             <RiArrowLeftSLine className="h-4 w-4 shrink-0" />
-            <span className="truncate text-xs">{prevPost.post.data.title}</span>
+            <span className="truncate text-xs">{prevPost.title}</span>
           </a>
         ) : (
           <div className="max-w-[45%] flex-1" />
@@ -62,9 +62,9 @@ export function SeriesNavigation({
               'hover:bg-accent text-muted-foreground hover:text-primary',
               'max-w-[45%] min-w-0 flex-1 justify-end text-right',
             )}
-            title={nextPost.post.data.title}
+            title={nextPost.title}
             suppressHydrationWarning>
-            <span className="truncate text-xs">{nextPost.post.data.title}</span>
+            <span className="truncate text-xs">{nextPost.title}</span>
             <RiArrowRightSLine className="h-4 w-4 shrink-0" />
           </a>
         ) : (

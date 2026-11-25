@@ -1,14 +1,7 @@
 import { getCollection } from 'astro:content';
 
 import type { BlogPost, BlogSchema } from '@/types/blog';
-
-let visiblePostsCache: Promise<BlogPost[]> | null = null;
-let sortedDescPostsCache: Promise<BlogPost[]> | null = null;
-let sortedAscPostsCache: Promise<BlogPost[]> | null = null;
-
-function clonePosts(posts: BlogPost[]): BlogPost[] {
-  return [...posts];
-}
+import { memoizeBuild } from '../build-cache';
 
 async function fetchVisibleBlogPosts(): Promise<BlogPost[]> {
   return (await getCollection('blog', ({ data }: { data: BlogSchema }) => {
@@ -17,19 +10,19 @@ async function fetchVisibleBlogPosts(): Promise<BlogPost[]> {
   })) as BlogPost[];
 }
 
+const readVisiblePosts = memoizeBuild(fetchVisibleBlogPosts);
+const readSortedDescPosts = memoizeBuild(() =>
+  readVisiblePosts().then(sortPostsByDateDesc),
+);
+const readSortedAscPosts = memoizeBuild(() =>
+  readVisiblePosts().then(sortPostsByDateAsc),
+);
+
 /**
  * 统一管理博客内容读取，避免在业务模块里重复写集合过滤细节。
  */
 export async function getVisibleBlogPosts(): Promise<BlogPost[]> {
-  if (import.meta.env.DEV) {
-    return fetchVisibleBlogPosts();
-  }
-
-  if (!visiblePostsCache) {
-    visiblePostsCache = fetchVisibleBlogPosts();
-  }
-
-  return clonePosts(await visiblePostsCache);
+  return [...(await readVisiblePosts())];
 }
 
 /**
@@ -90,28 +83,12 @@ export function splitPostsBySticky(posts: BlogPost[]): {
  * 统一提供按日期降序的可见文章，生产环境缓存，开发环境实时读取。
  */
 export async function getVisibleBlogPostsSortedDesc(): Promise<BlogPost[]> {
-  if (import.meta.env.DEV) {
-    return sortPostsByDateDesc(await fetchVisibleBlogPosts());
-  }
-
-  if (!sortedDescPostsCache) {
-    sortedDescPostsCache = getVisibleBlogPosts().then(sortPostsByDateDesc);
-  }
-
-  return clonePosts(await sortedDescPostsCache);
+  return [...(await readSortedDescPosts())];
 }
 
 /**
  * 统一提供按日期升序的可见文章，生产环境缓存，开发环境实时读取。
  */
 export async function getVisibleBlogPostsSortedAsc(): Promise<BlogPost[]> {
-  if (import.meta.env.DEV) {
-    return sortPostsByDateAsc(await fetchVisibleBlogPosts());
-  }
-
-  if (!sortedAscPostsCache) {
-    sortedAscPostsCache = getVisibleBlogPosts().then(sortPostsByDateAsc);
-  }
-
-  return clonePosts(await sortedAscPostsCache);
+  return [...(await readSortedAscPosts())];
 }
