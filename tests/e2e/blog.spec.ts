@@ -167,6 +167,97 @@ test.describe('Blog e2e regression suite', () => {
     runtime.assertClean();
   });
 
+  test('cover particles animate and respect motion and forced-color preferences', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+
+    const field = page.locator('.cover-particles');
+    const still = field.locator('svg');
+    const canvas = field.locator('canvas');
+    const frame = () =>
+      canvas.evaluate((element) => (element as HTMLCanvasElement).toDataURL());
+    await expect(field).toHaveAttribute('aria-hidden', 'true');
+    await expect(still).toBeVisible();
+    // Static visitors keep the server artwork and never allocate the full-width bitmap.
+    await expect(canvas).not.toHaveAttribute('width', /.+/);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await expect(canvas).toBeVisible();
+    await expect(still).toBeHidden();
+    const initial = await frame();
+    await expect.poll(frame).not.toBe(initial);
+    await page.locator('footer').last().scrollIntoViewIfNeeded();
+    await expect(canvas).toBeHidden();
+    await field.scrollIntoViewIfNeeded();
+    await expect(canvas).toBeVisible();
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(still).toBeVisible();
+    await expect(canvas).toBeHidden();
+    expect(
+      await still
+        .locator('circle')
+        .evaluateAll((nodes) =>
+          nodes.slice(0, 3).map((node) => node.getAttribute('fill')),
+        ),
+    ).toEqual(['#80dbff', '#ffafd9', '#ffffff']);
+
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await expect(canvas).toBeVisible();
+    await page.emulateMedia({ forcedColors: 'active' });
+    await expect(field).toBeHidden();
+  });
+
+  test('cover particles have a still fallback without JavaScript', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      javaScriptEnabled: false,
+      baseURL: test.info().project.use.baseURL,
+    });
+    try {
+      const page = await context.newPage();
+      await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+      const field = page.locator('.cover-particles');
+      await expect(field.locator('svg')).toBeVisible();
+      await expect(field.locator('canvas')).toBeHidden();
+      await expect(field.locator('line').first()).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('about page keeps a gap between the cover and both columns', async ({
+    page,
+  }) => {
+    for (const [width, gap] of [
+      [1440, 24],
+      [390, 16],
+    ]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/blog/about', { waitUntil: 'domcontentloaded' });
+
+      const coverBottom = await page
+        .locator('.blog-cover')
+        .evaluate((element) => element.getBoundingClientRect().bottom);
+      const panelTop = await page
+        .locator('main [data-glass-panel]')
+        .evaluate((element) => element.getBoundingClientRect().top);
+      expect(panelTop - coverBottom).toBe(gap);
+
+      const sidebar = page.locator('.desktop-sidebar');
+      if (width === 1440) {
+        const sidebarTop = await sidebar.evaluate(
+          (element) => element.getBoundingClientRect().top,
+        );
+        expect(sidebarTop).toBe(panelTop);
+      } else {
+        await expect(sidebar).toBeHidden();
+      }
+    }
+  });
+
   for (const path of BLOG_ROUTES) {
     test(`route should be accessible: ${path}`, async ({ page }) => {
       const runtime = setupRuntimeErrorCollector(page);

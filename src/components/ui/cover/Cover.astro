@@ -5,8 +5,8 @@ import { getLqipStyle } from '@lib/lqip';
 import { getBackgroundImages } from '@lib/backgrounds';
 import readingTime from 'reading-time';
 import type { BlogPost } from '@/types/blog';
-import WaveSvg from './wave';
 import { MAX_WIDTH } from '@/constants/layout';
+import CoverParticles from './CoverParticles.astro';
 
 export interface CoverProps {
   data?: BlogPost;
@@ -27,19 +27,32 @@ const bannerSrc = backgroundImages.length
 const bannerLqipStyle = getLqipStyle(bannerSrc);
 ---
 
-<div class="relative isolate flex h-[60dvh] max-h-200 overflow-hidden">
-  <div class="absolute inset-0 h-full bg-black/40"></div>
-  <div class="absolute inset-0 bottom-[8dvh] flex flex-col items-center justify-center px-5 text-white">
+<div class="blog-cover relative isolate grid min-h-[clamp(21rem,54dvh,39rem)] place-items-center overflow-hidden">
+  <div
+    class="blog-cover-image absolute inset-0 -z-10"
+    transition:persist="page-cover-banner"
+    id="banner-box"
+    style={bannerLqipStyle}
+  >
+    <img
+      src={bannerSrc}
+      alt={blogLayoutConfig.banner.alt ?? 'cover'}
+      class="h-full w-full object-cover"
+      sizes="100vw"
+    />
+  </div>
+  <CoverParticles />
+  <div class={`relative flex w-full flex-col items-center px-5 pb-20 pt-24 text-center text-white ${MAX_WIDTH.content}`}>
     {
       title ? (
         <h1
-          class={`shadow-text word-break flex items-center gap-2 text-center text-5xl/[1.2] font-bold tracking-widest ${MAX_WIDTH.content}`}
+          class="blog-cover-title flex flex-wrap items-center justify-center gap-3 text-[clamp(1.75rem,4.5vw,3.25rem)] font-bold leading-tight"
         >
           {title}
           <button
             type="button"
             title="复制链接"
-            class="hover:text-primary cursor-pointer transition-colors duration-300"
+            class="inline-flex size-10 items-center justify-center rounded-full border border-white/30 bg-black/45 text-base hover:bg-black/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             onclick="navigator.clipboard.writeText(window.location.href)"
             aria-label="复制链接"
           >
@@ -49,18 +62,18 @@ const bannerLqipStyle = getLqipStyle(bannerSrc);
       ) : data ? (
         <>
           <h1
-            class={`shadow-text word-break text-4.5xl text-center font-bold md:text-2xl ${MAX_WIDTH.content} flex flex-wrap items-center justify-center gap-3`}
+            class="blog-cover-title flex flex-wrap items-center justify-center gap-3 text-[clamp(1.625rem,3.8vw,2.75rem)] font-bold leading-tight"
           >
             {dataTitle ?? title}
             {isDraft && (
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-yellow-500 px-3 py-1.5 text-base font-semibold text-white shadow-lg text-shadow-none hover:bg-yellow-500 md:px-2.5 md:py-1 md:text-sm">
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-950">
                 <i class="fa-solid fa-file-pen text-sm md:text-xs" aria-hidden="true"></i>
                 草稿
               </span>
             )}
           </h1>
           {data && (
-            <p class="mt-3 flex items-center justify-center gap-4 md:text-xs">
+            <p class="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:text-xs">
               <span class="flex items-center gap-1">
                 <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
                 发表于 {parseDate(date ?? '', 'YYYY-MM-DD')}
@@ -77,27 +90,46 @@ const bannerLqipStyle = getLqipStyle(bannerSrc);
         </>
       ) : (
         <>
-          <h2 class="shadow-text font-chill-round text-5xl/[1.2]">{blogLayoutConfig?.alternate}</h2>
-          <h1 class="shadow-text font-chill-round mt-3 text-5xl/[1.2] font-bold tracking-widest">
+          <p class="font-chill-round text-xl">{blogLayoutConfig?.alternate}</p>
+          <h1 class="blog-cover-title font-chill-round mt-2 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-tight">
             {blogLayoutConfig?.title}
           </h1>
-          <p class="shadow-text mt-5 text-sm">= {blogLayoutConfig?.subtitle} =</p>
+          <p class="mt-4 text-sm">{blogLayoutConfig?.subtitle}</p>
         </>
       )
     }
   </div>
-  <div
-    class="relative -z-10 h-full min-h-60 w-full"
-    transition:persist="page-cover-banner"
-    id="banner-box"
-    style={bannerLqipStyle}
-  >
-    <img
-      src={bannerSrc}
-      alt={blogLayoutConfig.banner.alt ?? 'cover'}
-      class="h-full w-full object-cover"
-      sizes="50vw"
-    />
-  </div>
-  <WaveSvg />
 </div>
+
+<style>
+  .blog-cover {
+    background: var(--site-canvas);
+  }
+
+  .blog-cover::before {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, var(--site-canvas), transparent 14%),
+      linear-gradient(
+        180deg,
+        hsl(224 32% 9% / 0.72),
+        hsl(224 32% 9% / 0.49) 59%,
+        transparent 96%
+      );
+    content: '';
+  }
+
+  .blog-cover-title {
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    text-shadow: 0 2px 8px hsl(224 32% 9% / 0.45);
+  }
+
+  @media (forced-colors: active) {
+    .blog-cover-image,
+    .blog-cover::before {
+      visibility: hidden;
+    }
+  }
+</style>

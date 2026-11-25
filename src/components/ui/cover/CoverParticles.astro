@@ -1,0 +1,137 @@
+---
+import {
+  connectionStroke,
+  forEachConnection,
+  particleColors,
+} from './particle-network';
+
+// A still frame of the same proximity graph for reduced motion and canvas fallback.
+const positions = [
+  [22, 64],
+  [66, 82],
+  [85, 69],
+  [159, 62],
+  [227, 32],
+  [251, 44],
+  [238, 62],
+  [348, 83],
+  [413, 59],
+  [439, 68],
+  [485, 38],
+  [528, 76],
+  [603, 86],
+  [625, 96],
+  [666, 82],
+  [750, 55],
+  [836, 33],
+  [857, 54],
+  [883, 46],
+  [953, 64],
+  [1011, 88],
+  [1036, 73],
+];
+const dots = positions.map(([x, y], index) => ({
+  x,
+  y,
+  color: index % particleColors.length,
+  opacity: 0.72 + (index % 4) * 0.07,
+}));
+type Dot = (typeof dots)[number];
+const edges: { start: Dot; end: Dot; opacity: number }[] = [];
+forEachConnection(dots, (start, end, opacity) =>
+  edges.push({ start, end, opacity }),
+);
+---
+
+<cover-particle-network class="cover-particles" aria-hidden="true">
+  <svg
+    viewBox="0 0 1080 128"
+    preserveAspectRatio="xMidYMid slice"
+    focusable="false">
+    {
+      edges.map(({ start, end, opacity }) => (
+        <line
+          x1={start.x}
+          y1={start.y}
+          x2={end.x}
+          y2={end.y}
+          stroke={connectionStroke.color}
+          stroke-opacity={opacity}
+          stroke-width={connectionStroke.width}
+          vector-effect="non-scaling-stroke"
+        />
+      ))
+    }
+    {
+      dots.map(({ x, y, color, opacity }) => (
+        <circle
+          cx={x}
+          cy={y}
+          r="1.6"
+          fill={particleColors[color]}
+          opacity={opacity}
+        />
+      ))
+    }
+  </svg>
+  <canvas></canvas>
+</cover-particle-network>
+
+<script>
+  import { animateCoverNetwork } from './particle-network';
+
+  class CoverParticleNetwork extends HTMLElement {
+    private dispose?: () => void;
+
+    connectedCallback() {
+      this.dispose = animateCoverNetwork(this);
+    }
+
+    disconnectedCallback() {
+      this.dispose?.();
+      this.dispose = undefined;
+    }
+  }
+
+  if (!customElements.get('cover-particle-network')) {
+    customElements.define('cover-particle-network', CoverParticleNetwork);
+  }
+</script>
+
+<style>
+  .cover-particles {
+    position: absolute;
+    inset: auto 0 0;
+    height: clamp(6.5rem, 18dvh, 10.5rem);
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(180deg, transparent, #000 17% 78%, transparent);
+  }
+
+  svg,
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  svg {
+    opacity: 0.72;
+  }
+
+  canvas,
+  .cover-particles[data-particles-active] svg {
+    visibility: hidden;
+  }
+
+  .cover-particles[data-particles-active] canvas {
+    visibility: visible;
+  }
+
+  @media (forced-colors: active) {
+    .cover-particles {
+      display: none;
+    }
+  }
+</style>
