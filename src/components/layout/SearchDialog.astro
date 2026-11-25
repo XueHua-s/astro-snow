@@ -3,28 +3,3 @@ import SearchDialogPanel from './SearchDialogPanel';
 ---
 
 <SearchDialogPanel client:idle />
-
-<style is:global>
-  /* Hide empty hint when search has results or is loading */
-  #search-dialog-container:has(.pagefind-ui__results) ~ #search-empty-hint,
-  #search-dialog-container:has(.pagefind-ui__message) ~ #search-empty-hint {
-    display: none;
-  }
-
-  /* Keyboard hint styles */
-  #search-dialog-content .kbd {
-    inline-size: fit-content;
-    padding-inline: 0.5rem;
-    padding-block: 0.25rem;
-    border-radius: 0.25rem;
-    background-color: rgba(0, 0, 0, 0.1);
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 0.875rem;
-    line-height: 1;
-    vertical-align: middle;
-  }
-
-  .dark #search-dialog-content .kbd {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-</style>

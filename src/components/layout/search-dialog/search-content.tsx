@@ -178,7 +178,7 @@ export function SearchContent({ isOpen }: { isOpen: boolean }) {
         onSubmit={(event) => event.preventDefault()}>
         <input
           ref={inputRef}
-          className="pagefind-ui__search-input svelte-e9gkc3"
+          className="pagefind-ui__search-input svelte-e9gkc3 glass-input"
           type="text"
           placeholder="请输入关键词搜索"
           aria-label="请输入关键词搜索"
@@ -193,7 +193,7 @@ export function SearchContent({ isOpen }: { isOpen: boolean }) {
         <button
           type="button"
           className={cn(
-            'pagefind-ui__search-clear svelte-e9gkc3',
+            'pagefind-ui__search-clear svelte-e9gkc3 glass-tint',
             !term && 'pagefind-ui__suppressed',
           )}
           onClick={() => {

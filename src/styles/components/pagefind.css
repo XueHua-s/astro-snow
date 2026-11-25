@@ -21,40 +21,38 @@
   --pagefind-ui-tag: rgba(241, 139, 179, 0.2);
 }
 
-.search-dialog:has(.pagefind-ui__results) .search-empty-hint,
-.search-dialog:has(.pagefind-ui__message) .search-empty-hint {
-  display: none;
-}
-
-.pagefind-ui__search-input {
+#search-dialog .pagefind-ui__search-input {
   width: 100%;
-  interpolate-size: allow-keywords;
-  background: var(--glass-input-bg) !important;
-  border: 1px solid var(--glass-input-border) !important;
-  @apply !h-10 !rounded-lg !px-4 !py-0 !font-normal transition-all duration-300 md:!px-2 md:!text-sm;
+  height: 2.75rem;
+  background: var(--glass-input-bg);
+  border: 1px solid var(--glass-input-border);
+  @apply rounded-xl px-4 py-0 text-base font-normal;
 }
 
-.pagefind-ui__search-input:not(:placeholder-shown) {
-  width: calc(100% - 3.5rem) !important;
+#search-dialog .pagefind-ui__search-input:not(:placeholder-shown) {
+  padding-inline-end: 4.5rem;
+}
+
+#search-dialog .pagefind-ui__search-input::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
 }
 
 .pagefind-ui__form.svelte-e9gkc3::before {
   display: none;
 }
 
-.pagefind-ui__search-input:focus {
-  outline: none;
-  border-color: hsl(var(--primary)) !important;
+#search-dialog .pagefind-ui__search-input:focus-visible {
+  outline: 2px solid hsl(var(--glass-primary-hsl));
+  outline-offset: 1px;
 }
 
 /* Clear Button */
-.search-dialog .pagefind-ui__search-clear {
-  @apply text-primary bg-primary/20 top-0 h-10 cursor-pointer rounded-lg border-none px-2 py-1 text-sm font-medium whitespace-nowrap transition-all duration-200;
-  @apply md:px-2.5 md:py-0.5;
+#search-dialog .pagefind-ui__search-clear {
+  @apply absolute right-1.5 top-1.5 mt-0 h-8 rounded-lg px-2.5 py-1 text-sm font-medium text-foreground;
 }
-.pagefind-ui__search-clear:hover {
-  background: hsl(var(--primary));
-  color: white;
+#search-dialog .pagefind-ui__search-clear:hover {
+  background: hsl(var(--glass-surface-hsl) / 0.16);
 }
 
 /* Results Area */
@@ -95,7 +93,8 @@
 
 /* Result Link */
 .pagefind-ui__result-link {
-  @apply !text-primary hover:!text-blue transition-colors duration-300 hover:!no-underline;
+  color: hsl(var(--glass-primary-hsl)) !important;
+  @apply hover:!underline;
 }
 
 /* Result Excerpt */
@@ -103,7 +102,8 @@
   @apply line-clamp-2;
 }
 .pagefind-ui__result-excerpt mark {
-  @apply text-primary bg-primary/20 py-px font-bold;
+  color: hsl(var(--glass-primary-hsl));
+  @apply bg-primary/10 py-px font-bold;
 }
 
 /* Button Styles */

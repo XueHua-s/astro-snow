@@ -304,9 +304,15 @@ for (const width of [1440, 390]) {
         }
         await page.locator('#search-trigger').click();
         await expect(page.locator('#search-dialog')).toBeVisible();
-        await expect(
-          page.locator('#search-dialog-container .pagefind-ui__search-input'),
-        ).toBeFocused();
+        const searchInput = page.locator(
+          '#search-dialog-container .pagefind-ui__search-input',
+        );
+        await expect(searchInput).toBeFocused();
+        expect(
+          await searchInput.evaluate(
+            (element) => getComputedStyle(element, '::placeholder').opacity,
+          ),
+        ).toBe('1');
         await expect(page.locator('#floating-nav')).toHaveCSS('opacity', '0');
         await expect(page.locator('#floating-nav')).toHaveCSS(
           'pointer-events',

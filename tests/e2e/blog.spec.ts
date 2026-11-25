@@ -475,6 +475,10 @@ test.describe('Blog e2e regression suite', () => {
   }) => {
     const runtime = setupRuntimeErrorCollector(page);
     await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+    // FIXED: The rapid-reopen test starts after the idle header can handle clicks.
+    await expect(
+      page.locator('astro-island:has(#site-header)'),
+    ).not.toHaveAttribute('ssr');
     const trigger = page.locator('#search-trigger');
     const dialog = page.locator('#search-dialog');
     const content = page.locator('#search-dialog-content');

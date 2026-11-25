@@ -1,12 +1,11 @@
 import { useEffect, useRef, type MouseEvent } from 'react';
+import { cn } from '@lib/utils';
 import { SearchContent } from './search-content';
 
 interface SearchDialogPanelViewProps {
   state: 'open' | 'closed';
   isOpen: boolean;
-  overlayClassName: string;
-  dialogClassName: string;
-  contentClassName: string;
+  active: boolean;
   onDialogBackgroundClick: (event: MouseEvent<HTMLButtonElement>) => void;
   onDialogClose: () => void;
 }
@@ -14,9 +13,7 @@ interface SearchDialogPanelViewProps {
 export function SearchDialogPanelView({
   state,
   isOpen,
-  overlayClassName,
-  dialogClassName,
-  contentClassName,
+  active,
   onDialogBackgroundClick,
   onDialogClose,
 }: SearchDialogPanelViewProps) {
@@ -27,7 +24,7 @@ export function SearchDialogPanelView({
   // the fade band scrolled away with the content.
   useEffect(() => {
     const scroller = scrollRef.current;
-    if (!scroller) return;
+    if (!scroller || state === 'closed') return;
 
     const update = () => {
       const hasOverflow = scroller.scrollHeight > scroller.clientHeight + 4;
@@ -57,6 +54,22 @@ export function SearchDialogPanelView({
     };
   }, [state]);
 
+  const overlayClassName = cn(
+    'fixed inset-0 z-40 bg-black/40 glass-scrim transition-opacity duration-200 motion-reduce:transition-none',
+    active ? 'opacity-100' : 'opacity-0',
+    state === 'closed' && 'hidden',
+  );
+
+  const dialogClassName = cn(
+    'fixed inset-0 z-50 grid items-start justify-items-center px-4 pt-[min(11dvh,6rem)]',
+    state === 'closed' && 'hidden',
+  );
+
+  const contentClassName = cn(
+    'glass glass-overlay w-full max-w-2xl overflow-hidden transition-opacity duration-200 motion-reduce:transition-none',
+    active ? 'opacity-100' : 'opacity-0',
+  );
+
   return (
     <>
       <button
@@ -72,13 +85,15 @@ export function SearchDialogPanelView({
         data-state={state}
         className={dialogClassName}
         role="dialog"
-        aria-label="搜索文章"
+        aria-labelledby="search-dialog-title"
         aria-modal="true">
         <div id="search-dialog-content" className={contentClassName}>
-          <div className="relative p-6 md:p-3">
+          <div className="p-5 md:p-3">
             <div className="search-dialog">
               <div className="relative mb-4 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-semibold md:text-base">
+                <h2
+                  id="search-dialog-title"
+                  className="flex items-center gap-2 text-lg font-semibold md:text-base">
                   <i
                     className="fa-solid fa-magnifying-glass text-base md:text-sm"
                     aria-hidden="true"
@@ -97,26 +112,14 @@ export function SearchDialogPanelView({
                 </button>
               </div>
               <div
-                id="search-empty-hint"
-                className="search-empty-hint absolute inset-x-0 top-32 text-center text-sm opacity-60 md:top-28">
-                <p>输入关键词搜索博客文章</p>
-                <p className="mt-1 text-xs">
-                  按{' '}
-                  <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono">
-                    ESC
-                  </kbd>{' '}
-                  关闭
-                </p>
-              </div>
-              <div
                 ref={scrollRef}
-                className="vertical-scrollbar scroll-feather-mask -mx-6 h-[calc(80dvh-140px)] overflow-auto scroll-smooth px-6 pb-10 md:-mx-3 md:h-[calc(80dvh-120px)] md:px-3">
+                className="vertical-scrollbar scroll-feather-mask -mx-5 max-h-[max(3rem,calc(86dvh-8rem))] overflow-auto px-5 py-1 md:-mx-3 md:px-3">
                 <div id="search-dialog-container">
                   <SearchContent isOpen={isOpen} />
                 </div>
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-4 px-4 pt-2 pb-4 text-xs text-muted-foreground/70">
+            <div className="mt-3 flex items-center justify-center gap-4 border-t border-[var(--glass-border)] pt-3 text-xs text-muted-foreground">
               <span>
                 <kbd className="glass-tint rounded px-1.5 py-0.5 font-mono text-[0.7rem]">
                   ↑↓
