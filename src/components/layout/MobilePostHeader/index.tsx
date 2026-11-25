@@ -142,7 +142,7 @@ export function MobilePostHeader({
               enableNumbering={enableNumbering}
               trigger={
                 <button
-                  className="glass glass-control absolute left-0 top-[50%] translate-y-[-50%] w-[calc(100%-16px)] hover:bg-[hsl(var(--glass-tint-hsl)/0.94)] flex items-center gap-2.5 rounded-full py-1 pr-3 pl-1.5 text-foreground transition-colors"
+                  className="glass glass-control header-surface absolute left-0 top-[50%] flex w-[calc(100%-16px)] translate-y-[-50%] items-center gap-2.5 rounded-full py-1 pl-1.5 pr-3 text-foreground transition-colors"
                   aria-label="展开目录">
                   {/* Progress circle - fixed size container */}
                   <div className="relative shrink-0">

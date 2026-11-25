@@ -24,7 +24,7 @@ const DropdownNavComponent = ({
 
   const renderDropdownContent = useCallback(
     () => (
-      <div className="nav-dropdown flex flex-col items-stretch p-1">
+      <div className="nav-dropdown flex min-w-36 flex-col items-stretch p-1">
         {item.children?.length
           ? item.children.map((child: Router) => {
               const isActive = isRoutePathActive(child.path, currentPath);
@@ -35,7 +35,7 @@ const DropdownNavComponent = ({
                   href={child.path}
                   aria-current={isActive ? 'page' : undefined}
                   data-header-route={child.path}
-                  className="material-row w-full rounded-lg px-4 py-2 text-base">
+                  className="material-row w-full rounded-lg px-3 py-2 text-sm">
                   <div className="flex items-center gap-2">
                     {child.icon && (
                       <i
@@ -66,10 +66,7 @@ const DropdownNavComponent = ({
       render={renderDropdownContent}>
       <button
         className={cn(
-          'inline-flex h-10 items-center px-4 py-2 text-base tracking-wider',
-          'relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0',
-          'after:-translate-x-1/2 after:transition-[width] after:duration-300 after:content-[""]',
-          hasActiveChild && 'after:w-9/12',
+          'header-nav-item inline-flex h-10 items-center gap-2 px-4 text-sm font-medium',
           className,
         )}
         aria-expanded={isOpen}
@@ -78,12 +75,12 @@ const DropdownNavComponent = ({
         data-header-route-group={name}
         data-route-active={hasActiveChild || undefined}>
         {icon && (
-          <i className={cn('mr-1.5 text-sm', icon)} aria-hidden="true" />
+          <i className={cn('header-route-icon', icon)} aria-hidden="true" />
         )}
         {name}
         <i
           className={cn(
-            'fa-solid fa-caret-down absolute -right-1.5 text-xl transition-transform duration-300',
+            'fa-solid fa-chevron-down text-[0.6rem] transition-transform duration-200 motion-reduce:transition-none',
             {
               'rotate-180': isOpen,
             },

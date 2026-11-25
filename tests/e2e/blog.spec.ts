@@ -279,9 +279,13 @@ test.describe('Blog e2e regression suite', () => {
     await page.goto('/blog/post/38', { waitUntil: 'domcontentloaded' });
     const desktopSidebar = page.locator('.page-home-sider').first();
 
-    await desktopSidebar
-      .locator('#inner-home-sider [data-segment-value="series"]')
-      .click();
+    const seriesButton = desktopSidebar.getByRole('button', {
+      name: '系列文章',
+    });
+    await expect(seriesButton).toHaveAttribute('aria-pressed', 'false');
+    await seriesButton.focus();
+    await seriesButton.press('Enter');
+    await expect(seriesButton).toHaveAttribute('aria-pressed', 'true');
     await expect(
       desktopSidebar.locator('[data-slot-type="series"]'),
     ).toBeVisible();

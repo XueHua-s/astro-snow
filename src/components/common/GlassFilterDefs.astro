@@ -34,17 +34,17 @@
         result="softNoise"></feGaussianBlur>
       <feGaussianBlur
         in="SourceGraphic"
-        stdDeviation="10"
+        stdDeviation="14"
         result="blurred"></feGaussianBlur>
       <feColorMatrix
         in="blurred"
         type="saturate"
-        values="1.7"
+        values="1.35"
         result="saturated"></feColorMatrix>
       <feDisplacementMap
         in="saturated"
         in2="softNoise"
-        scale="12"
+        scale="7"
         xChannelSelector="R"
         yChannelSelector="G"></feDisplacementMap>
     </filter>

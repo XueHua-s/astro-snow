@@ -49,9 +49,9 @@ const HeadingTreeItemComponent = ({
           onHeadingClick(heading.id);
         }}
         className={cn(
-          'heading-link group hover:bg-foreground/5 relative flex items-center rounded-md py-2 text-sm transition-all duration-200 hover:border-l-2',
+          'heading-link group relative flex items-center rounded-lg py-2 text-sm transition-colors duration-150 hover:bg-foreground/5 motion-reduce:transition-none',
           {
-            'bg-primary/10 text-primary border-l-primary hover:text-primary hover:bg-primary/10 font-medium':
+            'bg-primary/10 font-semibold text-[hsl(var(--glass-primary-hsl))] hover:bg-primary/15':
               isActive,
           },
         )}
@@ -67,7 +67,11 @@ const HeadingTreeItemComponent = ({
           {heading.text}
         </span>
         {/* Active state indicator */}
-        {isActive && <span className="text-primary ml-2 text-xs">•</span>}
+        {isActive && (
+          <span className="ml-2 text-xs" aria-hidden="true">
+            •
+          </span>
+        )}
       </a>
 
       {/* Render children nested within this item */}

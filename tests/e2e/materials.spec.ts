@@ -129,6 +129,7 @@ async function scrollHeader(page: Page) {
   }
   await page.evaluate(() => window.scrollTo({ top: 700, behavior: 'instant' }));
   await expect(header).toHaveClass(/with-background/);
+  await expect(header).toHaveCSS('transition-property', /^(none|transform)$/);
   await expect
     .poll(() =>
       header.evaluate((element) => element.getBoundingClientRect().top),
@@ -221,7 +222,9 @@ for (const width of [1440, 390]) {
           'backdrop-filter',
           'none',
         );
-        const readingSurfaces = page.locator('.glass-panel, .glass-card');
+        const readingSurfaces = page.locator(
+          '.glass-panel, .glass-card, .glass-sidebar',
+        );
         expect(await readingSurfaces.count()).toBeGreaterThan(1);
         for (const surface of await readingSurfaces.all()) {
           await expect(surface).toHaveCSS('backdrop-filter', 'none');
@@ -264,6 +267,29 @@ for (const width of [1440, 390]) {
           ).toBeGreaterThanOrEqual(4.5);
         }
         if (width === 1440) {
+          const sidebarTop = await page
+            .locator('.desktop-sidebar')
+            .evaluate((element) => element.getBoundingClientRect().top);
+          const toolbarBottom = await headerBackground.evaluate(
+            (element) => element.getBoundingClientRect().bottom,
+          );
+          expect(sidebarTop).toBeGreaterThan(toolbarBottom);
+          const active = page.locator('#site-header [aria-current="page"]');
+          const inactive = page.locator(
+            '#site-header [data-header-route="/blog/friends"]',
+          );
+          if (mode === 'forced') {
+            await expect(active).toHaveCSS('outline-style', 'solid');
+          } else {
+            await expect(active).not.toHaveCSS(
+              'background-color',
+              'rgba(0, 0, 0, 0)',
+            );
+            await expect(inactive).toHaveCSS(
+              'background-color',
+              'rgba(0, 0, 0, 0)',
+            );
+          }
           await page.locator('[data-header-route-group]').first().hover();
           const menu = page.locator('.glass-menu');
           await expect(menu).toBeVisible();
@@ -310,12 +336,25 @@ for (const width of [1440, 390]) {
         );
         const trigger = page.locator('button[aria-label="展开目录"]');
         await expect(trigger).toBeVisible();
+        await expect(page.locator('#site-header')).toHaveClass(
+          /with-background/,
+        );
         for (const dark of [false, true]) {
           await setTheme(page, dark);
           if (mode !== 'forced')
             expect(await minimumContrast(trigger)).toBeGreaterThanOrEqual(4.5);
-          if (mode !== 'normal')
-            await expect(trigger).toHaveCSS('backdrop-filter', 'none');
+          await expect(trigger).toHaveCSS('backdrop-filter', 'none');
+          await trigger.click();
+          const menu = page.locator('.glass-menu').filter({
+            has: page.getByRole('navigation', { name: '文章目录' }),
+          });
+          await expect(menu).toBeVisible();
+          await expect(menu).toHaveCSS(
+            'backdrop-filter',
+            mode === 'normal' ? /blur\(/ : 'none',
+          );
+          await page.keyboard.press('Escape');
+          await expect(menu).toBeHidden();
         }
       }
       await page.goto('/', { waitUntil: 'domcontentloaded' });

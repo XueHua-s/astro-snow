@@ -19,32 +19,33 @@ type HomeSiderSegmentedProps = {
   onChange?: (value: HomeSiderSegmentType) => void;
 };
 
+const options: OptionType<HomeSiderSegmentType>[] = [
+  {
+    label: '站点概览',
+    value: SegmentTypeEnum.INFO,
+    icon: RiDashboard3Line,
+  },
+  {
+    label: '文章目录',
+    value: SegmentTypeEnum.DIRECTORY,
+    icon: RiListOrdered2,
+  },
+  {
+    label: '系列文章',
+    value: SegmentTypeEnum.SERIES,
+    icon: RiArticleLine,
+  },
+];
+
 export const HomeSiderSegmented = ({
   className,
   ...props
 }: HomeSiderSegmentedProps) => {
-  const options: OptionType<HomeSiderSegmentType>[] = [
-    {
-      label: '站点概览',
-      value: SegmentTypeEnum.INFO,
-      icon: RiDashboard3Line,
-    },
-    {
-      label: '文章目录',
-      value: SegmentTypeEnum.DIRECTORY,
-      icon: RiListOrdered2,
-    },
-    {
-      label: '系列文章',
-      value: SegmentTypeEnum.SERIES,
-      icon: RiArticleLine,
-    },
-  ];
-
   return (
     <Segmented<HomeSiderSegmentType>
       {...props}
       options={options}
+      label="侧栏内容"
       className={cn(
         'flex w-fit cursor-pointer p-1 text-xs font-semibold select-none',
         className,

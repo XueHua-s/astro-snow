@@ -4,7 +4,7 @@
  * Layer model (keep blur only where the backdrop is dynamic):
  *   L0 ambient  -> .site-ambient (fixed gradient mesh, no blur)
  *   L1 chrome   -> .glass-control
- *   L2 panel    -> .glass-panel (tint only, no backdrop-filter)
+ *   L2 panel    -> .glass-panel / .glass-sidebar (tint only, no backdrop-filter)
  *   L3 card     -> .glass-card (tint only, no backdrop-filter)
  *   L4 control  -> .glass-control (small blur, only over dynamic content)
  *   L5 overlay  -> .glass-overlay (strong blur + scrim)
@@ -19,30 +19,31 @@
   :root {
     --glass-tint-hsl: 0 0% 100%;
     --glass-tint-alpha: 0.62;
-    --glass-tint-alpha-strong: 0.8;
+    --glass-tint-alpha-strong: 0.9;
     /* Surface ink: contrasts with the glass tint in both themes. */
     --glass-surface-hsl: 220 20% 30%;
     --glass-action-hsl: 222 18% 91%;
     --glass-primary-hsl: 346 65% 35%;
     --glass-primary-ink: 0 0% 100%;
 
-    --glass-border: hsl(0 0% 100% / 0.55);
-    --glass-radius-panel: 1.5rem;
-    --glass-radius-card: 1rem;
+    --glass-border: hsl(220 24% 26% / 0.16);
+    --glass-highlight: hsl(0 0% 100% / 0.78);
+    --glass-edge: hsl(220 28% 18% / 0.18);
+    --glass-radius-panel: 1.125rem;
+    --glass-radius-card: 0.875rem;
     --glass-radius-control: 0.75rem;
-    --glass-radius-overlay: 1.5rem;
+    --glass-radius-overlay: 1.25rem;
 
     --glass-shadow:
       0 24px 60px -28px hsl(220 40% 20% / 0.35),
       0 2px 6px hsl(220 40% 20% / 0.05);
     --glass-inner:
-      inset 0 1px 0 hsl(0 0% 100% / 0.7), inset 0 -1px 0 hsl(220 30% 10% / 0.06);
+      inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-edge);
 
     --glass-sheen: linear-gradient(
       145deg,
-      hsl(0 0% 100% / 0.28) 0%,
-      hsl(0 0% 100% / 0.06) 26%,
-      transparent 55%
+      hsl(0 0% 100% / 0.14),
+      transparent 46%
     );
     --glass-glow: radial-gradient(
       120% 90% at 18% -10%,
@@ -51,9 +52,10 @@
     );
 
     --glass-blur: 20px;
-    --glass-saturate: 170%;
-    --glass-brightness: 1.04;
+    --glass-saturate: 135%;
+    --glass-brightness: 1.02;
     --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.66);
+    --site-canvas: #f3f3f7;
     --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.08);
     --glass-input-border: hsl(var(--glass-surface-hsl) / 0.65);
   }
@@ -61,23 +63,21 @@
   .dark {
     --glass-tint-hsl: 222 22% 10%;
     --glass-tint-alpha: 0.58;
-    --glass-tint-alpha-strong: 0.76;
+    --glass-tint-alpha-strong: 0.9;
     --glass-surface-hsl: 0 0% 100%;
     --glass-action-hsl: 222 18% 23%;
     --glass-primary-hsl: 346 65% 80%;
     --glass-primary-ink: 222 22% 10%;
 
-    --glass-border: hsl(0 0% 100% / 0.14);
+    --glass-border: hsl(220 26% 84% / 0.21);
+    --glass-highlight: hsl(220 40% 94% / 0.25);
+    --glass-edge: hsl(230 60% 2% / 0.55);
     --glass-shadow:
       0 28px 70px -30px hsl(230 60% 2% / 0.8), 0 2px 10px hsl(230 60% 2% / 0.35);
-    --glass-inner:
-      inset 0 1px 0 hsl(0 0% 100% / 0.16), inset 0 -1px 0 hsl(0 0% 0% / 0.4);
-
     --glass-sheen: linear-gradient(
       145deg,
-      hsl(0 0% 100% / 0.14) 0%,
-      hsl(0 0% 100% / 0.04) 26%,
-      transparent 55%
+      hsl(0 0% 100% / 0.08),
+      transparent 46%
     );
     --glass-glow: radial-gradient(
       120% 90% at 18% -10%,
@@ -85,9 +85,10 @@
       transparent 62%
     );
 
-    --glass-saturate: 150%;
-    --glass-brightness: 0.96;
+    --glass-saturate: 125%;
+    --glass-brightness: 0.98;
     --glass-wave-fill: hsl(var(--glass-tint-hsl) / 0.72);
+    --site-canvas: #141925;
     --glass-input-bg: hsl(var(--glass-surface-hsl) / 0.06);
     --glass-input-border: hsl(var(--glass-surface-hsl) / 0.45);
   }
@@ -117,33 +118,35 @@
   /* FIXED: Reading surfaces are quiet tint, not repeated chrome finishes. */
   .glass-panel,
   .glass-card,
-  .glass-flat {
-    background: hsl(var(--glass-tint-hsl) / 0.9);
+  .glass-flat,
+  .glass-sidebar {
+    background: hsl(var(--glass-tint-hsl) / 0.94);
     border-color: hsl(var(--glass-surface-hsl) / 0.12);
     box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   /* Large content surface: tint + separator, never a full-page backdrop-filter. */
   .glass-panel {
     --glass-radius: var(--glass-radius-panel);
     box-shadow: 0 4px 16px -12px hsl(220 30% 10% / 0.12);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 
   /* Cards sit on a panel; a second blur would only add fog and GPU cost. */
   .glass-card {
     --glass-radius: var(--glass-radius-card);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+  }
+
+  .glass-sidebar {
+    --glass-radius: var(--glass-radius-panel);
+    background: hsl(var(--glass-tint-hsl) / 0.72);
   }
 
   /* Nested control inside an already-frosted surface: tint only. */
   .glass-flat {
     --glass-radius: var(--glass-radius-control);
     background: hsl(var(--glass-surface-hsl) / 0.04);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 
   .glass-input {
@@ -165,12 +168,13 @@
   .glass-control {
     --glass-radius: var(--glass-radius-control);
     --glass-tint-alpha: 0.82;
-    --glass-blur: 16px;
+    --glass-blur: 20px;
     background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
     color: hsl(var(--foreground, var(--glass-surface-hsl)));
   }
 
   .glass-menu {
+    --glass-radius: 1rem;
     --glass-tint-alpha: 0.94;
     --glass-blur: 24px;
     background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
@@ -180,6 +184,7 @@
     --glass-radius: var(--glass-radius-overlay);
     --glass-tint-alpha: var(--glass-tint-alpha-strong);
     --glass-blur: 32px;
+    background: hsl(var(--glass-tint-hsl) / var(--glass-tint-alpha));
     color: hsl(var(--foreground, var(--glass-surface-hsl)));
   }
 
@@ -219,9 +224,39 @@
     font-weight: 600;
   }
 
+  .material-row[aria-current='page'] i,
+  .material-row[data-route-active='true'] i {
+    color: hsl(var(--glass-primary-hsl));
+  }
+
   .material-row:focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: -2px;
+  }
+
+  .material-segment {
+    color: hsl(var(--glass-surface-hsl) / 0.8);
+  }
+
+  .material-segment:hover {
+    color: hsl(var(--glass-surface-hsl));
+  }
+
+  .material-segment[aria-pressed='true'] {
+    color: hsl(var(--glass-primary-hsl));
+  }
+
+  .material-segment:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+
+  .material-segment-indicator {
+    background: hsl(var(--glass-tint-hsl));
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 1px 3px var(--glass-edge),
+      inset 0 1px 0 var(--glass-highlight);
   }
 
   .header-icon-button {
@@ -231,21 +266,6 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
-    transition: background-color 160ms ease;
-  }
-
-  .header-icon-button:hover {
-    background: hsl(0 0% 100% / 0.14);
-  }
-
-  #site-header.with-background .header-icon-button:hover {
-    background: hsl(var(--glass-surface-hsl) / 0.08);
-  }
-
-  .header-icon-button:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
   }
 
   /* Home hero: stronger tint because it floats over a random wallpaper. */
@@ -285,7 +305,7 @@
     mix-blend-mode: soft-light;
     background: radial-gradient(
       420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
-      hsl(0 0% 100% / 0.28),
+      hsl(0 0% 100% / 0.18),
       transparent 62%
     );
   }
@@ -293,7 +313,7 @@
   .dark .glass-specular {
     background: radial-gradient(
       420px circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
-      hsl(0 0% 100% / 0.16),
+      hsl(0 0% 100% / 0.12),
       transparent 62%
     );
   }
@@ -308,40 +328,30 @@
     background:
       radial-gradient(
         60vmax 50vmax at 12% 8%,
-        hsl(345 100% 88% / 0.55),
+        hsl(345 85% 88% / 0.48),
         transparent 70%
       ),
       radial-gradient(
         55vmax 45vmax at 88% 18%,
-        hsl(200 100% 88% / 0.45),
+        hsl(202 85% 88% / 0.45),
         transparent 70%
       ),
-      radial-gradient(
-        70vmax 60vmax at 50% 110%,
-        hsl(40 100% 92% / 0.5),
-        transparent 70%
-      ),
-      linear-gradient(180deg, #fdfbfb, #ebedee);
+      var(--site-canvas);
   }
 
   .dark .site-ambient {
     background:
       radial-gradient(
         60vmax 50vmax at 12% 8%,
-        hsl(335 60% 28% / 0.35),
+        hsl(335 48% 30% / 0.35),
         transparent 70%
       ),
       radial-gradient(
         55vmax 45vmax at 88% 18%,
-        hsl(195 70% 24% / 0.35),
+        hsl(202 55% 30% / 0.32),
         transparent 70%
       ),
-      radial-gradient(
-        70vmax 60vmax at 50% 110%,
-        hsl(250 40% 18% / 0.4),
-        transparent 70%
-      ),
-      linear-gradient(180deg, #0b1226, #060b17);
+      var(--site-canvas);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -483,6 +493,7 @@ html.theme-transition #site-header .site-header-bg {
   .glass-panel,
   .glass-card,
   .glass-flat,
+  .glass-sidebar,
   .glass-control,
   .glass-overlay,
   .glass-hero,
@@ -502,6 +513,18 @@ html.theme-transition #site-header .site-header-bg {
   .glass-scrim {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+
+  .material-segment[aria-pressed='true'],
+  .material-segment-indicator {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    box-shadow: none;
+  }
+
+  .material-segment[aria-pressed='true']:focus-visible {
+    outline-color: Highlight;
   }
 
   html.glass-refract-supported .glass-refract {
@@ -529,6 +552,8 @@ html.theme-transition #site-header .site-header-bg {
   [data-glass-hero] *,
   .header-icon-button,
   .header-icon-button *,
+  .header-nav-item,
+  .header-surface,
   #site-header,
   #site-header .site-header-bg {
     animation: none !important;

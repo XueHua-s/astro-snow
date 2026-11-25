@@ -16,6 +16,7 @@ type SegmentedProps<T extends string | number = string | number> = {
   indicateClass?: string;
   itemClass?: string;
   id?: string;
+  label?: string;
   value?: T; // 受控
 };
 
@@ -25,6 +26,7 @@ export const Segmented = <T extends string | number = string | number>({
   onChange,
   className,
   id,
+  label: groupLabel,
   indicateClass,
   itemClass,
   value,
@@ -44,34 +46,32 @@ export const Segmented = <T extends string | number = string | number>({
     [onChange, value],
   );
   const currentValue = value ?? uncontrolledValue;
-  const isSelected = useCallback(
-    (selectedValue: T) => currentValue === selectedValue,
-    [currentValue],
-  );
-
   return (
     <div
       id={id}
+      role="group"
+      aria-label={groupLabel}
       className={cn(
-        'glass glass-flat flex w-fit cursor-pointer p-1 text-xs font-semibold select-none',
+        'glass glass-flat flex w-fit gap-0.5 rounded-full p-1 text-xs font-semibold select-none',
         className,
       )}>
       {options.map((option) => {
         if (!option) return null;
         const { label, value, icon } = option;
-        const selected = isSelected(value);
+        const selected = currentValue === value;
         return (
-          <motion.div
+          <motion.button
+            type="button"
+            aria-label={label ?? String(value)}
+            aria-pressed={selected}
             data-segment-value={String(value)}
             className={cn(
-              'flex-center relative cursor-pointer gap-1.5 px-3 py-1 first:rounded-l-xs last:rounded-r-xs',
-              { 'text-primary-foreground': selected },
-              { 'opacity-50': !selected },
+              'material-segment flex-center relative isolate gap-1.5 rounded-full px-3 py-1',
               itemClass,
             )}
             onClick={() => select(value)}
             key={value}
-            layout={shouldReduceMotion ? false : true}
+            layout={!shouldReduceMotion}
             transition={
               shouldReduceMotion
                 ? { duration: 0 }
@@ -111,23 +111,21 @@ export const Segmented = <T extends string | number = string | number>({
 
             {/* 选中背景 */}
             {selected && (
-              <motion.div
+              <motion.span
                 layoutId={`segmented_selected_bg_${id ?? 'default'}`}
                 className={cn(
-                  'bg-gradient-shoka-button absolute inset-0 -z-10 rounded-sm',
+                  'material-segment-indicator absolute inset-0 -z-10 rounded-full',
                   indicateClass,
                 )}
+                aria-hidden="true"
                 transition={
                   shouldReduceMotion
                     ? { duration: 0 }
                     : { type: 'spring', stiffness: 400, damping: 30 }
                 }
-                style={{
-                  willChange: shouldReduceMotion ? 'auto' : 'transform',
-                }}
               />
             )}
-          </motion.div>
+          </motion.button>
         );
       })}
     </div>

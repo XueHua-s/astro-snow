@@ -34,65 +34,106 @@
 }
 
 @layer components {
-  /* Transparent over the cover; a macOS-Golden-Gate-style liquid glass bar
-     fades in once the page is scrolled (.with-background): gradient tint,
-     strong diffusion blur, top specular highlight and darkened bottom edge. */
+  #site-header {
+    --header-hover: hsl(0 0% 100% / 0.14);
+    --header-selected: hsl(0 0% 100% / 0.22);
+    --header-blur: 28px;
+    @apply translate-y-0 text-white transition-transform duration-300;
+    transition-timing-function: ease;
+  }
+
   #site-header .site-header-bg {
     opacity: 0;
-    background: linear-gradient(
-      to bottom,
-      hsl(var(--glass-tint-hsl) / 0.88),
-      hsl(var(--glass-tint-hsl) / 0.82)
-    );
-    border-bottom: 1px solid transparent;
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.65);
-    transition: opacity 0.4s ease;
+    background: hsl(var(--glass-tint-hsl) / 0.76);
+    border-bottom: 1px solid var(--glass-edge);
+    box-shadow: inset 0 1px 0 var(--glass-highlight);
+    transition: opacity 200ms ease;
+  }
+
+  #site-header.with-background .site-header-bg {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(var(--header-blur))
+      saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--header-blur)) saturate(var(--glass-saturate));
+  }
+
+  .dark #site-header .site-header-bg {
+    background: hsl(var(--glass-tint-hsl) / 0.82);
+  }
+
+  #site-header.with-background {
+    --header-hover: hsl(var(--glass-surface-hsl) / 0.08);
+    --header-selected: hsl(var(--glass-surface-hsl) / 0.13);
+    @apply text-foreground;
+  }
+
+  #site-header :is(.header-nav-item, .header-icon-button) {
+    border-radius: 9999px;
+    text-shadow: 0 1px 3px hsl(0 0% 0% / 0.45);
+    transition: background-color 160ms ease;
+  }
+
+  #site-header.with-background :is(.header-nav-item, .header-icon-button) {
+    text-shadow: none;
+  }
+
+  #site-header :is(.header-nav-item, .header-icon-button):hover {
+    background-color: var(--header-hover);
+  }
+
+  #site-header
+    :is(.header-nav-item, .header-icon-button):is(
+      [aria-current='page'],
+      [data-route-active='true'],
+      [aria-expanded='true']
+    ) {
+    background-color: var(--header-selected);
+  }
+
+  #site-header.with-background
+    .header-nav-item:is([aria-current='page'], [data-route-active='true'])
+    .header-route-icon {
+    color: hsl(var(--glass-primary-hsl));
+  }
+
+  #site-header
+    :is(.header-nav-item, .header-icon-button, .header-surface):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  /* FIXED: The toolbar supplies the backdrop once its scroll edge is active. */
+  #site-header.with-background .header-surface {
+    background-color: hsl(var(--glass-tint-hsl) / 0.9);
+    box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  #site-header.with-background .site-header-bg {
-    opacity: 1;
-    border-bottom-color: hsl(220 30% 10% / 0.12);
-    -webkit-backdrop-filter: blur(28px) saturate(140%);
-    backdrop-filter: blur(28px) saturate(140%);
+
+  #site-header.with-background .header-surface:hover {
+    border-color: hsl(var(--glass-surface-hsl) / 0.3);
   }
-  html.dark #site-header .site-header-bg {
-    background: linear-gradient(
-      to bottom,
-      hsl(var(--glass-tint-hsl) / 0.88),
-      hsl(var(--glass-tint-hsl) / 0.82)
-    );
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.2);
-  }
-  html.dark #site-header.with-background .site-header-bg {
-    border-bottom-color: hsl(0 0% 0% / 0.45);
-  }
-  #site-header.with-background {
-    @apply text-foreground;
-  }
-  #site-header.with-background button,
-  #site-header.with-background a {
-    text-shadow: none;
-  }
-  #site-header.with-background button::after,
-  #site-header.with-background a::after {
-    transition-duration: 400ms;
-    @apply bg-foreground;
+
+  @media (forced-colors: active) {
+    #site-header
+      :is(.header-nav-item, .header-icon-button):is(
+        [aria-current='page'],
+        [data-route-active='true'],
+        [aria-expanded='true']
+      ) {
+      outline: 1px solid Highlight;
+    }
   }
 
   @supports (padding: max(0px)) {
     #site-header {
-      transition:
-        border-color 0.6s ease-in-out,
-        color 0.6s ease-in-out;
       padding-top: calc(env(safe-area-inset-top) + 0.5rem);
     }
   }
 
   @media (max-width: 768px) {
-    #site-header.with-background .site-header-bg {
-      -webkit-backdrop-filter: blur(20px) saturate(140%);
-      backdrop-filter: blur(20px) saturate(140%);
+    #site-header {
+      --header-blur: 20px;
     }
   }
 }

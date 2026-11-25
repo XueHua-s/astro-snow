@@ -106,7 +106,7 @@
 }
 
 /* 5. 激活状态:编号也变为主题色 */
-.heading-link.text-primary::before {
+.heading-link[aria-current='location']::before {
   color: hsl(var(--primary));
 }
 

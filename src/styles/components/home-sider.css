@@ -1,3 +1,9 @@
+.desktop-sidebar {
+  /* FIXED: Keep the sidebar controls below the fixed desktop toolbar. */
+  top: calc(env(safe-area-inset-top) + 4.75rem);
+  height: calc(100dvh - env(safe-area-inset-top) - 5.5rem);
+}
+
 .sider-slot {
   position: absolute;
   top: auto;

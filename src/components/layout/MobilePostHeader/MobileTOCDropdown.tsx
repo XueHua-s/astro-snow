@@ -15,7 +15,7 @@ import {
 } from '@floating-ui/react';
 import { useControlledState } from '@hooks/useControlledState';
 import { useFloatingUI } from '@hooks/useFloatingUI';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, type ReactElement } from 'react';
 import { animation } from '@constants/design-tokens';
 import { HeadingList } from '../TableOfContents/HeadingList';
@@ -51,6 +51,7 @@ export function MobileTOCDropdown({
   onOpenChange,
   enableNumbering = true,
 }: MobileTOCDropdownProps) {
+  const shouldReduceMotion = useReducedMotion();
   const [isOpen, setIsOpen] = useControlledState({
     value: passedOpen,
     defaultValue: false,
@@ -122,11 +123,15 @@ export function MobileTOCDropdown({
                   left: '50%',
                   marginLeft: '-9rem',
                 }}
-                className="glass glass-control z-[90] max-h-[60vh] w-72 overflow-auto p-3"
-                initial={{ opacity: 0, scale: 0.85 }}
+                className="glass glass-control glass-menu z-[90] max-h-[60dvh] w-72 overflow-auto p-2"
+                initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
                 animate={{ opacity: 1, scale: 1, originY: 0 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={animation.spring.popoverContent}
+                exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0 }
+                    : animation.spring.popoverContent
+                }
                 {...floatingProps}>
                 <nav
                   className={enableNumbering ? '' : 'toc-no-numbering'}

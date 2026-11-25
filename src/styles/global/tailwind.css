@@ -90,20 +90,6 @@
   .shoka-button-shadow:hover {
     box-shadow: 0 0 0.75rem var(--color-pink);
   }
-  #site-header {
-    @apply translate-y-0 text-white transition-transform duration-300;
-    button,
-    a {
-      @apply shadow-text;
-      &::after {
-        transition-duration: 400ms;
-        @apply bg-white;
-      }
-    }
-    .nav-dropdown a {
-      text-shadow: none;
-    }
-  }
   .clip-path-post-img-left {
     clip-path: polygon(0 0, 92% 0%, 100% 100%, 0% 100%);
   }
