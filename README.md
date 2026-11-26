@@ -1,3 +1,5 @@
+
+
 # snow-koharu
 
 “snow” 风格的 Astro 博客主题。
@@ -22,7 +24,7 @@
 - 移除了svg图标使用 @fortawesome/fontawesome-fre 字体图标库
 - 删除了周刊功能
 - 调整了部分项目架构布局。ai摘要数据位置从 src/assets/summaries.json 改为 src/cache/summaries.json
-- 增加了随机背景图生成方法, `srouce/img/backgrounds` 放置二次元图床(仅支持webp格式)
+- 增加了随机背景图生成方法, `source/img/backgrounds` 放置二次元图床(仅支持webp格式)
 - 调整md文章为自动生成，根据文章的 `date` 字段排序生成目标文章html页路径。如`https://host/post/number`
 - 移除了二级分类 & 精选分类
 - 精选分类位置 更换为生成。修改为构建时根据`source/posts/**.md`的 `categories` 字段进行分类
